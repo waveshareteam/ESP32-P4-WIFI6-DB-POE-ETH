@@ -28,7 +28,7 @@ mapping and API details summarized below.
 | Item | Detail |
 | --- | --- |
 | Main processor | ESP32-P4, dual-core RISC-V HP core + low-power core |
-| Flash | 16 MB (QIO) |
+| Flash | 32 MB (QIO) |
 | PSRAM | On-chip PSRAM, 200 MHz |
 | Wireless | ESP32-C5 (Wi-Fi 6 + Bluetooth LE) over 4-bit SDIO, via `esp_hosted` / `esp_wifi_remote` |
 | Ethernet | RMII MAC/PHY (generic IEEE 802.3 PHY driver), PoE-capable |

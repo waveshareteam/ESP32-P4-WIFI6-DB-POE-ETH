@@ -25,7 +25,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 主处理器 | ESP32-P4，双核 RISC-V HP 系统加低功耗核 |
-| Flash | 16 MB（QIO） |
+| Flash | 32 MB（QIO） |
 | PSRAM | 片上 PSRAM，200 MHz |
 | 无线 | ESP32-C5（Wi-Fi 6 + Bluetooth LE），通过 4-bit SDIO 连接，经 `esp_hosted` / `esp_wifi_remote` 使用 |
 | 以太网 | RMII MAC/PHY（通用 IEEE 802.3 PHY 驱动），支持 PoE 供电 |
