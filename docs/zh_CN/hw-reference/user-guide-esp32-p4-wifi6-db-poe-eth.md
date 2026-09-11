@@ -72,6 +72,9 @@ ESP32-P4-WIFI6-DB-POE-ETH 是一款以 ESP32-P4 为主处理器（双核高性�
 \* GPIO45 同时是 microSD 电源使能引脚；GPIO53 同时是音频功放使能引脚。对应外设工作期间，
 请勿单独驱动这两个引脚。
 
+GPIO6 同样引到了扩展排针上，但未纳入 `bsp_get_header_gpios()` 的软件枚举；该引脚同时是
+ESP32-C5 的唤醒引脚，用作普通 GPIO 前请确认不会影响 ESP32-C5 的唤醒时序。
+
 <!-- 图片占位：docs/_static/esp32-p4-wifi6-db-poe-eth-pinout.png（完整引脚图） -->
 
 ## GPIO 完整分配
@@ -88,7 +91,7 @@ ESP32-P4-WIFI6-DB-POE-ETH 是一款以 ESP32-P4 为主处理器（双核高性�
 | GPIO3 | GPIO3 | 扩展排针 | `bsp_get_header_gpios()` |
 | GPIO4 | GPIO4 | 扩展排针 | `bsp_get_header_gpios()` |
 | GPIO5 | GPIO5 | 扩展排针 | `bsp_get_header_gpios()` |
-| GPIO6 | GPIO6 | BSP 未使用 | — |
+| GPIO6 | GPIO6 | ESP32-C5 唤醒 / 扩展排针 | 用于唤醒 ESP32-C5；未纳入 `bsp_get_header_gpios()` 软件枚举 |
 | GPIO7 | I2C SDA | ES8311、GT911、LCD 背光控制器、摄像头 SCCB | 共享 I2C 数据线；未纳入扩展排针 GPIO 数组 |
 | GPIO8 | I2C SCL | ES8311、GT911、LCD 背光控制器、摄像头 SCCB | 共享 I2C 时钟线；未纳入扩展排针 GPIO 数组 |
 | GPIO9 | I2S DOUT | ES8311 DSDIN | 音频播放数据，ESP32-P4 → codec |
@@ -119,8 +122,8 @@ ESP32-P4-WIFI6-DB-POE-ETH 是一款以 ESP32-P4 为主处理器（双核高性�
 | GPIO34 | RMII TXD0 | 以太网 PHY | 发送数据位 0，ESP32-P4 → PHY（输出） |
 | GPIO35 | RMII TXD1 | 以太网 PHY | 发送数据位 1，ESP32-P4 → PHY（输出）；ESP32-P4 strapping 引脚，见"使用注意" |
 | GPIO36 | GPIO36 | 扩展排针 | `bsp_get_header_gpios()`；ESP32-P4 strapping 引脚，见"使用注意" |
-| GPIO37 | GPIO37 | BSP 未使用 | — |
-| GPIO38 | GPIO38 | BSP 未使用 | — |
+| GPIO37 | UART0_TXD | 下载/调试串口 | 用于烧录和串口监视器；不建议作为普通 GPIO 使用 |
+| GPIO38 | UART0_RXD | 下载/调试串口 | 用于烧录和串口监视器；不建议作为普通 GPIO 使用 |
 | GPIO39 | SD_D0 | microSD 卡 | SDMMC 4-bit 数据线 |
 | GPIO40 | SD_D1 | microSD 卡 | SDMMC 4-bit 数据线 |
 | GPIO41 | SD_D2 | microSD 卡 | SDMMC 4-bit 数据线 |
@@ -142,8 +145,10 @@ ESP32-P4-WIFI6-DB-POE-ETH 是一款以 ESP32-P4 为主处理器（双核高性�
 
 - GPIO7/GPIO8 为板载共享 I2C 总线，接入 ES8311、GT911、LCD 背光控制器和摄像头 SCCB 接口，
   外接其他 I2C 设备时需确认地址不冲突。
-- GPIO45 控制 microSD 电源，GPIO53 控制音频功放，GPIO54 用于复位 ESP32-C5；对应外设工作时
-  不建议单独驱动这些引脚。
+- GPIO45 控制 microSD 电源，GPIO53 控制音频功放，GPIO54 用于复位 ESP32-C5，GPIO6 用于唤醒
+  ESP32-C5；对应外设工作时不建议单独驱动这些引脚。
+- GPIO37/GPIO38 是 UART0 下载串口（TXD/RXD），用于烧录固件和串口监视器，不建议作为普通
+  GPIO 使用。
 - GPIO28～GPIO31、GPIO34～GPIO35、GPIO49～GPIO52 用于以太网 RMII/SMI 信号和 PHY 复位，
   不建议作为普通 GPIO 使用。
 - GPIO34～GPIO37 是 ESP32-P4 芯片级的 strapping 引脚；本板 GPIO34/GPIO35 已用于以太网

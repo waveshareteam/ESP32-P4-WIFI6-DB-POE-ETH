@@ -83,6 +83,11 @@ Two of these pins are shared with onboard peripherals — see Usage Notes.
 power-amplifier enable pin. Do not drive them independently while the
 corresponding peripheral is active.
 
+GPIO6 is also routed to the expansion header but is not part of the
+`bsp_get_header_gpios()` software enumeration; it also wakes the ESP32-C5.
+Confirm it will not disturb the ESP32-C5 wake timing before using it as a
+plain GPIO.
+
 <!-- image placeholder: docs/_static/esp32-p4-wifi6-db-poe-eth-pinout.png (full pinout diagram) -->
 
 ## Full GPIO Allocation
@@ -100,7 +105,7 @@ verified in this repository — refer to the hardware schematic once available.
 | GPIO3 | GPIO3 | Expansion header | `bsp_get_header_gpios()` |
 | GPIO4 | GPIO4 | Expansion header | `bsp_get_header_gpios()` |
 | GPIO5 | GPIO5 | Expansion header | `bsp_get_header_gpios()` |
-| GPIO6 | GPIO6 | Not used by BSP | — |
+| GPIO6 | GPIO6 | ESP32-C5 wake / expansion header | Wakes the ESP32-C5; not part of the `bsp_get_header_gpios()` software enumeration |
 | GPIO7 | I2C SDA | ES8311, GT911, LCD backlight controller, camera SCCB | Shared I2C data line; not in the header GPIO array |
 | GPIO8 | I2C SCL | ES8311, GT911, LCD backlight controller, camera SCCB | Shared I2C clock line; not in the header GPIO array |
 | GPIO9 | I2S DOUT | ES8311 DSDIN | Audio playback data, ESP32-P4 -> codec |
@@ -131,8 +136,8 @@ verified in this repository — refer to the hardware schematic once available.
 | GPIO34 | RMII TXD0 | Ethernet PHY | Transmit data bit 0, ESP32-P4 -> PHY (output) |
 | GPIO35 | RMII TXD1 | Ethernet PHY | Transmit data bit 1, ESP32-P4 -> PHY (output); ESP32-P4 strapping pin, see Usage Notes |
 | GPIO36 | GPIO36 | Expansion header | `bsp_get_header_gpios()`; ESP32-P4 strapping pin, see Usage Notes |
-| GPIO37 | GPIO37 | Not used by BSP | — |
-| GPIO38 | GPIO38 | Not used by BSP | — |
+| GPIO37 | UART0_TXD | Download/debug UART | Used for flashing and the serial monitor; avoid using as a plain GPIO |
+| GPIO38 | UART0_RXD | Download/debug UART | Used for flashing and the serial monitor; avoid using as a plain GPIO |
 | GPIO39 | SD D0 | microSD card | SDMMC 4-bit data line |
 | GPIO40 | SD D1 | microSD card | SDMMC 4-bit data line |
 | GPIO41 | SD D2 | microSD card | SDMMC 4-bit data line |
@@ -155,9 +160,11 @@ verified in this repository — refer to the hardware schematic once available.
 - GPIO7/GPIO8 form the shared I2C bus for ES8311, GT911, the LCD backlight
   controller, and the camera SCCB interface. Check for address conflicts
   before adding another I2C device.
-- GPIO45 controls microSD power and GPIO53 controls the audio power
-  amplifier; GPIO54 resets the ESP32-C5. Avoid driving these independently
-  while the corresponding peripheral is active.
+- GPIO45 controls microSD power, GPIO53 controls the audio power amplifier,
+  GPIO54 resets the ESP32-C5, and GPIO6 wakes the ESP32-C5. Avoid driving
+  these independently while the corresponding peripheral is active.
+- GPIO37/GPIO38 are the UART0 download port (TXD/RXD), used for flashing
+  firmware and the serial monitor; avoid using them as plain GPIO.
 - GPIO28–GPIO31, GPIO34–GPIO35, and GPIO49–GPIO52 are used for Ethernet
   RMII/SMI signaling and PHY reset; avoid repurposing them as plain GPIO.
 - GPIO34–GPIO37 are ESP32-P4 strapping pins at the SoC level. GPIO34/GPIO35
