@@ -1,0 +1,10 @@
+version: 0.2.0
+targets:
+- esp32p4
+dependencies:
+  idf: '>=5.3'
+  espressif/tinyusb: '*'
+  esp32_p4_wifi6_db_poe_eth:
+    override_path: "../../../../firmware/esp32_p4_wifi6_db_poe_eth"
+    rules:
+    - if: target in [esp32p4]

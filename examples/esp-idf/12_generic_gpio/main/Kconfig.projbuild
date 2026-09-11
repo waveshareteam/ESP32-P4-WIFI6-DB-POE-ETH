@@ -1,0 +1,31 @@
+menu "GPIO Monitor Example"
+
+    choice GPIO_MONITOR_DEFAULT_MODE
+        prompt "Default GPIO mode"
+        default GPIO_MONITOR_DEFAULT_MODE_INPUT
+        help
+            Select the initial GPIO mode for the monitor.
+
+        config GPIO_MONITOR_DEFAULT_MODE_INPUT
+            bool "Input"
+        config GPIO_MONITOR_DEFAULT_MODE_OUTPUT
+            bool "Output"
+    endchoice
+
+    choice GPIO_MONITOR_PULL_MODE
+        prompt "GPIO pull resistor mode"
+        default GPIO_MONITOR_PULL_DOWN
+        help
+            Select the internal pull resistor configuration for all monitored GPIOs.
+
+        config GPIO_MONITOR_PULL_DOWN
+            bool "Pull-down only"
+        config GPIO_MONITOR_PULL_UP
+            bool "Pull-up only"
+        config GPIO_MONITOR_PULL_UP_DOWN
+            bool "Both pull-up and pull-down"
+        config GPIO_MONITOR_FLOATING
+            bool "Floating (no pull)"
+    endchoice
+
+endmenu
