@@ -10,15 +10,21 @@
 
 本仓库包含：
 
-- 一个可直接使用的 BSP 组件（`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`），提供显示、
-  触摸、音频、SD 卡、以太网和扩展排针相关的 `bsp_*` API。
+- 一个可直接使用的 BSP 组件（`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`），提供
+  显示、触摸、音频、SD 卡、以太网和扩展排针相关的 `bsp_*` API。
+- 一份针对同一块板卡的
+  [ESP Board Manager](https://github.com/espressif/esp-board-manager) 板卡定义
+  （`components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth`），通过
+  `idf.py bmgr -b esp32_p4_wifi6_db_poe_eth` 选定。
 - 一组 ESP-IDF 示例（`examples/esp-idf/`），逐一验证板上各外设，从最基础的开发板
   检查到 LVGL、摄像头和 USB 演示。
 
 完整的引脚映射和 API 说明请参阅 BSP 的
 [README](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md) /
 [README (English)](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md) 以及
-[API 参考](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md)，下表为摘要。
+[API 参考](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md)，下表为摘要；
+BSP 与 Board Manager 两种方式的关系见
+[components/README_zh.md](components/README_zh.md)。
 
 ## 🖥️ 硬件概况
 
@@ -48,8 +54,9 @@
 | 路径 | 用途 |
 | --- | --- |
 | `examples/esp-idf/` | 本开发板的 ESP-IDF 外设示例 |
-| `examples/Arduino/` | 预留给后续 Arduino 示例 |
+| `examples/Arduino/` | Arduino-ESP32 示例及本地板卡定义（`examples/Arduino/esp32/`） |
 | `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
+| `components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth/` | 同一板卡的 ESP Board Manager 板卡定义 |
 | `hardware/` | 预留给硬件文档（目前为空） |
 | `asserts/` | 预留给文档使用的图片（目前为空） |
 
@@ -84,6 +91,7 @@ idf.py -p PORT flash monitor
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | 通过 `esp_video` 和 PPA 将 MIPI-CSI 摄像头画面显示到 LCD |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB 扩展屏示例 |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
+| [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
 
 ## 📡 以太网与 Wi-Fi
 

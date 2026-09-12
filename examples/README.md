@@ -33,6 +33,9 @@ Ethernet, SD card, audio codec, USB, and MIPI-CSI camera.
    wired networking.
 6. `10_mipi_csi`, `11_usb_extend_screen`: use once the matching camera or USB
    hardware path is connected.
+7. `13_board_manager`: the ESP Board Manager route (`components/waveshare_bmgr`)
+   instead of the BSP; an interactive console that initializes the board and
+   runs functional test cases for every declared device.
 
 ### ESP-IDF index
 
@@ -51,6 +54,7 @@ Ethernet, SD card, audio codec, USB, and MIPI-CSI camera.
 | [10_mipi_csi](esp-idf/10_mipi_csi/) | MIPI-CSI camera feed on LCD | Requires a camera module and a MIPI-DSI panel |
 | [11_usb_extend_screen](esp-idf/11_usb_extend_screen/) | USB extended display | Windows-side driver required |
 | [12_generic_gpio](esp-idf/12_generic_gpio/) | Expansion-header GPIO monitor (LVGL) | Requires a MIPI-DSI panel with GT911 touch |
+| [13_board_manager](esp-idf/13_board_manager/) | ESP Board Manager bring-up console and test cases | Uses `components/waveshare_bmgr`, needs `esp-bmgr-assist` and `idf.py bmgr` before building; individual cases need the matching panel / card / cable |
 
 ## Arduino examples
 
