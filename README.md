@@ -11,16 +11,16 @@ a selectable MIPI-DSI touch panel, and a MIPI-CSI camera interface.
 
 This repository provides:
 
-- A ready-to-use BSP component (`components/esp32_p4_wifi6_db_poe_eth`) exposing
+- A ready-to-use BSP component (`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`) exposing
   `bsp_*` APIs for display, touch, audio, SD card, Ethernet, and the expansion
   header.
 - A set of ESP-IDF examples (`examples/esp-idf/`) that exercise each on-board
   peripheral individually, from a minimal board check up to LVGL, camera, and
   USB demos.
 
-See the BSP [README](components/esp32_p4_wifi6_db_poe_eth/README.md) /
-[README (中文)](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) and
-[API reference](components/esp32_p4_wifi6_db_poe_eth/API.md) for the full pin
+See the BSP [README](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md) /
+[README (中文)](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md) and
+[API reference](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md) for the full pin
 mapping and API details summarized below.
 
 ## 🖥️ Hardware Overview
@@ -44,7 +44,7 @@ mapping and API details summarized below.
 > **Note**
 > The BSP does not configure an external RTC or a dedicated LCD reset GPIO; the
 > LCD backlight is controlled over the shared I2C bus instead of a GPIO. See
-> [components/esp32_p4_wifi6_db_poe_eth/README.md](components/esp32_p4_wifi6_db_poe_eth/README.md)
+> [components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md)
 > for the complete pin assignment.
 
 ## 🗂️ Repository Layout
@@ -53,7 +53,7 @@ mapping and API details summarized below.
 | --- | --- |
 | `examples/esp-idf/` | ESP-IDF peripheral examples for this board |
 | `examples/Arduino/` | Reserved for future Arduino examples |
-| `components/esp32_p4_wifi6_db_poe_eth/` | Board support package (BSP) component source, README, and API reference |
+| `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | Board support package (BSP) component source, README, and API reference |
 | `hardware/` | Reserved for hardware documentation (currently empty) |
 | `asserts/` | Reserved for images used in documentation (currently empty) |
 
@@ -95,7 +95,7 @@ table below.
 - Ethernet uses the internal EMAC with a generic IEEE 802.3 PHY driver
   (MDC/MDIO/PHY reset on GPIO31/52/51). The BSP only installs the driver; the
   application owns the netif, event loop, and DHCP/static addressing — see
-  [Ethernet lifecycle](components/esp32_p4_wifi6_db_poe_eth/README.md#ethernet-lifecycle).
+  [Ethernet lifecycle](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md#ethernet-lifecycle).
 - Wi-Fi and Bluetooth LE are provided by the ESP32-C5 coprocessor over 4-bit
   SDIO (slot 1), through the application's `esp_hosted` / `esp_wifi_remote`
   components, as demonstrated in

@@ -13,7 +13,7 @@ and a MIPI-CSI camera interface.
 > **Note**
 >
 > This page is generated from the board support package (BSP) source in
-> [`components/esp32_p4_wifi6_db_poe_eth`](../../../../components/esp32_p4_wifi6_db_poe_eth/).
+> [`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`](../../../../components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/).
 > It reflects what the BSP configures and drives. Mechanical details not
 > exposed by software (connector types, silkscreen labels, indicator LEDs,
 > board dimensions, exact PHY/PMIC part numbers) are not yet verified against
@@ -94,7 +94,7 @@ plain GPIO.
 
 The table below lists every GPIO (0–54) and what the BSP source configures it
 for. "Not used by BSP" means the pin is not referenced anywhere in
-`components/esp32_p4_wifi6_db_poe_eth`; its physical routing (if any) is not
+`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`; its physical routing (if any) is not
 verified in this repository — refer to the hardware schematic once available.
 
 | GPIO | Signal | Connected To | Notes |

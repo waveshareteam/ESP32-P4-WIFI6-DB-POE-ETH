@@ -15,7 +15,7 @@ Intermediate.
 - One BSP-supported MIPI-DSI panel connected to the display interface. Select
   the matching 5, 7, 8, or 10.1-inch panel in `menuconfig`.
 
-This example uses the local `esp32_p4_wifi6_db` BSP component. It is a good
+This example uses the local `esp32_p4_wifi6_db_poe_eth` BSP component. It is a good
 first display test for this board because the application does
 not create an LVGL UI; it only initializes the panel and asks the DPI panel
 driver to generate a hardware vertical color-bar pattern.
