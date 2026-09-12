@@ -11,7 +11,7 @@ ESP32-P4-WIFI6-DB-POE-ETH 是一款以 ESP32-P4 为主处理器（双核高性�
 > **说明**
 >
 > 本页内容整理自板级支持包（BSP）源码
-> [`components/esp32_p4_wifi6_db_poe_eth`](../../../../components/esp32_p4_wifi6_db_poe_eth/)，
+> [`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`](../../../../components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/)，
 > 反映的是 BSP 实际配置和驱动的内容。软件未涉及的机械/外观信息（接口具体型号、丝印标注、
 > 指示灯、板卡尺寸、PHY/电源芯片具体型号等）在本仓库中尚未有原理图可核实，下文以占位形式保留。
 
@@ -80,7 +80,7 @@ ESP32-C5 的唤醒引脚，用作普通 GPIO 前请确认不会影响 ESP32-C5 �
 ## GPIO 完整分配
 
 下表列出全部 GPIO（0～54）及 BSP 源码中的配置情况。"BSP 未使用" 表示该引脚未在
-`components/esp32_p4_wifi6_db_poe_eth` 中被引用，其物理走线（如有）在本仓库中尚未核实，
+`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth` 中被引用，其物理走线（如有）在本仓库中尚未核实，
 请以后续补充的硬件原理图为准。
 
 | GPIO | 信号名 | 连接到 | 备注 |

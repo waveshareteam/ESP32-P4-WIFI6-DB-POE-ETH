@@ -10,15 +10,15 @@
 
 本仓库包含：
 
-- 一个可直接使用的 BSP 组件（`components/esp32_p4_wifi6_db_poe_eth`），提供显示、
+- 一个可直接使用的 BSP 组件（`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`），提供显示、
   触摸、音频、SD 卡、以太网和扩展排针相关的 `bsp_*` API。
 - 一组 ESP-IDF 示例（`examples/esp-idf/`），逐一验证板上各外设，从最基础的开发板
   检查到 LVGL、摄像头和 USB 演示。
 
 完整的引脚映射和 API 说明请参阅 BSP 的
-[README](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) /
-[README (English)](components/esp32_p4_wifi6_db_poe_eth/README.md) 以及
-[API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)，下表为摘要。
+[README](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md) /
+[README (English)](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md) 以及
+[API 参考](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md)，下表为摘要。
 
 ## 🖥️ 硬件概况
 
@@ -41,7 +41,7 @@
 > **说明**
 > BSP 未配置外部 RTC，也没有专用的 LCD reset GPIO；LCD 背光通过共享 I2C 总线控制，
 > 而非独立 GPIO。完整引脚分配请见
-> [components/esp32_p4_wifi6_db_poe_eth/README_zh.md](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)。
+> [components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md)。
 
 ## 🗂️ 仓库结构
 
@@ -49,7 +49,7 @@
 | --- | --- |
 | `examples/esp-idf/` | 本开发板的 ESP-IDF 外设示例 |
 | `examples/Arduino/` | 预留给后续 Arduino 示例 |
-| `components/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
+| `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
 | `hardware/` | 预留给硬件文档（目前为空） |
 | `asserts/` | 预留给文档使用的图片（目前为空） |
 
@@ -89,7 +89,7 @@ idf.py -p PORT flash monitor
 
 - 以太网使用内部 EMAC 配合通用 IEEE 802.3 PHY 驱动（MDC/MDIO/PHY reset 分别为
   GPIO31/52/51）。BSP 只安装驱动，netif、事件循环以及 DHCP/静态地址均由应用管理，
-  详见 [以太网生命周期](components/esp32_p4_wifi6_db_poe_eth/README_zh.md#接入应用)。
+  详见 [以太网生命周期](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md#接入应用)。
 - Wi-Fi 与 Bluetooth LE 由 ESP32-C5 协处理器通过 4-bit SDIO（slot 1）提供，经应用的
   `esp_hosted` / `esp_wifi_remote` 组件使用，可参考
   [03_wifistation](examples/esp-idf/03_wifistation/) 和
