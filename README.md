@@ -11,17 +11,22 @@ a selectable MIPI-DSI touch panel, and a MIPI-CSI camera interface.
 
 This repository provides:
 
-- A ready-to-use BSP component (`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`) exposing
-  `bsp_*` APIs for display, touch, audio, SD card, Ethernet, and the expansion
-  header.
+- A ready-to-use BSP component (`components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth`)
+  exposing `bsp_*` APIs for display, touch, audio, SD card, Ethernet, and the
+  expansion header.
+- An [ESP Board Manager](https://github.com/espressif/esp-board-manager) board
+  definition (`components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth`) for the same board,
+  selected with `idf.py bmgr -b esp32_p4_wifi6_db_poe_eth`.
 - A set of ESP-IDF examples (`examples/esp-idf/`) that exercise each on-board
   peripheral individually, from a minimal board check up to LVGL, camera, and
   USB demos.
 
 See the BSP [README](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README.md) /
 [README (中文)](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/README_zh.md) and
-[API reference](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md) for the full pin
-mapping and API details summarized below.
+[API reference](components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/API.md) for the full
+pin mapping and API details summarized below, and
+[components/README.md](components/README.md) for how the BSP and Board
+Manager variants relate to each other.
 
 ## 🖥️ Hardware Overview
 
@@ -52,8 +57,9 @@ mapping and API details summarized below.
 | Path | Purpose |
 | --- | --- |
 | `examples/esp-idf/` | ESP-IDF peripheral examples for this board |
-| `examples/Arduino/` | Reserved for future Arduino examples |
+| `examples/Arduino/` | Arduino-ESP32 examples and the local board definition (`examples/Arduino/esp32/`) |
 | `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | Board support package (BSP) component source, README, and API reference |
+| `components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth/` | ESP Board Manager board definition for the same board |
 | `hardware/` | Reserved for hardware documentation (currently empty) |
 | `asserts/` | Reserved for images used in documentation (currently empty) |
 
@@ -89,6 +95,7 @@ table below.
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | MIPI-CSI camera feed displayed on the LCD via `esp_video` and PPA |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid showing live level / toggling of expansion-header GPIOs |
+| [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for bringing up the board through ESP Board Manager and running functional test cases (LCD, touch, audio, camera, SD card, Ethernet, GPIO, ...) |
 
 ## 📡 Ethernet and Wi-Fi
 

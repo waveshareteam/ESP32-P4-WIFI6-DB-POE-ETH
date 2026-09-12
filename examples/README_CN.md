@@ -31,6 +31,9 @@ USB 以及 MIPI-CSI 摄像头组织。
 5. `03_wifistation`、`06_eth2ap`、`07_ethernet_basic`：验证无线和有线网络。
 6. `10_mipi_csi`、`11_usb_extend_screen`：在连接好对应摄像头或 USB 硬件后
    使用。
+7. `13_board_manager`：不走 BSP，而是通过 ESP Board Manager
+   （`components/waveshare_bmgr`）初始化开发板的交互式控制台，可对声明的每个设备
+   运行功能测试用例。
 
 ### ESP-IDF 示例索引
 
@@ -49,6 +52,7 @@ USB 以及 MIPI-CSI 摄像头组织。
 | [10_mipi_csi](esp-idf/10_mipi_csi/) | MIPI-CSI 摄像头画面显示到 LCD | 需要摄像头模块和 MIPI-DSI 屏幕 |
 | [11_usb_extend_screen](esp-idf/11_usb_extend_screen/) | USB 扩展屏 | 需要 Windows 端驱动 |
 | [12_generic_gpio](esp-idf/12_generic_gpio/) | 扩展排针 GPIO 监视器（LVGL） | 需要带 GT911 触摸的 MIPI-DSI 屏幕 |
+| [13_board_manager](esp-idf/13_board_manager/) | ESP Board Manager bring-up 控制台与测试用例 | 使用 `components/waveshare_bmgr`，编译前需安装 `esp-bmgr-assist` 并执行 `idf.py bmgr`；各用例需要对应的屏幕 / 卡 / 网线 |
 
 ## Arduino 示例
 
