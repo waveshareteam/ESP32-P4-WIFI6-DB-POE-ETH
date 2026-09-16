@@ -93,6 +93,7 @@ idf.py -p PORT flash monitor
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
+| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4 ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
 
 ## 📡 以太网与 Wi-Fi
 
@@ -102,7 +103,8 @@ idf.py -p PORT flash monitor
 - Wi-Fi 与 Bluetooth LE 由 ESP32-C5 协处理器通过 4-bit SDIO（slot 1）提供，经应用的
   `esp_hosted` / `esp_wifi_remote` 组件使用，可参考
   [03_wifistation](examples/esp-idf/03_wifistation/) 和
-  [06_eth2ap](examples/esp-idf/06_eth2ap/)。BSP 本身不建立第二套 Wi-Fi 传输实例。
+  [06_eth2ap](examples/esp-idf/06_eth2ap/)。Wi-Fi 吞吐测试请参见
+  [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/)。
 
 ## 📄 许可证
 

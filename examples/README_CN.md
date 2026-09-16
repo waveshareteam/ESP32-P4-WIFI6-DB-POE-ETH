@@ -28,8 +28,7 @@ USB 以及 MIPI-CSI 摄像头组织。
    了解基本的外设/运行时用法。
 3. `02_sdmmc`、`04_i2s_es8311`：验证存储和音频。
 4. `08_mipi_dsi`、`09_lvgl`、`12_generic_gpio`：验证显示和触摸。
-5. `03_wifistation`、`06_eth2ap`、`07_ethernet_basic`：验证无线和有线网络；随后使用
-   `14_ethernet_iperf` 测量以太网吞吐。
+5. `03_wifistation`、`06_eth2ap`、`07_ethernet_basic`：验证无线和有线网络。
 6. `10_mipi_csi`、`11_usb_extend_screen`：在连接好对应摄像头或 USB 硬件后
    使用。
 7. `13_board_manager`：不走 BSP，而是通过 ESP Board Manager
@@ -55,6 +54,7 @@ USB 以及 MIPI-CSI 摄像头组织。
 | [12_generic_gpio](esp-idf/12_generic_gpio/) | 扩展排针 GPIO 监视器（LVGL） | 需要带 GT911 触摸的 MIPI-DSI 屏幕 |
 | [13_board_manager](esp-idf/13_board_manager/) | ESP Board Manager bring-up 控制台与测试用例 | 使用 `components/waveshare_bmgr`，编译前需安装 `esp-bmgr-assist` 并执行 `idf.py bmgr`；各用例需要对应的屏幕 / 卡 / 网线 |
 | [14_ethernet_iperf](esp-idf/14_ethernet_iperf/) | 以太网 TCP/UDP 吞吐测试 | 需要以太网线、DHCP 网络和运行 iPerf 2.x 的 PC |
+| [15_wifi_iperf](esp-idf/15_wifi_iperf/) | 通过 ESP-Hosted 测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐 | 需要板载 ESP32-C5、AP、两个串口，以及运行 iPerf 2.x 的 PC |
 
 ## Arduino 示例
 

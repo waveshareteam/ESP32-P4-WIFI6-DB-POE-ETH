@@ -97,6 +97,7 @@ table below.
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid showing live level / toggling of expansion-header GPIOs |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for bringing up the board through ESP Board Manager and running functional test cases (LCD, touch, audio, camera, SD card, Ethernet, GPIO, ...) |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test using an iPerf 2.x PC peer |
+| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test through the ESP32-P4 ESP-Hosted SDIO link, using an iPerf 2.x PC peer |
 
 ## 📡 Ethernet and Wi-Fi
 
@@ -108,8 +109,8 @@ table below.
   SDIO (slot 1), through the application's `esp_hosted` / `esp_wifi_remote`
   components, as demonstrated in
   [03_wifistation](examples/esp-idf/03_wifistation/) and
-  [06_eth2ap](examples/esp-idf/06_eth2ap/). The BSP does not create a second
-  Wi-Fi transport.
+  [06_eth2ap](examples/esp-idf/06_eth2ap/). For Wi-Fi throughput testing, see
+  [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/).
 
 ## 📄 License
 

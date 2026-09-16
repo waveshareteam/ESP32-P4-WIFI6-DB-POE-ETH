@@ -30,7 +30,7 @@ Ethernet, SD card, audio codec, USB, and MIPI-CSI camera.
 3. `02_sdmmc`, `04_i2s_es8311`: bring up storage and audio.
 4. `08_mipi_dsi`, `09_lvgl`, `12_generic_gpio`: bring up display and touch.
 5. `03_wifistation`, `06_eth2ap`, `07_ethernet_basic`: bring up wireless and
-   wired networking. Then use `14_ethernet_iperf` to measure Ethernet throughput.
+   wired networking.
 6. `10_mipi_csi`, `11_usb_extend_screen`: use once the matching camera or USB
    hardware path is connected.
 7. `13_board_manager`: the ESP Board Manager route (`components/waveshare_bmgr`)
@@ -56,6 +56,7 @@ Ethernet, SD card, audio codec, USB, and MIPI-CSI camera.
 | [12_generic_gpio](esp-idf/12_generic_gpio/) | Expansion-header GPIO monitor (LVGL) | Requires a MIPI-DSI panel with GT911 touch |
 | [13_board_manager](esp-idf/13_board_manager/) | ESP Board Manager bring-up console and test cases | Uses `components/waveshare_bmgr`, needs `esp-bmgr-assist` and `idf.py bmgr` before building; individual cases need the matching panel / card / cable |
 | [14_ethernet_iperf](esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test | Requires an Ethernet cable, a DHCP network, and a PC running iPerf 2.x |
+| [15_wifi_iperf](esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test through ESP-Hosted | Requires the onboard ESP32-C5, an AP, two serial ports, and a PC running iPerf 2.x |
 
 ## Arduino examples
 
