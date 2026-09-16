@@ -96,6 +96,7 @@ table below.
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid showing live level / toggling of expansion-header GPIOs |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for bringing up the board through ESP Board Manager and running functional test cases (LCD, touch, audio, camera, SD card, Ethernet, GPIO, ...) |
+| [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test using an iPerf 2.x PC peer |
 
 ## 📡 Ethernet and Wi-Fi
 
