@@ -1,0 +1,14 @@
+dependencies:
+  espressif/esp_board_manager: "*"
+  espressif/esp_lcd_touch: ^1.1.2
+  espressif/esp_video: ^2.1.0
+  espressif/esp_image_effects: "*"
+  espressif/iperf-cmd: "~1.0.2"
+  esp-qa/ping-cmd: "~1.0.0"
+  espressif/esp_hosted: ^3.0.7
+  espressif/esp_wifi_remote: ">=0.10,<2.0"
+  usb_host_msc: ^1.1.4
+  espressif/esp_audio_codec: "^2.4.0"
+  # Board package (not on the registry); `idf.py bmgr -c` must point at the same directory.
+  waveshare_bmgr:
+    override_path: "../../../components/waveshare_bmgr"

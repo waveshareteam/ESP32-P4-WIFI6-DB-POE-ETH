@@ -57,6 +57,7 @@ BSP 与 Board Manager 两种方式的关系见
 | `examples/Arduino/` | Arduino-ESP32 示例及本地板卡定义（`examples/Arduino/esp32/`） |
 | `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
 | `components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth/` | 同一板卡的 ESP Board Manager 板卡定义 |
+| `firmware/factory_test/` | 整板硬件验证控制台固件（Linux 风格命令，I2C/SD/以太网/Wi-Fi/USB/屏幕/摄像头/音频/GPIO），附测试操作手册 |
 | `hardware/` | 预留给硬件文档（目前为空） |
 | `asserts/` | 预留给文档使用的图片（目前为空） |
 

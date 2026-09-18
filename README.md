@@ -60,6 +60,7 @@ Manager variants relate to each other.
 | `examples/Arduino/` | Arduino-ESP32 examples and the local board definition (`examples/Arduino/esp32/`) |
 | `components/waveshare_bsp/esp32_p4_wifi6_db_poe_eth/` | Board support package (BSP) component source, README, and API reference |
 | `components/waveshare_bmgr/esp32_p4_wifi6_db_poe_eth/` | ESP Board Manager board definition for the same board |
+| `firmware/factory_test/` | Whole-board hardware validation console firmware (Linux-style commands for I2C/SD/Ethernet/Wi-Fi/USB/display/camera/audio/GPIO) with a tester's procedure |
 | `hardware/` | Reserved for hardware documentation (currently empty) |
 | `asserts/` | Reserved for images used in documentation (currently empty) |
 

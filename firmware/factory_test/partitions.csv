@@ -1,0 +1,6 @@
+# Name,    Type, SubType,  Offset,   Size
+# Partition table lives at 0xA000 (CONFIG_PARTITION_TABLE_OFFSET) so the
+# bootloader has 0x8000 bytes, same as examples/esp-idf/13_board_manager.
+nvs,       data, nvs,      0xb000,   0x5000,
+phy_init,  data, phy,      0x10000,  0x1000,
+factory,   app,  factory,  0x20000,  8M,
