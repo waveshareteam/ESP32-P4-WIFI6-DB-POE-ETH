@@ -1,10 +1,6 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: LicenseRef-Espressif-Modified-MIT
  */
-
-#include "sdkconfig.h"
-
-#if CONFIG_BSP_LCD_BRIGHTNESS_USE_I2C
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -119,5 +115,3 @@ static int custom_lcd_brightness_deinit(void *device_handle)
 }
 
 CUSTOM_DEVICE_IMPLEMENT(lcd_brightness, custom_lcd_brightness_init, custom_lcd_brightness_deinit);
-
-#endif  /* CONFIG_BSP_LCD_BRIGHTNESS_USE_I2C */
