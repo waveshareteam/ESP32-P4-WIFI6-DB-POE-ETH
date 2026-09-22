@@ -1,0 +1,33 @@
+version: 1.0.0
+peripherals:
+  - name: dsi_display
+    config:
+      data_lanes: 2
+      phy_clk_src: 0
+      lane_bit_rate_mbps: 1300
+devices:
+  - name: display_lcd
+    chip: ota7290b
+    dependencies:
+      waveshare/esp_lcd_ota7290b: "*"
+    config:
+      bits_per_pixel: 16
+      dpi_config:
+        dpi_clock_freq_mhz: 75
+        in_color_format: LCD_COLOR_FMT_RGB565
+        out_color_format: LCD_COLOR_FMT_RGB565
+        num_fbs: 3
+        video_timing:
+          h_size: 480
+          v_size: 1920
+          hsync_back_porch: 50
+          hsync_pulse_width: 50
+          hsync_front_porch: 50
+          vsync_back_porch: 20
+          vsync_pulse_width: 20
+          vsync_front_porch: 20
+  - name: lcd_touch
+    config:
+      touch_config:
+        x_max: 480
+        y_max: 1920

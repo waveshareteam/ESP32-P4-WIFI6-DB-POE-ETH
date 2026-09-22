@@ -1,8 +1,4 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
  * ESP32-P4-WIFI6-DB-POE-ETH JD9365 MIPI-DSI panel factory.
  *
  * The board-manager YAML still needs the panel timing, DSI lane rate, reset
@@ -61,10 +57,23 @@ __attribute__((weak)) esp_err_t lcd_dsi_panel_factory_entry_t(
         .vendor_config = &vendor_config,
     };
 
-    esp_err_t ret = esp_lcd_new_panel_jd9365(
+    // The JD9365 driver programs the 0x45 backlight controller over I2C1
+    // through i2c_bus, which reuses an existing bus but would otherwise create
+    // its own and make a later i2c_master peripheral init fail. Hold a
+    // reference while the panel is created so the Board Manager bus exists
+    // first; the driver only touches I2C during creation.
+    void *i2c_bus = NULL;
+    esp_err_t ret = esp_board_periph_ref_handle(ESP_BOARD_PERIPH_NAME_I2C_MASTER, &i2c_bus);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get i2c_master peripheral handle: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    ret = esp_lcd_new_panel_jd9365(
         lcd_handles->io_handle,
         &panel_config,
         &lcd_handles->panel_handle);
+    esp_board_periph_unref_handle(ESP_BOARD_PERIPH_NAME_I2C_MASTER);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create JD9365 panel: %s", esp_err_to_name(ret));
         return ret;

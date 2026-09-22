@@ -1,7 +1,7 @@
 version: 1.0.0
 peripherals:
-  # Shared I2C bus (GPIO7/8) used by the LCD backlight controller, GT911
-  # touch, ES8311 codec, and camera sensor; same pins as BSP_I2C_SDA/SCL.
+  # Shared I2C bus used by the JD9365 board control path and GT911 touch.
+  # GPIO7/8 are inferred from the JD9365 component currently in use.
   - name: i2c_master
     type: i2c
     role: master
@@ -78,8 +78,7 @@ peripherals:
   # Not modeled here: ESP32-C5 Hosted Wi-Fi SDIO wiring.
   #
   # esp-board-manager has no Wi-Fi/hosted-SDIO device or peripheral type, so
-  # this interface is not declared. Recorded for reference (matches the
-  # ESP32-P4-WIFI6-DB-POE-ETH-INTERNAL BSP header):
+  # this interface is not declared. Recorded for reference:
   #   SDIO CLK   GPIO18
   #   SDIO CMD   GPIO19
   #   SDIO D0    GPIO14

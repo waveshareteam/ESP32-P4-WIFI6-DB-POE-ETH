@@ -1,8 +1,7 @@
 version: 1.0.0
 devices:
-  # MIPI-CSI camera. The camera connector carries no reset/power-down/XCLK
-  # control GPIOs (same as BSP_CAMERA_RST / BSP_CAMERA_GPIO_XCLK = GPIO_NUM_NC
-  # in the BSP); the sensor model is selected in sdkconfig.defaults.board.
+  # MIPI-CSI camera template. Fill the control GPIOs after the camera module
+  # wiring and sensor model are confirmed.
   - name: camera
     type: camera
     sub_type: csi
@@ -145,8 +144,8 @@ devices:
         allocation_unit_size: 16384
       sub_config:
         slot: SDMMC_HOST_SLOT_0
-        # Drop to SDMMC_FREQ_DEFAULT (20 MHz) if a card fails to mount at
-        # high speed.
+        # Start at 20 MHz for reliable bring-up; raise to HIGHSPEED after
+        # validating the board wiring and signal integrity.
         frequency: SDMMC_FREQ_HIGHSPEED
         bus_width: 4
         slot_flags: 0

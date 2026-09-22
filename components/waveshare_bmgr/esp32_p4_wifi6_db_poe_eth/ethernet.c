@@ -1,8 +1,4 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
  * ESP32-P4-WIFI6-DB-POE-ETH RMII Ethernet MAC/PHY custom device.
  *
  * esp-board-manager has no built-in "ethernet" device type, so this board

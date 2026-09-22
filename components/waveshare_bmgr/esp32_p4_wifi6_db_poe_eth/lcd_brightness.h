@@ -1,10 +1,9 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: LicenseRef-Espressif-Modified-MIT
  */
 
 #pragma once
 
-#include "sdkconfig.h"
 #include "esp_err.h"
 
 #ifdef __cplusplus
@@ -19,9 +18,7 @@ extern "C" {
  *
  * @return ESP_OK on success, otherwise an error code.
  */
-#if CONFIG_BSP_LCD_BRIGHTNESS_USE_I2C
 esp_err_t custom_lcd_brightness_set(void *device_handle, int brightness_percent);
-#endif  /* CONFIG_BSP_LCD_BRIGHTNESS_USE_I2C */
 
 #ifdef __cplusplus
 }
