@@ -9,6 +9,8 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
+#include "esp_ae_rate_cvt.h"
 
 #include "brookesia/hal_adaptor/audio/device.hpp"
 #include "brookesia/hal_interface/interfaces/audio/codec_player.hpp"
@@ -45,6 +47,7 @@ public:
     bool stop();
 
     std::vector<std::string> get_afe_wake_words();
+    bool set_encoder_afe_config(AudioProcessorAFE_Config config);
     bool start_encoder(const audio::EncoderDynamicConfig &config, audio::EncoderIface::Callbacks callbacks);
     int read_encoded_data(uint8_t *data, size_t size);
     void stop_encoder();
@@ -74,6 +77,10 @@ private:
     void on_recorder_event(void *event);
     void on_recorder_input_data(const uint8_t *data, size_t size);
     void emit_afe_event(audio::AfeEvent event);
+    bool prepare_recorder_input(bool enable_afe);
+    void release_recorder_input();
+    bool read_recorder_input(uint8_t *data, size_t size);
+    bool read_raw_recorder_input(uint8_t *data, size_t size);
 
     std::shared_ptr<audio::CodecPlayerIface> player_iface_;
     std::shared_ptr<audio::CodecRecorderIface> recorder_iface_;
@@ -94,6 +101,11 @@ private:
     std::atomic_bool is_decoder_started_ = false;
     std::string afe_model_partition_label_;
     std::string afe_mn_language_;
+    esp_ae_rate_cvt_handle_t recorder_resampler_ = nullptr;
+    std::vector<int16_t> recorder_input_;
+    std::vector<int16_t> recorder_output_;
+    size_t recorder_output_offset_ = 0;
+    size_t recorder_output_size_ = 0;
 };
 
 class AudioPlaybackImpl: public audio::PlaybackIface {

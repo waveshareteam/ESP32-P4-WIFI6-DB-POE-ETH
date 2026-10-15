@@ -196,12 +196,7 @@ bool AudioProcessorCore::open_common(audio::PlaybackIface::EventCallback callbac
         BROOKESIA_CHECK_NULL_RETURN(self, ESP_FAIL, "Invalid processor context");
         BROOKESIA_CHECK_NULL_RETURN(self->recorder_iface_, ESP_FAIL, "Invalid recorder interface");
 
-        auto result = self->recorder_iface_->read_data(data, size);
-        if (result) {
-            self->on_recorder_input_data(data, size);
-        }
-
-        return result ? ESP_OK : ESP_FAIL;
+        return self->read_recorder_input(data, size) ? ESP_OK : ESP_FAIL;
     };
 
     audio_manager_config_t manager_config = {
@@ -402,6 +397,93 @@ std::vector<std::string> AudioProcessorCore::get_afe_wake_words()
     return wake_words_array;
 }
 
+bool AudioProcessorCore::prepare_recorder_input(bool enable_afe)
+{
+    release_recorder_input();
+    const auto &info = recorder_iface_->get_info();
+    if (!enable_afe || info.sample_rate == 16000) return true;
+    if (info.bits != 16 || info.channels == 0 || info.sample_rate < 100) return false;
+
+    esp_ae_rate_cvt_cfg_t config{};
+    config.src_rate = info.sample_rate;
+    config.dest_rate = 16000;
+    config.channel = info.channels;
+    config.bits_per_sample = 16;
+    config.complexity = 2;
+    config.perf_type = ESP_AE_RATE_CVT_PERF_TYPE_SPEED;
+    if (esp_ae_rate_cvt_open(&config, &recorder_resampler_) != ESP_AE_ERR_OK) return false;
+
+    const uint32_t input_frames = info.sample_rate / 100;
+    uint32_t output_frames = 0;
+    if (esp_ae_rate_cvt_get_max_out_sample_num(
+            recorder_resampler_, input_frames, &output_frames) != ESP_AE_ERR_OK || !output_frames) {
+        release_recorder_input();
+        return false;
+    }
+    recorder_input_.resize(input_frames * info.channels);
+    recorder_output_.resize(output_frames * info.channels);
+    BROOKESIA_LOGI("AFE input resampler: %1% -> 16000 Hz, %2% interleaved channels",
+                  info.sample_rate, info.channels);
+    return true;
+}
+
+void AudioProcessorCore::release_recorder_input()
+{
+    if (recorder_resampler_) esp_ae_rate_cvt_close(recorder_resampler_);
+    recorder_resampler_ = nullptr;
+    recorder_input_.clear();
+    recorder_output_.clear();
+    recorder_output_offset_ = 0;
+    recorder_output_size_ = 0;
+}
+
+bool AudioProcessorCore::read_raw_recorder_input(uint8_t *data, size_t size)
+{
+    if (!recorder_iface_->read_data(data, size)) return false;
+    on_recorder_input_data(data, size);
+    return true;
+}
+
+bool AudioProcessorCore::read_recorder_input(uint8_t *data, size_t size)
+{
+    if (!recorder_resampler_) return read_raw_recorder_input(data, size);
+    const auto channels = recorder_iface_->get_info().channels;
+    if (!data || size % (channels * sizeof(int16_t))) return false;
+
+    // AFE requests 512-frame chunks. Convert fixed hardware blocks and retain
+    // the remainder so neither microphone nor echo-reference samples are lost.
+    while (size) {
+        if (recorder_output_offset_ == recorder_output_size_) {
+            if (!read_raw_recorder_input(reinterpret_cast<uint8_t *>(recorder_input_.data()),
+                                         recorder_input_.size() * sizeof(int16_t))) return false;
+            uint32_t frames = recorder_output_.size() / channels;
+            if (esp_ae_rate_cvt_process(recorder_resampler_,
+                    reinterpret_cast<esp_ae_sample_t>(recorder_input_.data()),
+                    recorder_input_.size() / channels,
+                    reinterpret_cast<esp_ae_sample_t>(recorder_output_.data()), &frames) != ESP_AE_ERR_OK ||
+                frames > recorder_output_.size() / channels) return false;
+            recorder_output_offset_ = 0;
+            recorder_output_size_ = frames * channels * sizeof(int16_t);
+            if (!frames) continue;
+        }
+        const size_t available = recorder_output_size_ - recorder_output_offset_;
+        const size_t copied = size < available ? size : available;
+        std::memcpy(data, reinterpret_cast<const uint8_t *>(recorder_output_.data()) + recorder_output_offset_, copied);
+        data += copied;
+        size -= copied;
+        recorder_output_offset_ += copied;
+    }
+    return true;
+}
+
+bool AudioProcessorCore::set_encoder_afe_config(AudioProcessorAFE_Config config)
+{
+    std::lock_guard lock(mutex_);
+    if (is_encoder_started()) return false;
+    config_.afe = std::move(config);
+    return true;
+}
+
 bool AudioProcessorCore::start_encoder(
     const audio::EncoderDynamicConfig &dynamic_config, audio::EncoderIface::Callbacks callbacks
 )
@@ -432,6 +514,11 @@ bool AudioProcessorCore::start_encoder(
         release();
     });
 
+    BROOKESIA_CHECK_FALSE_RETURN(
+        prepare_recorder_input(dynamic_config.enable_afe), false, "Failed to prepare recorder input"
+    );
+    lib_utils::FunctionGuard input_guard([this]() { release_recorder_input(); });
+
     auto event_cb = +[](audio_recorder_handle_t recorder, void *event, void *ctx) {
         (void)recorder;
         auto self = static_cast<AudioProcessorCore *>(ctx);
@@ -458,6 +545,7 @@ bool AudioProcessorCore::start_encoder(
     encoder_callbacks_ = std::move(callbacks);
 
     close_recorder_guard.release();
+    input_guard.release();
     release_guard.release();
     is_encoder_started_ = true;
     is_encoder_paused_ = false;
@@ -498,6 +586,7 @@ void AudioProcessorCore::stop_encoder()
         BROOKESIA_LOGE("Failed to close recorder");
     });
     recorder_handle_ = nullptr;
+    release_recorder_input();
     encoder_callbacks_ = {};
     is_encoder_started_ = false;
     is_encoder_paused_ = false;

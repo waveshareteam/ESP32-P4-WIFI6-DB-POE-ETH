@@ -36,6 +36,7 @@ if(CONFIG_ESP_HAL_BOARDS_AUDIO_ENABLE)
     if(CONFIG_ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR)
         idf_component_optional_requires(PRIVATE
             av_processor
+            esp_audio_effects
             esp-sr
             esp-boost
         )

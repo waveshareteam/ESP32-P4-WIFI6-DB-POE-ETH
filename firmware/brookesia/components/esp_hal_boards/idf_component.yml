@@ -22,3 +22,8 @@ dependencies:
     require: private
     matches:
       - if: $CONFIG{ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR} == True
+  espressif/esp_audio_effects:
+    version: ^1.3.0
+    require: private
+    matches:
+      - if: $CONFIG{ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR} == True

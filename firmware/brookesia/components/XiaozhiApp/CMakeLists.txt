@@ -8,8 +8,7 @@ set(PROJ_SRCS_CPP
     "XiaozhiActivationClient.cpp"
     "XiaozhiActivationPrompt.cpp"
     "XiaozhiApp.cpp"
-    "XiaozhiAudioProcessor.cpp"
-    "XiaozhiBoardAudio.cpp"
+    "XiaozhiAudio.cpp"
     "XiaozhiClient.cpp"
     "XiaozhiDeveloperTools.cpp"
     "XiaozhiLocalization.cpp"
@@ -25,16 +24,15 @@ idf_component_register(
     INCLUDE_DIRS ${PROJ_SRC}
     REQUIRES
         brookesia_core
-        esp_codec_dev
-        esp-sr
         xiaozhi-fonts
         esp_event
         esp_netif
         esp_xiaozhi
         nvs_flash
     PRIV_REQUIRES
+        brookesia_service_audio
+        esp_hal_boards
         app_update
-        esp_board_manager
         esp_lvgl_adapter
         spiffs
         esp_http_client
@@ -47,8 +45,6 @@ idf_component_register(
         mbedtls
         mcp-c-sdk
         spi_flash
-        esp_audio_codec
-        esp_audio_effects
 )
 
 # Keep warnings visible while allowing the managed MCP SDK's known

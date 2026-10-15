@@ -11,8 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "XiaozhiBoardAudio.hpp"
-#include "decoder/impl/esp_opus_dec.h"
+#include "XiaozhiAudio.hpp"
 #include "third_party/xiaozhi_esp32/ogg_demuxer.h"
 
 #ifdef ESP_UTILS_LOG_TAG
@@ -27,9 +26,6 @@ namespace {
 
 constexpr uint32_t SAMPLE_RATE = 16000;
 constexpr uint32_t FRAME_DURATION_MS = 60;
-constexpr size_t PCM_MONO_BUFFER_SIZE =
-    SAMPLE_RATE * FRAME_DURATION_MS / 1000 * sizeof(int16_t);
-constexpr size_t PCM_STEREO_BUFFER_SIZE = PCM_MONO_BUFFER_SIZE * 2;
 constexpr size_t MAX_OGG_FILE_SIZE = 64 * 1024;
 constexpr char PROMPT_DIRECTORY[] = "/spiffs/xiaozhi";
 
@@ -188,31 +184,20 @@ void XiaozhiActivationPrompt::run()
         xSemaphoreGive(_mutex);
     }
 
-    void *decoder = nullptr;
-    auto *mono_pcm = static_cast<uint8_t *>(malloc(PCM_MONO_BUFFER_SIZE));
-    auto *stereo_pcm = static_cast<int16_t *>(malloc(PCM_STEREO_BUFFER_SIZE));
     auto *demuxer = new (std::nothrow) OggDemuxer();
     bool completed = false;
-    XiaozhiBoardAudio audio;
-
-    esp_opus_dec_cfg_t decoder_config = ESP_OPUS_DEC_CONFIG_DEFAULT();
-    decoder_config.sample_rate = SAMPLE_RATE;
-    decoder_config.channel = ESP_AUDIO_MONO;
-    decoder_config.frame_duration = ESP_OPUS_DEC_FRAME_DURATION_60_MS;
-    esp_err_t codec_result = ESP_ERR_INVALID_STATE;
+    bool audio_opened = false;
+    XiaozhiAudio audio;
 
     if ((!play_success && !activation_code[0]) || !shouldContinue()) {
         goto cleanup;
     }
 
-    codec_result = audio.open(SAMPLE_RATE, false);
+    audio_opened = audio.open();
     if (!shouldContinue()) {
         goto cleanup;
     }
-    if (codec_result != ESP_OK || !mono_pcm || !stereo_pcm || !demuxer ||
-            esp_opus_dec_open(&decoder_config, sizeof(decoder_config), &decoder) !=
-                ESP_AUDIO_ERR_OK ||
-            !decoder) {
+    if (!audio_opened || !demuxer) {
         ESP_UTILS_LOGE("Failed to prepare activation prompt audio");
         goto cleanup;
     }
@@ -252,7 +237,6 @@ void XiaozhiActivationPrompt::run()
                 return false;
             }
 
-            esp_opus_dec_reset(decoder);
             demuxer->Reset();
             bool decode_ok = true;
             size_t decoded_packets = 0;
@@ -264,39 +248,13 @@ void XiaozhiActivationPrompt::run()
                         return;
                     }
 
-                    esp_audio_dec_in_raw_t input = {};
-                    input.buffer = const_cast<uint8_t *>(data);
-                    input.len = size;
-                    input.frame_recover = ESP_AUDIO_DEC_RECOVERY_NONE;
-                    esp_audio_dec_out_frame_t output = {};
-                    output.buffer = mono_pcm;
-                    output.len = PCM_MONO_BUFFER_SIZE;
-                    esp_audio_dec_info_t info = {};
-                    if (esp_opus_dec_decode(decoder, &input, &output, &info) !=
-                            ESP_AUDIO_ERR_OK ||
-                            output.decoded_size == 0 ||
-                            output.decoded_size > PCM_MONO_BUFFER_SIZE) {
+                    if (!audio.writeOpus(data, size, SAMPLE_RATE, FRAME_DURATION_MS)) {
                         decode_ok = false;
                         return;
                     }
-
-                    size_t sample_count = output.decoded_size / sizeof(int16_t);
-                    auto *mono_samples = reinterpret_cast<int16_t *>(mono_pcm);
-                    for (size_t i = 0; i < sample_count; ++i) {
-                        stereo_pcm[i * 2] = mono_samples[i];
-                        stereo_pcm[i * 2 + 1] = mono_samples[i];
-                    }
-
-                    size_t bytes_written = 0;
-                    size_t stereo_size = sample_count * 2 * sizeof(int16_t);
-                    if (audio.write(
-                            stereo_pcm,
-                            stereo_size,
-                            &bytes_written
-                        ) != ESP_OK || bytes_written != stereo_size) {
-                        decode_ok = false;
-                        return;
-                    }
+                    // Keep cancellation responsive and avoid filling the service queue
+                    // with the entire announcement at once.
+                    vTaskDelay(pdMS_TO_TICKS(FRAME_DURATION_MS));
                     ++decoded_packets;
                 }
             );
@@ -329,12 +287,10 @@ void XiaozhiActivationPrompt::run()
     }
 
 cleanup:
-    if (decoder) {
-        esp_opus_dec_close(decoder);
+    while (completed && shouldContinue() && !audio.isPlaybackDrained()) {
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
     delete demuxer;
-    free(stereo_pcm);
-    free(mono_pcm);
 
     (void)audio.close();
 

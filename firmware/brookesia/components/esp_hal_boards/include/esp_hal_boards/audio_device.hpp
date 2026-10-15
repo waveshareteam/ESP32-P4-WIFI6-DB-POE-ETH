@@ -42,6 +42,8 @@ public:
     bool set_codec_recorder_info(esp_brookesia::hal::audio::CodecRecorderIface::Info info);
     bool set_processor_config(esp_brookesia::hal::AudioProcessorConfig config);
     bool set_afe_input_layout(std::string layout);
+    // Configure the next encoder run. The encoder must be stopped first.
+    bool set_encoder_afe_config(esp_brookesia::hal::AudioProcessorAFE_Config config);
 
 private:
     AudioDevice();

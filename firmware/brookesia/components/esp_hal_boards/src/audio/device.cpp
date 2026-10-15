@@ -76,6 +76,18 @@ bool AudioDevice::probe()
     return true;
 }
 
+bool AudioDevice::set_encoder_afe_config(hal::AudioProcessorAFE_Config config)
+{
+    std::lock_guard lock(config_mutex_);
+#if CONFIG_ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR
+    if (processor_core_) {
+        return processor_core_->set_encoder_afe_config(std::move(config));
+    }
+#endif
+    processor_config_.afe = std::move(config);
+    return true;
+}
+
 std::vector<hal::InterfaceSpec> AudioDevice::get_interface_specs() const
 {
     return {
