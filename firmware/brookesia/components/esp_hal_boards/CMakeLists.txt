@@ -24,6 +24,7 @@ idf_component_register(
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "src/audio"
     REQUIRES brookesia_hal_interface brookesia_hal_adaptor esp_lvgl_adapter
+        brookesia_service_helper brookesia_service_manager
     PRIV_REQUIRES esp_board_manager ${BMGR_GEN_REQUIRES}
 )
 

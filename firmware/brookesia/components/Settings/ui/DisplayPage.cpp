@@ -2,7 +2,6 @@
 #include "SettingsUI.hpp"
 #include <stdint.h>
 #include <algorithm>
-#include "brookesia/service_manager.hpp"
 #include "brookesia/service_helper/system/storage.hpp"
 #include "esp_hal_boards/display_device.hpp"
 #include "esp_log.h"
@@ -13,7 +12,6 @@
 
 namespace
 {
-    using StorageHelper = esp_brookesia::service::helper::Storage;
     constexpr char BRIGHTNESS_NAMESPACE[] = "display";
     constexpr char BRIGHTNESS_KEY[] = "brightness";
     constexpr uint32_t STORAGE_TIMEOUT_MS = 1000;
@@ -40,23 +38,6 @@ namespace esp_brookesia::apps
 {
     DisplayPage *DisplayPage::_instance = nullptr;
 
-    int DisplayPage::getSavedBrightness()
-    {
-        auto &manager = service::ServiceManager::get_instance();
-        if (!manager.init() || !manager.start()) {
-            ESP_LOGW("DisplayPage", "Start Storage service manager failed; use default brightness");
-            return s_display_brightness_percent;
-        }
-        auto result = StorageHelper::get_key_value<int32_t>(
-                          BRIGHTNESS_NAMESPACE, BRIGHTNESS_KEY, STORAGE_TIMEOUT_MS);
-        if (result) {
-            s_display_brightness_percent = std::clamp(static_cast<int>(result.value()), 20, 100);
-        } else {
-            ESP_LOGI("DisplayPage", "No saved brightness available: %s", result.error().c_str());
-        }
-        return s_display_brightness_percent;
-    }
-
     DisplayPage *DisplayPage::requestInstance(bool use_status_bar, bool use_navigation_bar)
     {
         if (_instance == nullptr)
@@ -81,7 +62,7 @@ namespace esp_brookesia::apps
         ESP_UTILS_LOGD("DisplayPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
         settings_ui::create_header(page_root, "Display", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {
@@ -109,9 +90,10 @@ namespace esp_brookesia::apps
         lv_obj_set_style_text_color(title, lv_color_hex(settings_ui::COLOR_PRIMARY_TEXT), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
 
+        s_display_brightness_percent = esp_hal_boards::display_backlight_get_saved();
         int value = s_display_brightness_percent;
-        if (value < 20) {
-            value = 20;
+        if (value < 0) {
+            value = 0;
         } else if (value > 100) {
             value = 100;
         }
@@ -126,8 +108,12 @@ namespace esp_brookesia::apps
         lv_obj_set_width(brightness_slider, lv_pct(100));
         lv_obj_set_height(brightness_slider, 14);
         lv_obj_align(brightness_slider, LV_ALIGN_BOTTOM_MID, 0, -5);
-        lv_slider_set_range(brightness_slider, 20, 100);
+        lv_slider_set_range(brightness_slider, 0, 100);
         lv_slider_set_value(brightness_slider, value, LV_ANIM_OFF);
+        const esp_err_t apply_ret = set_display_brightness(value);
+        if (apply_ret != ESP_OK) {
+            ESP_LOGW("DisplayPage", "Restore display brightness failed: %s", esp_err_to_name(apply_ret));
+        }
 
         lv_obj_set_style_bg_color(brightness_slider, lv_color_hex(0x505050), LV_PART_MAIN);
         lv_obj_set_style_bg_color(brightness_slider, lv_color_hex(settings_ui::COLOR_ACCENT), LV_PART_INDICATOR);
@@ -150,7 +136,7 @@ namespace esp_brookesia::apps
         const int32_t value = lv_slider_get_value(slider);
         if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
             // Persist only the value successfully applied to the backlight.
-            auto result = StorageHelper::save_key_value(
+            auto result = esp_brookesia::service::helper::Storage::save_key_value(
                               BRIGHTNESS_NAMESPACE, BRIGHTNESS_KEY,
                               static_cast<int32_t>(s_display_brightness_percent), STORAGE_TIMEOUT_MS);
             if (!result) {

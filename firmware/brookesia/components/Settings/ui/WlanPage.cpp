@@ -122,7 +122,7 @@ namespace esp_brookesia::apps
     {
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
         status_btn = settings_ui::create_header(page_root, "WLAN", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {

@@ -45,7 +45,7 @@ namespace esp_brookesia::apps
         ESP_UTILS_LOGD("AboutPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
         settings_ui::create_header(page_root, "About", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {

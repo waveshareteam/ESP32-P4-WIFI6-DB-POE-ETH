@@ -3,7 +3,6 @@
 #include "esp_log.h"
 #include "../Settings.hpp"
 #include <algorithm>
-#include <cmath>
 #include <optional>
 #include "brookesia/service_helper/media/audio.hpp"
 #include "brookesia/service_manager/service/manager.hpp"
@@ -18,6 +17,7 @@ namespace esp_brookesia::apps
         using StorageHelper = service::helper::Storage;
         using AudioPlaybackHelper = service::helper::AudioPlayback;
         constexpr char MEDIA_VOLUME_STORAGE_KEY[] = "media_volume";
+        constexpr char MEDIA_VOLUME_INITIALIZED_KEY[] = "media_volume_initialized";
         constexpr char MEDIA_VOLUME_STORAGE_NAMESPACE[] = "storage";
         constexpr int DEFAULT_MEDIA_VOLUME = 70;
         constexpr int MAX_MEDIA_VOLUME = 95;
@@ -68,6 +68,16 @@ namespace esp_brookesia::apps
             }
             return result.has_value();
         }
+
+        void mark_media_volume_initialized()
+        {
+            auto result = StorageHelper::save_key_value(
+                              MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_INITIALIZED_KEY,
+                              static_cast<int32_t>(1), STORAGE_TIMEOUT_MS);
+            if (!result) {
+                ESP_LOGW("SoundPage", "Save media volume initialization flag failed: %s", result.error().c_str());
+            }
+        }
     }
 
     SoundPage *SoundPage::_instance = nullptr;
@@ -92,7 +102,7 @@ namespace esp_brookesia::apps
         ESP_UTILS_LOGD("SoundPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
         settings_ui::create_header(page_root, "Sound", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {
@@ -121,26 +131,26 @@ namespace esp_brookesia::apps
         lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
 
         const bool audio_service_available = bind_audio_playback_service(audio_service_binding);
-        bool service_volume_available = false;
-        if (audio_service_available) {
-            auto volume_result = AudioPlaybackHelper::call_function_sync<double>(
-                                     AudioPlaybackHelper::FunctionId::GetVolume
-                                 );
-            if (volume_result) {
-                service_volume_available = true;
-                last_media_volume = std::clamp(
-                                        static_cast<int>(std::lround(volume_result.value())),
-                                        0, MAX_MEDIA_VOLUME
-                                    );
-            } else {
-                ESP_LOGW("SoundPage", "Get audio playback volume failed: %s", volume_result.error().c_str());
-            }
-        }
         const auto saved_volume = read_media_volume();
+        auto initialized_result = StorageHelper::get_key_value<int32_t>(
+                                     MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_INITIALIZED_KEY,
+                                     STORAGE_TIMEOUT_MS);
+        const bool volume_was_initialized = initialized_result && initialized_result.value() != 0;
+        bool volume_value_saved = saved_volume.has_value();
         if (saved_volume) {
             last_media_volume = saved_volume.value();
-        } else if (service_volume_available && !save_media_volume(last_media_volume)) {
-            ESP_LOGW("SoundPage", "Initialize saved audio volume failed");
+            // The previous startup path accidentally persisted the service's
+            // initial zero. Migrate that unmarked value to the intended default.
+            if (last_media_volume == 0 && !volume_was_initialized) {
+                last_media_volume = DEFAULT_MEDIA_VOLUME;
+                volume_value_saved = save_media_volume(last_media_volume);
+            }
+        } else {
+            last_media_volume = DEFAULT_MEDIA_VOLUME;
+            volume_value_saved = save_media_volume(last_media_volume);
+        }
+        if (!volume_was_initialized && volume_value_saved) {
+            mark_media_volume_initialized();
         }
 
         if (audio_service_available) {
@@ -216,8 +226,11 @@ namespace esp_brookesia::apps
         }
 
         last_media_volume = static_cast<int>(value);
-        if (!save_media_volume(last_media_volume)) {
+        const bool saved = save_media_volume(last_media_volume);
+        if (!saved) {
             ESP_LOGW("SoundPage", "Save audio output volume failed");
+        } else {
+            mark_media_volume_initialized();
         }
     }
 

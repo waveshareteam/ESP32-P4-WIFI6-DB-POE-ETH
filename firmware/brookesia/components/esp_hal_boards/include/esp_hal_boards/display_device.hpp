@@ -47,4 +47,7 @@ private:
  */
 esp_err_t display_backlight_set(int percent);
 
+/** Load the saved LCD backlight brightness percentage from persistent storage. */
+int display_backlight_get_saved();
+
 } // namespace esp_hal_boards

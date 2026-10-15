@@ -12,6 +12,15 @@
 #include "esp_log.h"
 #include "esp_lv_adapter.h"
 #include "lcd_brightness.h"
+#include "brookesia/service_manager.hpp"
+#include "brookesia/service_helper/system/storage.hpp"
+
+namespace {
+constexpr char BRIGHTNESS_NAMESPACE[] = "display";
+constexpr char BRIGHTNESS_KEY[] = "brightness";
+constexpr uint32_t STORAGE_TIMEOUT_MS = 1000;
+constexpr int DEFAULT_BRIGHTNESS_PERCENT = 100;
+}
 
 static const char *TAG = "EspHalBoardsDisplay";
 static void *s_lcd_brightness_handle = nullptr;
@@ -170,6 +179,24 @@ esp_err_t display_backlight_set(int percent)
     }
 
     return custom_lcd_brightness_set(s_lcd_brightness_handle, std::clamp(percent, 0, 100));
+}
+
+int display_backlight_get_saved()
+{
+    auto &manager = esp_brookesia::service::ServiceManager::get_instance();
+    if (!manager.init() || !manager.start()) {
+        ESP_LOGW(TAG, "Start Storage service manager failed; use default brightness");
+        return DEFAULT_BRIGHTNESS_PERCENT;
+    }
+
+    auto result = esp_brookesia::service::helper::Storage::get_key_value<int32_t>(
+        BRIGHTNESS_NAMESPACE, BRIGHTNESS_KEY, STORAGE_TIMEOUT_MS);
+    if (result) {
+        return std::clamp(static_cast<int>(result.value()), 0, 100);
+    }
+
+    ESP_LOGI(TAG, "No saved brightness available: %s", result.error().c_str());
+    return DEFAULT_BRIGHTNESS_PERCENT;
 }
 
 void DisplayDevice::release_after_failed_init()

@@ -37,7 +37,8 @@ using namespace esp_brookesia;
 using namespace esp_brookesia::gui;
 using namespace esp_brookesia::systems::phone;
 
-constexpr bool EXAMPLE_SHOW_MEM_INFO = false;
+constexpr bool EXAMPLE_SHOW_MEM_INFO = true;
+constexpr bool EXAMPLE_SHOW_MEM_INFO_LOG = false;
 
 static volatile bool s_wifi_connected = false;
 
@@ -155,6 +156,8 @@ extern "C" void app_main(void)
 
     /* Init and install apps from registry */
     {
+        LvLockGuard gui_guard;
+
         std::vector<systems::base::Manager::RegistryAppInfo> inited_apps;
         ESP_UTILS_CHECK_FALSE_EXIT(phone->initAppFromRegistry(inited_apps), "Init app registry failed");
         ESP_UTILS_CHECK_FALSE_EXIT(phone->installAppFromRegistry(inited_apps), "Install app registry failed");
@@ -162,6 +165,8 @@ extern "C" void app_main(void)
 
     /* Install local apps */
     {
+        LvLockGuard gui_guard;
+
         auto calculator_app = esp_brookesia::apps::Calculator::requestInstance();
         ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(calculator_app), "Start Calculator failed");
 
@@ -237,17 +242,18 @@ extern "C" void app_main(void)
                 internal_total = heap_caps_get_total_size(MALLOC_CAP_INTERNAL);
                 external_free = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
                 external_total = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
-                snprintf(
-                    buffer,
-                    sizeof(buffer),
-                    "\t           Biggest /     Free /    Total\n"
-                    "\t  SRAM : [%8zu / %8zu / %8zu]\n"
-                    "\t PSRAM : [%8zu / %8zu / %8zu]",
-                    heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), internal_free, internal_total,
-                    heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM), external_free, external_total
-                );
-                ESP_UTILS_LOGI("\n%s", buffer);
-
+                if constexpr(EXAMPLE_SHOW_MEM_INFO_LOG) {
+                    snprintf(
+                        buffer,
+                        sizeof(buffer),
+                        "\t           Biggest /     Free /    Total\n"
+                        "\t  SRAM : [%8zu / %8zu / %8zu]\n"
+                        "\t PSRAM : [%8zu / %8zu / %8zu]",
+                        heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), internal_free, internal_total,
+                        heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM), external_free, external_total
+                    );
+                    ESP_UTILS_LOGI("\n%s", buffer);
+                }
                 {
                     LvLockGuard gui_guard;
                     ESP_UTILS_CHECK_FALSE_EXIT(

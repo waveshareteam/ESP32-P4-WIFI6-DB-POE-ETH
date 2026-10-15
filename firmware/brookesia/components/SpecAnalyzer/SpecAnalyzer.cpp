@@ -2,10 +2,8 @@
 #include "esp_brookesia.hpp"
 #include "esp_task.h"
 #include "esp_heap_caps.h"
-#include "esp_board_manager.h"
-#include "esp_board_manager_defs.h"
-#include "dev_audio_codec.h"
 #include "esp_err.h"
+#include "brookesia/service_helper/media/audio.hpp"
 
 #ifdef ESP_UTILS_LOG_TAG
 #   undef ESP_UTILS_LOG_TAG
@@ -21,6 +19,11 @@
 using namespace std;
 using namespace esp_brookesia::gui;
 using namespace esp_brookesia::systems;
+
+namespace {
+using AudioEncoderHelper = esp_brookesia::service::helper::AudioEncoder<0>;
+using AudioHelper = esp_brookesia::service::helper::Audio;
+}
 
 LV_IMG_DECLARE(img_app_specanalyzer);
 
@@ -46,11 +49,11 @@ SpecAnalyzer::SpecAnalyzer(bool use_status_bar, bool use_navigation_bar) :
     _timer(nullptr),
     _audio_task_handle(nullptr),
     _audio_task_running(false),
-    _audio_clock_codec(nullptr),
-    _audio_clock_device_acquired(false),
-    _audio_codec(nullptr),
-    _audio_device_acquired(false),
-    _audio_codec_opened(false),
+    _audio_encoder(nullptr),
+    _audio_encoder_started(false),
+    _capture_accepting(false),
+    _capture_write_index(0),
+    _capture_read_index(0),
     _canvas_width(0),
     _canvas_height(0),
     _draw_buf(nullptr)
@@ -70,136 +73,136 @@ SpecAnalyzer::~SpecAnalyzer()
     close();
 }
 
-esp_err_t SpecAnalyzer::openMicrophone()
+bool SpecAnalyzer::openMicrophone()
 {
-    if (_audio_codec_opened) {
-        return ESP_OK;
+    if (_audio_encoder_started) {
+        return true;
     }
 
-    esp_err_t ret = ESP_OK;
-    esp_codec_dev_sample_info_t clock_info = {};
-    esp_codec_dev_sample_info_t sample_info = {};
-
-    // The board's RX peripheral is a slave. MusicPlayer uses a fixed 48 kHz,
-    // 16-bit, stereo output format, so share that format while its DAC is open.
-    // Opening an already-open codec is idempotent, and this format matches the
-    // player output. Leave close ownership to the Board Manager device lifetime.
-    if (!_audio_clock_device_acquired) {
-        ret = esp_board_manager_init_device_by_name(ESP_BOARD_DEVICE_NAME_AUDIO_DAC);
-        if (ret != ESP_OK) {
-            return ret;
-        }
-        _audio_clock_device_acquired = true;
+    auto &manager = service::ServiceManager::get_instance();
+    if (!manager.is_initialized() && !manager.init()) {
+        ESP_UTILS_LOGE("Initialize service manager failed");
+        return false;
+    }
+    if (!manager.is_running() && !manager.start()) {
+        ESP_UTILS_LOGE("Start service manager failed");
+        return false;
     }
 
-    if (_audio_clock_codec == nullptr) {
-        dev_audio_codec_handles_t *device = nullptr;
-        ret = esp_board_manager_get_device_handle(
-                  ESP_BOARD_DEVICE_NAME_AUDIO_DAC, (void **)&device
-              );
-        if (ret != ESP_OK) {
-            goto error;
-        }
-        if (device == nullptr || device->codec_dev == nullptr) {
-            ret = ESP_ERR_INVALID_STATE;
-            goto error;
-        }
-        _audio_clock_codec = device->codec_dev;
+    _audio_encoder_binding = manager.bind(AudioEncoderHelper::get_name().data());
+    if (!_audio_encoder_binding.is_valid()) {
+        ESP_UTILS_LOGE("Bind AudioEncoder service failed");
+        return false;
     }
 
-    clock_info.sample_rate = MIC_SAMPLE_RATE;
-    clock_info.bits_per_sample = 16;
-    clock_info.channel = 2;
-    ret = esp_codec_dev_open(_audio_clock_codec, &clock_info);
-    if (ret != ESP_CODEC_DEV_OK) {
-        ESP_UTILS_LOGE("Open Board Manager DAC clock failed: %s", esp_err_to_name(ret));
-        goto error;
+    _audio_encoder = service::AudioEncoder::get_instance(0);
+    if (_audio_encoder == nullptr) {
+        ESP_UTILS_LOGE("AudioEncoder service instance is unavailable");
+        (void)closeMicrophone();
+        return false;
     }
 
-    if (!_audio_device_acquired) {
-        ret = esp_board_manager_init_device_by_name(ESP_BOARD_DEVICE_NAME_AUDIO_ADC);
-        if (ret != ESP_OK) {
-            goto error;
-        }
-        _audio_device_acquired = true;
+    _capture_write_index.store(0, std::memory_order_relaxed);
+    _capture_read_index.store(0, std::memory_order_relaxed);
+    _recorder_data_connection = _audio_encoder->connect_recorder_data([this](const service::RawBuffer &data) {
+        onRecorderData(data);
+    });
+    if (!_recorder_data_connection.connected()) {
+        ESP_UTILS_LOGE("Connect AudioEncoder recorder data failed");
+        (void)closeMicrophone();
+        return false;
     }
 
-    if (_audio_codec == nullptr) {
-        dev_audio_codec_handles_t *device = nullptr;
-        ret = esp_board_manager_get_device_handle(
-                  ESP_BOARD_DEVICE_NAME_AUDIO_ADC, (void **)&device
-              );
-        if (ret != ESP_OK) {
-            goto error;
-        }
-        if (device == nullptr || device->codec_dev == nullptr) {
-            ret = ESP_ERR_INVALID_STATE;
-            goto error;
-        }
-        _audio_codec = device->codec_dev;
+    // Request mono PCM from the board audio service. The raw recorder callback
+    // still supplies native FC,RE stereo frames; onRecorderData keeps FC.
+    AudioHelper::EncoderDynamicConfig config{
+        .type = AudioHelper::CodecFormat::PCM,
+        .general = {
+            .channels = 1,
+            .sample_bits = 16,
+            .sample_rate = MIC_SAMPLE_RATE,
+            .frame_duration = 60,
+        },
+        .enable_afe = false,
+    };
+    auto start_result = AudioEncoderHelper::call_function_sync(
+                            AudioEncoderHelper::FunctionId::Start,
+                            BROOKESIA_DESCRIBE_TO_JSON(config).as_object()
+                        );
+    if (!start_result) {
+        ESP_UTILS_LOGE("Start AudioEncoder service failed: %s", start_result.error().c_str());
+        (void)closeMicrophone();
+        return false;
     }
 
-    sample_info.sample_rate = MIC_SAMPLE_RATE;
-    sample_info.bits_per_sample = 16;
-    sample_info.channel = 1;
-    sample_info.channel_mask = 0x01;
-    ret = esp_codec_dev_open(_audio_codec, &sample_info);
-    if (ret != ESP_CODEC_DEV_OK) {
-        ESP_UTILS_LOGE(
-            "Open mono microphone at %lu Hz failed: %s",
-            (unsigned long)MIC_SAMPLE_RATE,
-            esp_err_to_name(ret)
-        );
-        goto error;
-    }
-    _audio_codec_opened = true;
-
-    // The board maps the microphone and echo reference as FC,RE. The open
-    // channel mask already selects the first slot (FC), so no remap is needed.
-    return ESP_OK;
-
-error:
-    (void)closeMicrophone();
-    return ret;
+    _audio_encoder_started = true;
+    _capture_accepting.store(true, std::memory_order_release);
+    return true;
 }
 
-esp_err_t SpecAnalyzer::closeMicrophone()
+void SpecAnalyzer::onRecorderData(const service::RawBuffer &data)
 {
-    if (_audio_codec_opened) {
-        if (_audio_codec == nullptr) {
-            return ESP_ERR_INVALID_STATE;
-        }
-        esp_err_t ret = esp_codec_dev_close(_audio_codec);
-        if (ret != ESP_CODEC_DEV_OK) {
-            return ret;
-        }
-        _audio_codec_opened = false;
+    constexpr size_t bytes_per_frame = CAPTURE_CHANNELS * sizeof(int16_t);
+    if (!_capture_accepting.load(std::memory_order_acquire) || data.data_ptr == nullptr ||
+            data.data_size == 0 || (data.data_size % bytes_per_frame) != 0) {
+        return;
     }
 
-    if (_audio_device_acquired) {
-        esp_err_t ret = esp_board_manager_deinit_device_by_name(
-                            ESP_BOARD_DEVICE_NAME_AUDIO_ADC
-                        );
-        if (ret != ESP_OK) {
-            return ret;
-        }
-        _audio_device_acquired = false;
+    const size_t sample_count = data.data_size / sizeof(int16_t);
+    if (sample_count > CAPTURE_RING_SAMPLES) {
+        return;
     }
-    _audio_codec = nullptr;
 
-    // Board Manager owns the shared codec state. Its final device deinit closes
-    // the codec after every app has released its reference.
-    if (_audio_clock_device_acquired) {
-        esp_err_t ret = esp_board_manager_deinit_device_by_name(
-                            ESP_BOARD_DEVICE_NAME_AUDIO_DAC
-                        );
-        if (ret != ESP_OK) {
-            return ret;
-        }
-        _audio_clock_device_acquired = false;
+    std::lock_guard<std::mutex> lock(_capture_callback_mutex);
+    if (!_capture_accepting.load(std::memory_order_relaxed)) {
+        return;
     }
-    _audio_clock_codec = nullptr;
-    return ESP_OK;
+
+    const uint32_t write_index = _capture_write_index.load(std::memory_order_relaxed);
+    const uint32_t read_index = _capture_read_index.load(std::memory_order_acquire);
+    const uint32_t buffered_samples = write_index - read_index;
+    if (buffered_samples > CAPTURE_RING_SAMPLES ||
+            sample_count > CAPTURE_RING_SAMPLES - buffered_samples) {
+        return;
+    }
+
+    const uint32_t ring_offset = write_index & (CAPTURE_RING_SAMPLES - 1);
+    const size_t first_count = (sample_count < CAPTURE_RING_SAMPLES - ring_offset) ?
+                               sample_count : (CAPTURE_RING_SAMPLES - ring_offset);
+    std::memcpy(&_capture_ring[ring_offset], data.data_ptr, first_count * sizeof(int16_t));
+    if (first_count < sample_count) {
+        std::memcpy(
+            _capture_ring, data.data_ptr + first_count * sizeof(int16_t),
+            (sample_count - first_count) * sizeof(int16_t)
+        );
+    }
+    _capture_write_index.store(write_index + sample_count, std::memory_order_release);
+}
+
+bool SpecAnalyzer::closeMicrophone()
+{
+    _capture_accepting.store(false, std::memory_order_release);
+    _recorder_data_connection.disconnect();
+
+    bool stop_succeeded = true;
+    if (_audio_encoder_started) {
+        auto stop_result = AudioEncoderHelper::call_function_sync(AudioEncoderHelper::FunctionId::Stop);
+        if (!stop_result) {
+            ESP_UTILS_LOGE("Stop AudioEncoder service failed: %s", stop_result.error().c_str());
+            stop_succeeded = false;
+        }
+        _audio_encoder_started = false;
+    }
+
+    _audio_encoder = nullptr;
+    _audio_encoder_binding.release();
+
+    {
+        std::lock_guard<std::mutex> lock(_capture_callback_mutex);
+        _capture_write_index.store(0, std::memory_order_relaxed);
+        _capture_read_index.store(0, std::memory_order_relaxed);
+    }
+    return stop_succeeded;
 }
 
 bool SpecAnalyzer::run(void)
@@ -262,9 +265,8 @@ bool SpecAnalyzer::run(void)
     dsps_wind_hann_f32(_wind, N_SAMPLES);
     ESP_UTILS_LOGI("FFT and window initialized");
 
-    esp_err_t audio_ret = openMicrophone();
-    if (audio_ret != ESP_OK) {
-        ESP_UTILS_LOGE("Board Manager microphone init failed: %s", esp_err_to_name(audio_ret));
+    if (!openMicrophone()) {
+        ESP_UTILS_LOGE("Audio service microphone init failed");
         close();
         return false;
     }
@@ -277,7 +279,7 @@ bool SpecAnalyzer::run(void)
         return false;
     }
     
-    // The I2S read can block, so it runs outside the LVGL task and publishes smoothed bins.
+    // Process service PCM outside the LVGL task and publish only smoothed bins.
     _audio_task_running = true;
     BaseType_t task_ret = xTaskCreatePinnedToCore(
         audio_fft_task, 
@@ -367,14 +369,14 @@ bool SpecAnalyzer::pause()
         }
     }
 
-    esp_err_t ret = closeMicrophone();
-    if (ret != ESP_OK) {
-        ESP_UTILS_LOGW("Close Board Manager microphone failed: %s", esp_err_to_name(ret));
+    bool stopped = closeMicrophone();
+    if (!stopped) {
+        ESP_UTILS_LOGW("Close AudioEncoder service failed");
     }
     if (_mic_label) {
         lv_label_set_text(_mic_label, "Mic paused");
     }
-    return ret == ESP_OK;
+    return stopped;
 }
 
 bool SpecAnalyzer::resume()
@@ -386,12 +388,8 @@ bool SpecAnalyzer::resume()
         return true;
     }
 
-    esp_err_t ret = openMicrophone();
-    if (ret != ESP_OK) {
-        ESP_UTILS_LOGE(
-            "Restore Board Manager microphone failed: %s",
-            esp_err_to_name(ret)
-        );
+    if (!openMicrophone()) {
+        ESP_UTILS_LOGE("Restore AudioEncoder service failed");
         if (_mic_label) {
             lv_label_set_text(_mic_label, "Mic unavailable");
         }
@@ -429,36 +427,25 @@ bool SpecAnalyzer::resume()
 void SpecAnalyzer::audio_fft_task(void *pvParameters)
 {
     SpecAnalyzer *app = static_cast<SpecAnalyzer*>(pvParameters);
-    constexpr size_t capture_bytes = N_SAMPLES * sizeof(int16_t);
+    constexpr uint32_t capture_frame_samples = N_SAMPLES * CAPTURE_CHANNELS;
+    constexpr uint32_t capture_ring_mask = CAPTURE_RING_SAMPLES - 1;
     TickType_t last_peak_log_tick = xTaskGetTickCount();
     
     while (app->_audio_task_running) {
-        int ret = esp_codec_dev_read(
-                     app->_audio_codec,
-                     app->_raw_data,
-                     static_cast<int>(capture_bytes)
-                 );
-        
-        if (ret != ESP_CODEC_DEV_OK) {
-            if (ret == ESP_CODEC_DEV_WRONG_STATE) {
-                ESP_UTILS_LOGW("Microphone codec is not open; stop spectrum capture");
-                lv_async_call([](void *param) {
-                    SpecAnalyzer *self = static_cast<SpecAnalyzer *>(param);
-                    if (self && self->_mic_label) {
-                        lv_label_set_text(self->_mic_label, "Mic unavailable");
-                    }
-                }, app);
-                app->_audio_task_running = false;
-                break;
-            }
-
-            ESP_UTILS_LOGW(
-                "Microphone read error: %d",
-                ret
-            );
-            vTaskDelay(pdMS_TO_TICKS(100));
+        const uint32_t read_index = app->_capture_read_index.load(std::memory_order_relaxed);
+        const uint32_t write_index = app->_capture_write_index.load(std::memory_order_acquire);
+        if ((write_index - read_index) < capture_frame_samples) {
+            vTaskDelay(pdMS_TO_TICKS(5));
             continue;
         }
+
+        for (uint32_t sample = 0; sample < N_SAMPLES; ++sample) {
+            // FC is the first slot in the board's interleaved FC,RE capture.
+            app->_raw_data[sample] = app->_capture_ring[
+                                         (read_index + sample * CAPTURE_CHANNELS) & capture_ring_mask
+                                     ];
+        }
+        app->_capture_read_index.store(read_index + capture_frame_samples, std::memory_order_release);
         
         TickType_t now = xTaskGetTickCount();
         if ((now - last_peak_log_tick) >= pdMS_TO_TICKS(2000)) {
@@ -497,8 +484,7 @@ void SpecAnalyzer::audio_fft_task(void *pvParameters)
             app->_spectrum[0][i] = 20 * log10f(magnitude / (N_SAMPLES / 2) + 1e-9);
         }
 
-        // Keep the display range at 0-8 kHz even though capture shares the
-        // 48 kHz DAC bus format used by MusicPlayer.
+        // Keep the display range at 0-8 kHz.
         constexpr int display_bin_count =
             (DISPLAY_MAX_FREQUENCY_HZ * N_SAMPLES) / MIC_SAMPLE_RATE;
 

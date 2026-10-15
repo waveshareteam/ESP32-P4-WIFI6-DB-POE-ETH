@@ -99,7 +99,7 @@ namespace esp_brookesia::apps
         destroy_settings_ui();
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), *this);
         settings_ui::create_header(page_root, "Settings");
         settings_ui::init_list_styles(style_list, style_list_btn, style_list_text, style_list_btn_pressed);
 
