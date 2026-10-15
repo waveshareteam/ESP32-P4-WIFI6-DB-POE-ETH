@@ -1,0 +1,43 @@
+menu "ESP HAL Boards"
+
+config BSP_LCD_BRIGHTNESS_USE_I2C
+    bool "Enable Board Manager I2C LCD brightness controller"
+    default y
+    help
+        Enable the custom I2C backlight controller used by the POE-ETH board.
+        The board's lcd_brightness device requires this option to expose its
+        brightness API.
+
+config ESP_HAL_BOARDS_AUDIO_ENABLE
+    bool "Enable Board Manager audio HAL provider"
+    depends on !BROOKESIA_HAL_ADAPTOR_ENABLE_AUDIO_DEVICE
+    default y
+    help
+        Register the local audio provider backed by the current ESP Board Manager.
+        Keep the official Brookesia audio device disabled to avoid duplicate providers
+        and its older Board Manager version constraint.
+
+if ESP_HAL_BOARDS_AUDIO_ENABLE
+
+config ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR
+    bool "Enable audio playback, encoder and decoder interfaces"
+    default y
+    help
+        Enable the av_processor based playback, PCM/Opus/G711A and optional AFE layer.
+
+config ESP_HAL_BOARDS_AUDIO_PROCESSOR_AFE_USE_CUSTOM
+    bool "Use custom AFE mode instead of ESP-SR AFE"
+    depends on ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR
+    default n
+    help
+        Select the custom mode in av_processor. ESP-SR AFE is the supported mode
+        for the ESP32-P4 target.
+
+config ESP_HAL_BOARDS_AUDIO_PROCESSOR_DEBUG_LOG
+    bool "Enable audio processor debug tracing"
+    depends on ESP_HAL_BOARDS_AUDIO_ENABLE_PROCESSOR
+    default n
+
+endif # ESP_HAL_BOARDS_AUDIO_ENABLE
+
+endmenu

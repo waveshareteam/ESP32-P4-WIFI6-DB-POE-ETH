@@ -1,0 +1,30 @@
+dependencies:
+  idf:
+    version: '>=5.5'
+  espressif/esp_wifi_remote: ^1.6.4
+  espressif/esp_hosted: ^3.0.9
+  espressif/esp_lvgl_adapter: ^0.6.2
+  espressif/esp_board_manager: ^0.7.3~1
+  espressif/esp_video: ^2.5.0
+  espressif/gmf_fft: '*'
+  espressif/brookesia_service_wifi: ^0.8.2
+  espressif/brookesia_hal_adaptor: ^0.8.4
+  espressif/cjson: ^1.7.19~2
+  espressif/esp-boost: ^0.6.0
+  espressif/esp-dsp: '*'
+  lvgl/lvgl: '>=9.4.0,<9.5.0'
+  espressif/esp-lib-utils: ^0.3.0
+  espressif/avi_player: =*
+  espressif/esp_new_jpeg: =*
+  internal_waveshare_boards:
+    git: 
+      http://192.168.1.91/esp32_p4_dev_boards/esp32_p4_board_manager_internal.git
+  espressif/esp-sr: ^2.4.4
+  espressif/esp_audio_effects: ^1.3.0
+overrides:
+- espressif/esp_hosted:
+    with:
+      esp_hosted:
+        version: 3.0.9
+    reason: Keep the existing ESP-Hosted 3.x transport used by esp_wifi_remote 
+      on ESP32-P4

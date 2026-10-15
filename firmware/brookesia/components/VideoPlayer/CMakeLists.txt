@@ -1,0 +1,26 @@
+set(PROJ_SRC ${CMAKE_CURRENT_LIST_DIR})
+
+file(GLOB_RECURSE PROJ_SRCS_C ${PROJ_SRC}/*.c)
+file(GLOB_RECURSE PROJ_SRCS_CPP ${PROJ_SRC}/*.cpp)
+
+idf_component_register(
+    SRCS  ${PROJ_SRCS_C} ${PROJ_SRCS_CPP}
+    INCLUDE_DIRS ${PROJ_SRC}
+    REQUIRES 
+        brookesia_core
+        esp_board_manager
+        esp_codec_dev
+        esp_driver_ppa
+        esp_lcd
+        esp_lcd_touch
+        esp_lvgl_adapter
+        esp_new_jpeg
+        avi_player
+    PRIV_REQUIRES brookesia_service_helper brookesia_service_storage
+)
+
+set_source_files_properties(
+    ${PROJ_SRCS_CPP}
+    PROPERTIES
+        COMPILE_FLAGS "-Wno-missing-field-initializers"
+)
