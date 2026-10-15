@@ -1,6 +1,0 @@
-version: "1.0"
-description: Waveshare 9-DSI-TOUCH-B
-apply:
-  - panel.yaml
-  - lcd_mipi_dsi.c
-  - Kconfig.projbuild

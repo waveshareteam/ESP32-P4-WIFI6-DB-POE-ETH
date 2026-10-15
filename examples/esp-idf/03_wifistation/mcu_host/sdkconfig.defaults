@@ -17,6 +17,7 @@ CONFIG_ESP_WIFI_PASSWORD="mypassword"
 CONFIG_ESP_MAXIMUM_RETRY=5
 CONFIG_ESP_WIFI_AUTH_WPA2_PSK=y
 CONFIG_ESP_STATION_EXAMPLE_WPA3_SAE_PWE_BOTH=y
+CONFIG_SLAVE_IDF_TARGET_ESP32C5=y
 
 # Keep softAP=y: eh_port_netif.c references ESP_NETIF_INHERENT_DEFAULT_WIFI_AP
 # unconditionally; tracked in .meta/specs/tasks/todo.md.

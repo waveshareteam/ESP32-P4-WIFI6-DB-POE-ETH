@@ -75,6 +75,7 @@ static esp_err_t es8311_codec_init(void)
         .codec_mode = ESP_CODEC_DEV_WORK_MODE_BOTH,
         .master_mode = false,
         .use_mclk = I2S_MCK_IO >= 0,
+        .no_dac_ref = true,
         .pa_pin = EXAMPLE_PA_CTRL_IO,
         .pa_reverted = false,
         .hw_gain = {
@@ -101,6 +102,7 @@ static esp_err_t es8311_codec_init(void)
         .channel = 2,
         .channel_mask = 0x03,
         .sample_rate = EXAMPLE_SAMPLE_RATE,
+        .mclk_multiple = EXAMPLE_MCLK_MULTIPLE,
     };
     if (esp_codec_dev_open(codec_handle, &sample_cfg) != ESP_CODEC_DEV_OK) {
         ESP_LOGE(TAG, "Open codec device failed");
@@ -210,7 +212,7 @@ static void i2s_echo(void *args)
             abort();
         }
         /* Write sample data to earphone */
-        ret = i2s_channel_write(tx_handle, mic_data, EXAMPLE_RECV_BUF_SIZE, &bytes_write, 1000);
+        ret = i2s_channel_write(tx_handle, mic_data, bytes_read, &bytes_write, 1000);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "[echo] i2s write failed, %s", err_reason[ret == ESP_ERR_TIMEOUT]);
             abort();

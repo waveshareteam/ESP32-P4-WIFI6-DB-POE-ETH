@@ -1,6 +1,0 @@
-# Selects the 9-DSI-TOUCH-B initialization sequence inside waveshare/esp_lcd_jd9365.
-# The driver picks its vendor init table with CONFIG_BSP_LCD_TYPE_* at compile
-# time, so this amend carries the symbol instead of asking the user to set it.
-config BSP_LCD_TYPE_720_1280_9_INCH_B
-    bool
-    default y
