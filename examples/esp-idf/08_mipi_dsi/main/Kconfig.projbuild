@@ -1,0 +1,23 @@
+menu "MIPI DSI Example Configuration"
+
+    config ESP_LCD_WHITE_SCREEN_TEST
+        bool "Enable LCD white screen test"
+        default n
+        help
+            Show a full white screen instead of the hardware color bar pattern.
+
+    config ESP_LCD_TOUCH_DRAW_TEST
+        bool "Enable touchscreen dot drawing test"
+        default n
+        help
+            Poll the BSP GT911 touchscreen and draw magenta dots at touch coordinates.
+
+    config ESP_DEEP_SLEEP_TEST
+        bool "Enable deep sleep test"
+        depends on !ESP_LCD_TOUCH_DRAW_TEST
+        default n
+        help
+            Enter deep sleep after displaying the selected screen test. This option is unavailable while the
+            touchscreen dot drawing test is enabled.
+
+endmenu
