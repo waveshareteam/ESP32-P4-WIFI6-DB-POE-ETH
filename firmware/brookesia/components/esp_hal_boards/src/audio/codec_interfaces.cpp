@@ -124,6 +124,8 @@ bool AudioCodecPlayer::open(const Config &config)
         .channel = config.channels,
         .sample_rate = config.sample_rate,
     };
+    ESP_LOGI(TAG, "Open playback codec: %" PRIu32 " Hz, %u-bit, %u channels",
+             config.sample_rate, config.bits, config.channels);
     esp_err_t ret = esp_codec_dev_open(handle, &sample_info);
     if (ret != ESP_CODEC_DEV_OK) {
         ESP_LOGE(TAG, "Open playback codec failed: %d", ret);

@@ -58,7 +58,8 @@ private:
     bool initialized_ = false;
     std::optional<esp_brookesia::hal::audio::CodecRecorderIface::Info> recorder_info_;
     esp_brookesia::hal::AudioProcessorConfig processor_config_{};
-    std::string afe_input_layout_ = "MR";
+    // One microphone; ignore the second I2S slot. This board has no AEC reference.
+    std::string afe_input_layout_ = "MN";
     std::shared_ptr<AudioProcessorCore> processor_core_;
 };
 

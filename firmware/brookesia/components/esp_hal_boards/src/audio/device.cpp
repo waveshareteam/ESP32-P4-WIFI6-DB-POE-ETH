@@ -34,7 +34,7 @@ AudioDevice::AudioDevice()
         .channels = 2,
         .sample_rate = AUDIO_BUS_SAMPLE_RATE,
         .mic_layout = "FC,RE",
-        .general_gain = 36.0f,
+        .general_gain = 24.0f,
         .channel_gains = {},
     };
     // Keep the shared I2S clock aligned with the audio player's 48 kHz output.

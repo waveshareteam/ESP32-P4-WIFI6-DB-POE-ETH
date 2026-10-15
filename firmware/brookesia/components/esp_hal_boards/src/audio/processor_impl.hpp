@@ -81,6 +81,7 @@ private:
     void release_recorder_input();
     bool read_recorder_input(uint8_t *data, size_t size);
     bool read_raw_recorder_input(uint8_t *data, size_t size);
+    void log_afe_input(const uint8_t *data, size_t size);
 
     std::shared_ptr<audio::CodecPlayerIface> player_iface_;
     std::shared_ptr<audio::CodecRecorderIface> recorder_iface_;
@@ -106,6 +107,8 @@ private:
     std::vector<int16_t> recorder_output_;
     size_t recorder_output_offset_ = 0;
     size_t recorder_output_size_ = 0;
+    uint32_t recorder_log_frames_ = 0;
+    uint32_t recorder_log_tick_ = 0;
 };
 
 class AudioPlaybackImpl: public audio::PlaybackIface {

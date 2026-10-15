@@ -1388,6 +1388,7 @@ bool XiaozhiApp::prepareChat()
         (void)postControlEvent(event);
     };
     callbacks.onEmotion = [this, client_generation](const std::string &emotion) {
+        ESP_UTILS_LOGI("Server emotion received: %s", emotion.c_str());
         ControlEvent event = {};
         event.type = ControlEventType::Emotion;
         event.chat_generation = client_generation;

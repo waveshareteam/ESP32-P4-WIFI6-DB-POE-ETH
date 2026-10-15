@@ -214,7 +214,7 @@ bool XiaozhiUi::create(
         lv_pct(100),
         multiline_subtitle ? SUBTITLE_MULTILINE_HEIGHT : SUBTITLE_SINGLE_HEIGHT
     );
-    lv_obj_align(_subtitle_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_align_to(_subtitle_bar, _emoji_box, LV_ALIGN_OUT_BOTTOM_MID, 0, 12);
     lv_obj_set_style_bg_color(_subtitle_bar, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(_subtitle_bar, LV_OPA_70, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(_subtitle_bar, 16, LV_PART_MAIN);
@@ -324,6 +324,8 @@ void XiaozhiUi::setEmotion(const char *emotion)
     }
 
     const char *emoji = emojiForEmotion(name);
+    ESP_LOGI(TAG, "Apply emotion: %s (emoji_font=%d, mapped=%d)",
+             name, _emoji_font != nullptr, emoji != nullptr);
     if (_emoji_font && emoji) {
         lv_obj_set_style_text_font(_emoji_label, _emoji_font, LV_PART_MAIN);
         lv_label_set_text(_emoji_label, emoji);

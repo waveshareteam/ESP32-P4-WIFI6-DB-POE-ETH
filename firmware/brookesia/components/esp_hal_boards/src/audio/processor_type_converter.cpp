@@ -144,8 +144,7 @@ av_processor_afe_config_t AudioProcessorTypeConverter::convert(
 
     if (config.vad.has_value()) {
 #if !ESP_HAL_BOARDS_AUDIO_PROCESSOR_AFE_USE_CUSTOM
-        afe_config.algo_mask |= AV_PROCESSOR_AFE_FLAG_AEC_ENABLE |
-                                AV_PROCESSOR_AFE_FLAG_NS_ENABLE |
+        afe_config.algo_mask |= AV_PROCESSOR_AFE_FLAG_NS_ENABLE |
                                 AV_PROCESSOR_AFE_FLAG_VAD_ENABLE |
                                 AV_PROCESSOR_AFE_FLAG_AGC_ENABLE;
 #else

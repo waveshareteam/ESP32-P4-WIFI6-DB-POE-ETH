@@ -21,6 +21,8 @@
 #include "esp_gmf_afe.h"
 #include "esp_partition.h"
 #include "model_path.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "brookesia/lib_utils/function_guard.hpp"
 #include "brookesia/lib_utils/log.hpp"
 #include "brookesia/lib_utils/check.hpp"
@@ -165,6 +167,11 @@ bool AudioProcessorCore::open_common(audio::PlaybackIface::EventCallback callbac
     BROOKESIA_CHECK_NULL_RETURN(recorder_iface_, false, "Invalid recorder interface");
     const auto &recorder_info = recorder_iface_->get_info();
     const auto &player_config = config_.playback.player;
+    BROOKESIA_LOGI(
+        "Opening shared audio bus: playback=%1% Hz, %2% bit, %3% channels; recorder=%4% Hz, %5% bit, %6% channels",
+        player_config.sample_rate, player_config.bits, player_config.channels,
+        recorder_info.sample_rate, recorder_info.bits, recorder_info.channels
+    );
     BROOKESIA_CHECK_FALSE_RETURN(
         player_config.bits == recorder_info.bits &&
         player_config.channels == recorder_info.channels &&
@@ -435,6 +442,8 @@ void AudioProcessorCore::release_recorder_input()
     recorder_output_.clear();
     recorder_output_offset_ = 0;
     recorder_output_size_ = 0;
+    recorder_log_frames_ = 0;
+    recorder_log_tick_ = 0;
 }
 
 bool AudioProcessorCore::read_raw_recorder_input(uint8_t *data, size_t size)
@@ -449,6 +458,8 @@ bool AudioProcessorCore::read_recorder_input(uint8_t *data, size_t size)
     if (!recorder_resampler_) return read_raw_recorder_input(data, size);
     const auto channels = recorder_iface_->get_info().channels;
     if (!data || size % (channels * sizeof(int16_t))) return false;
+    const auto *output = data;
+    const auto output_size = size;
 
     // AFE requests 512-frame chunks. Convert fixed hardware blocks and retain
     // the remainder so neither microphone nor echo-reference samples are lost.
@@ -473,7 +484,39 @@ bool AudioProcessorCore::read_recorder_input(uint8_t *data, size_t size)
         size -= copied;
         recorder_output_offset_ += copied;
     }
+    log_afe_input(output, output_size);
     return true;
+}
+
+void AudioProcessorCore::log_afe_input(const uint8_t *data, size_t size)
+{
+    // if (recorder_iface_->get_info().channels != 2 || size == 0) return;
+    // const auto frames = size / (2 * sizeof(int16_t));
+    // recorder_log_frames_ += frames;
+    // if (recorder_log_tick_ && recorder_log_frames_ < 16000) return;
+    // const auto now = xTaskGetTickCount();
+    // const auto elapsed_ms = recorder_log_tick_ ?
+    //     (now - recorder_log_tick_) * portTICK_PERIOD_MS : 0;
+    // const auto *pcm = reinterpret_cast<const int16_t *>(data);
+    // uint32_t peak[2] = {}, sum[2] = {}, clipped[2] = {};
+    // size_t identical = 0;
+    // for (size_t frame = 0; frame < frames; ++frame) {
+    //     if (pcm[frame * 2] == pcm[frame * 2 + 1]) ++identical;
+    //     for (size_t channel = 0; channel < 2; ++channel) {
+    //         const int32_t value = pcm[frame * 2 + channel];
+    //         const uint32_t magnitude = value < 0 ? -value : value;
+    //         if (magnitude > peak[channel]) peak[channel] = magnitude;
+    //         sum[channel] += magnitude;
+    //         if (magnitude >= 32760) ++clipped[channel];
+    //     }
+    // }
+    // BROOKESIA_LOGI(
+    //     "AFE PCM: frames=%1%, elapsed_ms=%2%; ch0 peak=%3% mean=%4% clip=%5%; ch1 peak=%6% mean=%7% clip=%8%; identical=%9%/%10%",
+    //     recorder_log_frames_, elapsed_ms,
+    //     peak[0], sum[0] / frames, clipped[0], peak[1], sum[1] / frames, clipped[1], identical, frames
+    // );
+    // recorder_log_frames_ = 0;
+    // recorder_log_tick_ = now;
 }
 
 bool AudioProcessorCore::set_encoder_afe_config(AudioProcessorAFE_Config config)

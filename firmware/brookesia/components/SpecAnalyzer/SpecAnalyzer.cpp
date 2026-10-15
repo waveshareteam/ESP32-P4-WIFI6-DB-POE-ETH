@@ -491,8 +491,8 @@ void SpecAnalyzer::audio_fft_task(void *pvParameters)
         // Map FFT bins onto fewer visual bars and smooth the change over time.
         for (int i = 0; i < STRIPE_COUNT; ++i) {
             int fft_idx = i * display_bin_count / STRIPE_COUNT;
-            float boosted_db = app->_spectrum[0][fft_idx] + 10.0f;
-            app->_display_spectrum[0][i] = fmaxf(-90.0f, fminf(0.0f, boosted_db));
+            float magnitude_db = app->_spectrum[0][fft_idx];
+            app->_display_spectrum[0][i] = fmaxf(-90.0f, fminf(0.0f, magnitude_db));
 
             const float SMOOTH_FACTOR = 0.2f;
             app->_smooth_spectrum[0][i] = app->_smooth_spectrum[0][i] * (1.0f - SMOOTH_FACTOR) +
