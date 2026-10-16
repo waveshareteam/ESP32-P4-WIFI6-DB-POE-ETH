@@ -130,7 +130,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 测试 I2C、存储、网络、USB、显示、触摸、摄像头、音频和 GPIO。操作说明见[固件 README](firmware/factory_test/README_CN.md)
 和[测试手册](firmware/factory_test/docs/test-procedure_CN.md)。
 
-仓库中的 [`firmware/brookesia/`](firmware/brookesia/) 面向 ESP32-P4-WIFI6-Touch-LCD-4B，属于另一款开发板的固件工程。
+仓库中的 [`firmware/brookesia/`](firmware/brookesia/) 面向 ESP32-P4-WIFI6-DB-POE-ETH，是本开发板的固件工程。
 
 ## 🗂️ 仓库结构
 
@@ -141,9 +141,9 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | `components/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
 | `components/waveshare_boards/esp32_p4_wifi6_db_poe_eth/` | 同一板卡的 ESP Board Manager 板卡定义 |
 | `firmware/factory_test/` | 本开发板的整板硬件测试固件 |
-| `firmware/brookesia/` | ESP32-P4-WIFI6-Touch-LCD-4B 固件工程 |
+| `firmware/brookesia/` | ESP32-P4-WIFI6-DB-POE-ETH 固件工程 |
 | `docs/` | 中英文硬件参考指南 |
-| `hardware/` | 预留给硬件文档，目前为空 |
+| `hardware/` | 硬件文档与资料 |
 
 ## 📚 文档
 

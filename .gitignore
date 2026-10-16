@@ -1,13 +1,70 @@
-.clangd
-
+# ESP-IDF build output
+build/
+Build/
+build-*/
 sdkconfig
 sdkconfig.old
+managed_components/
 dependencies.lock
 
-.vscode/
-build/
-managed_components/
+# CMake-generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Testing/
 
+# Generated ESP Board Manager files
 gen_bmgr_codes/
 
-docs/superpowers
+# Local IDE configuration
+.vscode/
+.clangd
+
+# Local planning notes
+docs/superpowers/
+
+# Runtime media and binary assets kept outside source control
+*.mp3
+*.bin
+
+# Compiled C/C++ outputs
+*.d
+*.o
+*.obj
+*.elf
+*.hex
+*.map
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.pdb
+*.ilk
+*.gch
+*.pch
+*.su
+*.dwo
+
+# IDE, test, and language caches
+.vs/
+.cache/
+__pycache__/
+*.py[cod]
+
+# OS/editor temporary files
+.DS_Store
+.localized
+__MACOSX/
+._*
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+*.stackdump
+*.swp
+*.swo
+*~
