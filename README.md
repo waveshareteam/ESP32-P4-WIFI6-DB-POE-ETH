@@ -38,9 +38,9 @@ and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
 | Main processor | ESP32-P4NRW32X, dual-core RISC-V high-performance cores plus a low-power core |
 | Flash | 32 MB (QIO) |
 | PSRAM | On-chip PSRAM, 200 MHz |
-| Wireless | ESP32-C5 (Wi-Fi 6 + Bluetooth LE) over 4-bit SDIO, used through `esp_hosted` / `esp_wifi_remote` |
+| Wireless | ESP32-C5 coprocessor over SDIO using ESP-Hosted, providing Wi-Fi 6 and Bluetooth |
 | Ethernet | RMII MAC/PHY (generic IEEE 802.3 PHY driver); integrated PoE module |
-| Display | Selectable two-lane MIPI-DSI panel: HX8394 (5-inch, 720 × 1280), ILI9881C (7-inch, 720 × 1280), or JD9365 (8/10.1-inch, 800 × 1280; default configuration is 10.1-inch) |
+| Display | Two-lane MIPI-DSI; supports external Waveshare [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm),[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm),[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm) and [10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm)-inch panels |
 | Touch | GT911 capacitive touch controller; touch data is polled over shared I2C |
 | Audio | ES8311 codec, speaker output and one analog microphone input |
 | Storage | microSD over 4-bit SDMMC |

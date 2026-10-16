@@ -38,9 +38,9 @@ IEEE 802.3af PoE 标准的路由器或交换机。
 | 主处理器 | ESP32-P4NRW32X，双核 RISC-V HP 系统加低功耗核 |
 | Flash | 32 MB（QIO） |
 | PSRAM | 片上 PSRAM，200 MHz |
-| 无线 | ESP32-C5（Wi-Fi 6 + Bluetooth LE），通过 4-bit SDIO 连接，经 `esp_hosted` / `esp_wifi_remote` 使用 |
+| 无线 | ESP32-C5 协处理器，通过 SDIO 上的 ESP-Hosted 提供 Wi-Fi 6 和蓝牙 |
 | 以太网 | RMII MAC/PHY（通用 IEEE 802.3 PHY 驱动）；板载集成 PoE 模块 |
-| 显示 | 可选双 lane MIPI-DSI 屏幕：HX8394（5 英寸，720×1280）、ILI9881C（7 英寸，720×1280）、JD9365（8/10.1 英寸，800×1280；默认配置为 10.1 英寸） |
+| 显示 | 双通道 MIPI-DSI；支持外接 Waveshare [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) 英寸面板 |
 | 触摸 | GT911 电容触摸控制器，通过共享 I2C 轮询 |
 | 音频 | ES8311 编解码器，扬声器输出 + 单路模拟麦克风输入 |
 | 存储 | microSD，4-bit SDMMC |
@@ -93,7 +93,7 @@ idf.py -p PORT flash monitor
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
-| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4 ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
+| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
 
 ## 🧪 Arduino 示例
 
@@ -110,9 +110,9 @@ Arduino 示例位于 `examples/Arduino/`。请先按[本地板卡文件说明](e
 | [mipi_dsi](examples/Arduino/mipi_dsi/) | MIPI-DSI 屏幕色条和背光测试 |
 | [mipi_csi](examples/Arduino/mipi_csi/) | 将 OV5647 摄像头画面显示到 LCD |
 
-## 📡 ESP32-P4 与 ESP32-C5 无线通信
+## 📡 ESP32-P4NRW32X 与 ESP32-C5 无线通信
 
-ESP32-P4 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
+ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
 Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
 应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
 [03_wifistation](examples/esp-idf/03_wifistation/) 和

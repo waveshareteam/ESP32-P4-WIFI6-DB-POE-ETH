@@ -178,8 +178,8 @@ MusicPlayer 最多读取 `/spiffs/music` 中的五首 MP3。修改曲目后必�
 - Host 组件必须与 ESP32-C5 中的协处理器固件兼容。
 - 更新 BSP 前应检查上游 PR/Release 中的 Board Manager 接口变化。
 
-`main/main.cpp` 中的 `EXAMPLE_SHOW_MEM_INFO = false` 默认关闭周期 SRAM/PSRAM 统计，
-排查内存压力时可以临时启用。
+`main/main.cpp` 中的 `EXAMPLE_SHOW_MEM_INFO = true`，因此会定期统计 SRAM/PSRAM。
+详细统计日志由 `EXAMPLE_SHOW_MEM_INFO_LOG` 单独控制。
 
 反馈问题时，请附上板卡版本、ESP-IDF 版本、完整复现步骤和日志中的第一个实际错误。
 
