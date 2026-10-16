@@ -2,6 +2,12 @@
 #--------
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 
+# 1.1 RTC slow clock
+#-------------------
+# Use the onboard 32.768 kHz crystal on XTAL_32K_P/N (GPIO0/GPIO1).
+CONFIG_RTC_CLK_SRC_EXT_CRYS=y
+CONFIG_RTC_CLK_CAL_CYCLES=3000
+
 # 2. BT Configuration
 #---------------------
 CONFIG_BT_ENABLED=n
