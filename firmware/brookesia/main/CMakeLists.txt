@@ -17,6 +17,7 @@ idf_component_register(
         MusicPlayer
         SpecAnalyzer
         Settings
+        Ethernet
         esp_event esp_netif esp_wifi nvs_flash esp_lvgl_adapter
     REQUIRES ${BMGR_GEN_REQUIRES} esp_hal_boards)
 

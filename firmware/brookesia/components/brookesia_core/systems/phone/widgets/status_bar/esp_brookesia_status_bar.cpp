@@ -43,6 +43,7 @@ bool StatusBar::begin(lv_obj_t *parent)
 
     ESP_UTILS_CHECK_FALSE_GOTO(beginMain(parent), err, "Begin main failed");
     ESP_UTILS_CHECK_FALSE_GOTO(beginWifi(), err, "Begin wifi failed");
+    ESP_UTILS_CHECK_FALSE_GOTO(beginEthernet(), err, "Begin Ethernet icon failed");
     ESP_UTILS_CHECK_FALSE_GOTO(beginBattery(), err, "Begin battery failed");
     ESP_UTILS_CHECK_FALSE_GOTO(beginClock(), err, "Begin clock failed");
 
@@ -72,6 +73,10 @@ bool StatusBar::del(void)
         ret = false;
     }
 
+    if (!delEthernet()) {
+        ESP_UTILS_LOGE("Delete Ethernet icon failed");
+        ret = false;
+    }
     if (!delMain()) {
         ESP_UTILS_LOGE("Delete main failed");
         ret = false;
@@ -537,6 +542,82 @@ bool StatusBar::setWifiIconState(WifiState state) const
         setIconState(_wifi_id, static_cast<int>(state)), false, "Set wifi icon state failed"
     );
 
+    return true;
+}
+
+bool StatusBar::beginEthernet(void)
+{
+    ESP_UTILS_CHECK_FALSE_RETURN(_ethernet_icon_obj == nullptr, false, "Ethernet icon already initialized");
+    ESP_UTILS_CHECK_FALSE_RETURN(_data.area.num > _data.wifi.area_index, false, "Ethernet icon area is invalid");
+
+    lv_obj_t *icon = lv_obj_create(_area_objs[_data.wifi.area_index].get());
+    ESP_UTILS_CHECK_NULL_RETURN(icon, false, "Create Ethernet icon failed");
+    _ethernet_icon_obj = icon;
+    lv_obj_remove_style_all(icon);
+    lv_obj_set_size(icon, 28, 28);
+    lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(icon, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_t *jack = lv_obj_create(icon);
+    ESP_UTILS_CHECK_NULL_RETURN(jack, false, "Create Ethernet jack failed");
+    lv_obj_remove_style_all(jack);
+    lv_obj_set_size(jack, 20, 14);
+    lv_obj_align(jack, LV_ALIGN_TOP_MID, 0, 2);
+    lv_obj_set_style_radius(jack, 2, 0);
+    lv_obj_set_style_border_width(jack, 2, 0);
+    lv_obj_set_style_border_color(jack, lv_color_hex(_data.main.text_color.color), 0);
+    lv_obj_set_style_bg_opa(jack, LV_OPA_TRANSP, 0);
+    lv_obj_clear_flag(jack, LV_OBJ_FLAG_SCROLLABLE);
+
+    for (int i = 0; i < 4; ++i) {
+        lv_obj_t *pin = lv_obj_create(jack);
+        ESP_UTILS_CHECK_NULL_RETURN(pin, false, "Create Ethernet contact failed");
+        lv_obj_remove_style_all(pin);
+        lv_obj_set_size(pin, 2, 4);
+        lv_obj_set_pos(pin, 3 + i * 4, 6);
+        lv_obj_set_style_bg_color(pin, lv_color_hex(_data.main.text_color.color), 0);
+        lv_obj_set_style_bg_opa(pin, LV_OPA_COVER, 0);
+        lv_obj_clear_flag(pin, LV_OBJ_FLAG_SCROLLABLE);
+    }
+
+    lv_obj_t *cable = lv_obj_create(icon);
+    ESP_UTILS_CHECK_NULL_RETURN(cable, false, "Create Ethernet cable failed");
+    lv_obj_remove_style_all(cable);
+    lv_obj_set_size(cable, 2, 5);
+    lv_obj_align(cable, LV_ALIGN_TOP_MID, 0, 16);
+    lv_obj_set_style_bg_color(cable, lv_color_hex(_data.main.text_color.color), 0);
+    lv_obj_set_style_bg_opa(cable, LV_OPA_COVER, 0);
+    lv_obj_clear_flag(cable, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *cable_end = lv_obj_create(icon);
+    ESP_UTILS_CHECK_NULL_RETURN(cable_end, false, "Create Ethernet cable end failed");
+    lv_obj_remove_style_all(cable_end);
+    lv_obj_set_size(cable_end, 10, 2);
+    lv_obj_align(cable_end, LV_ALIGN_TOP_MID, 0, 21);
+    lv_obj_set_style_bg_color(cable_end, lv_color_hex(_data.main.text_color.color), 0);
+    lv_obj_set_style_bg_opa(cable_end, LV_OPA_COVER, 0);
+    lv_obj_clear_flag(cable_end, LV_OBJ_FLAG_SCROLLABLE);
+
+    return true;
+}
+
+bool StatusBar::delEthernet(void)
+{
+    if (_ethernet_icon_obj) {
+        lv_obj_delete(_ethernet_icon_obj);
+        _ethernet_icon_obj = nullptr;
+    }
+    return true;
+}
+
+bool StatusBar::setEthernetIconState(bool connected) const
+{
+    ESP_UTILS_CHECK_NULL_RETURN(_ethernet_icon_obj, false, "Ethernet icon is not initialized");
+    if (connected) {
+        lv_obj_clear_flag(_ethernet_icon_obj, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(_ethernet_icon_obj, LV_OBJ_FLAG_HIDDEN);
+    }
     return true;
 }
 

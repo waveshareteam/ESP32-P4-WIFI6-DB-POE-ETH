@@ -108,6 +108,7 @@ public:
     // Wifi
     bool setWifiIconState(int state) const;
     bool setWifiIconState(WifiState state) const;
+    bool setEthernetIconState(bool connected) const;
     // Clock
     bool setClockFormat(ClockFormat format) const;
     bool setClock(int hour, int min, bool is_pm) const;
@@ -138,6 +139,8 @@ private:
     }
 
     bool beginWifi(void);
+    bool beginEthernet(void);
+    bool delEthernet(void);
 
     bool beginClock(void);
     bool updateClockByNewData(void);
@@ -165,6 +168,7 @@ private:
     ESP_Brookesia_LvObj_t _battery_label;
     // Wifi
     int _wifi_id = -1;
+    lv_obj_t *_ethernet_icon_obj = nullptr;
     // Clock
     mutable int _clock_hour = -1;
     mutable int _clock_min = -1;

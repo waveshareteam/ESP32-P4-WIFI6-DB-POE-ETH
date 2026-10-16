@@ -32,6 +32,7 @@
 #include "SpecAnalyzer.hpp"
 #include "Settings.hpp"
 #include "XiaozhiApp.hpp"
+#include "EthernetInfo.hpp"
 
 using namespace esp_brookesia;
 using namespace esp_brookesia::gui;
@@ -91,6 +92,17 @@ static void register_wifi_status_events()
 static bool is_wifi_connected()
 {
     return s_wifi_connected;
+}
+
+static bool is_ethernet_connected()
+{
+    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+    if (!netif) {
+        return false;
+    }
+
+    esp_netif_ip_info_t ip_info = {};
+    return esp_netif_get_ip_info(netif, &ip_info) == ESP_OK && ip_info.ip.addr != 0;
 }
 
 extern "C" void app_main(void)
@@ -191,6 +203,8 @@ extern "C" void app_main(void)
         auto xiaozhi_app = esp_brookesia::apps::XiaozhiApp::requestInstance();
         ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(xiaozhi_app), "Start Camera failed");
 
+        auto ethernet_info_app = esp_brookesia::apps::EthernetInfo::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(ethernet_info_app), "Start Camera failed");
     }
 
     register_wifi_status_events();
@@ -220,6 +234,10 @@ extern "C" void app_main(void)
             ESP_UTILS_CHECK_FALSE_EXIT(
                 phone->getDisplay().getStatusBar()->setWifiIconState(wifi_state),
                 "Refresh status bar failed"
+            );
+            ESP_UTILS_CHECK_FALSE_EXIT(
+                phone->getDisplay().getStatusBar()->setEthernetIconState(is_ethernet_connected()),
+                "Refresh Ethernet status icon failed"
             );
         }, 1000, phone);
         ESP_UTILS_CHECK_NULL_EXIT(status_timer, "Create status timer failed");
