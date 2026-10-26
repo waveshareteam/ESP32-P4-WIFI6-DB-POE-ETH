@@ -93,6 +93,7 @@ Replace `PORT` with your serial port, such as `COM7` on Windows or `/dev/ttyACM0
 | [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for starting the board with ESP Board Manager and running LCD, touch, audio, camera, SD card, Ethernet, and GPIO tests |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test over the ESP32-P4 ESP-Hosted SDIO link, with an iPerf 2.x PC peer |
+| [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | Minimal NimBLE peripheral that advertises through the ESP32-C5 BLE controller over ESP-Hosted HCI |
 
 ## 🧪 Arduino Examples
 
@@ -117,9 +118,10 @@ connects to it over 4-bit SDIO and provides Wi-Fi 6 and Bluetooth LE. Wireless
 operation requires a P4 host application and compatible firmware on the C5
 coprocessor; flashing the P4 application does not update the C5 firmware. Keep the
 ESP-Hosted configurations on both sides compatible. See
-[03_wifistation](examples/esp-idf/03_wifistation/) and
-[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/); the latter includes separate P4
-host and C5 coprocessor projects.
+[03_wifistation](examples/esp-idf/03_wifistation/),
+[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) and
+[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/); the latter two include
+separate P4 host and C5 coprocessor projects.
 
 ## 🌐 Ethernet
 

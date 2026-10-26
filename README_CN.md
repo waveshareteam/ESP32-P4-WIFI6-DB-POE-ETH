@@ -94,6 +94,7 @@ idf.py -p PORT flash monitor
 | [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
+| [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | 最小 NimBLE 外设示例，通过 ESP-Hosted HCI 使用 ESP32-C5 的 BLE 控制器进行广播 |
 
 ## 🧪 Arduino 示例
 
@@ -115,8 +116,9 @@ Arduino 示例位于 `examples/Arduino/`。请先按[本地板卡文件说明](e
 ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
 Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
 应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
-[03_wifistation](examples/esp-idf/03_wifistation/) 和
-[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/)；后者包含 P4 Host 和 C5 协处理器工程。
+[03_wifistation](examples/esp-idf/03_wifistation/)、
+[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) 和
+[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/)；后两者包含 P4 Host 和 C5 协处理器工程。
 
 ## 🌐 以太网
 
