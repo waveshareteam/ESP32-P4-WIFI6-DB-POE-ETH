@@ -10,5 +10,5 @@ dependencies:
   usb_host_msc: ^1.1.4
   espressif/esp_audio_codec: "^2.4.0"
   # Board package (not on the registry); `idf.py bmgr -c` must point at the same directory.
-  waveshare_bmgr:
-    override_path: "../../../components/waveshare_bmgr"
+  waveshare_boards:
+    override_path: "../../../components/waveshare_boards"
