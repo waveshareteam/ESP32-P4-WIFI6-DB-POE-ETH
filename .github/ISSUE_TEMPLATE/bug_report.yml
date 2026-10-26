@@ -1,0 +1,83 @@
+name: Bug report
+description: Report a reproducible problem
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search existing issues and read the relevant example README before submitting.
+  - type: input
+    id: hardware
+    attributes:
+      label: Board and hardware revision
+      description: Include connected peripherals and power supply details when relevant. Enter unknown if the revision is unavailable.
+      placeholder: ESP32-P4-WIFI6-DB-Touch-LCD-7C, revision ...
+    validations:
+      required: true
+  - type: input
+    id: project
+    attributes:
+      label: Example or firmware path
+      placeholder: examples/esp-idf/04_mipi_dsi, examples/Arduino/..., firmware/brookesia, ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Repository or firmware version
+      description: Provide the commit, tag, or prebuilt firmware filename. Enter unknown if unavailable.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Development environment
+      description: Include OS, IDE, ESP-IDF or Arduino-ESP32 version, and relevant configuration changes. For prebuilt firmware, state that no local build was used.
+      placeholder: |
+        OS
+        IDE:
+        SDK version
+        Configuration changes
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem description
+      description: Describe the symptom and when it occurs.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include wiring, commands, code changes, and occurrence frequency as applicable.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Build or runtime logs
+      description: Paste the relevant complete log, including startup output and any backtrace. Remove passwords, tokens, and other private information.
+      render: text
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Screenshots and additional context
+      description: Attach screenshots, wiring photos, or a minimal reproduction if helpful. For Wi-Fi or BLE issues, include the ESP32-C5 firmware version if known.

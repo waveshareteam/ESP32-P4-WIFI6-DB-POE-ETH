@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a feature or improvement
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search existing issues before submitting.
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Describe what you want to accomplish and any current limitations.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed feature and expected result
+      description: Describe the desired behavior and the affected example, firmware, or hardware interface.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and additional context
+      description: Include any workarounds, references, or screenshots that help explain the request.
