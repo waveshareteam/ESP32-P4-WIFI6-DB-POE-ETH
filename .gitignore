@@ -25,7 +25,6 @@ gen_bmgr_codes/
 docs/superpowers/
 
 # Runtime media and binary assets kept outside source control
-*.mp3
 *.bin
 
 # Compiled C/C++ outputs

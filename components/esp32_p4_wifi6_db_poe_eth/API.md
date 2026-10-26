@@ -89,6 +89,10 @@ GPIO11.
 - `BSP_LCD_TOUCH_RST` and `BSP_LCD_TOUCH_INT` are `GPIO_NUM_NC`; touch data is
   polled over I2C.
 - `bsp_touch_delete()` releases the touch controller and its panel-I/O handle.
+- `bsp_touch_get_shared()` returns the BSP-owned GT911 handle without
+  transferring ownership; it fails with `ESP_ERR_INVALID_STATE` until
+  `bsp_touch_new()` has succeeded. Read it directly only while the LVGL adapter
+  is paused.
 
 When LVGL support is enabled:
 

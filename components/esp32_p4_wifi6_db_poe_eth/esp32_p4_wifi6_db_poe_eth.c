@@ -923,6 +923,13 @@ void bsp_touch_delete(void)
     }
 }
 
+esp_err_t bsp_touch_get_shared(esp_lcd_touch_handle_t *ret_touch)
+{
+    ESP_RETURN_ON_FALSE(ret_touch != NULL, ESP_ERR_INVALID_ARG, LCD_TAG, "Invalid touch handle");
+    *ret_touch = s_touch;
+    return s_touch != NULL ? ESP_OK : ESP_ERR_INVALID_STATE;
+}
+
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *config)
 {

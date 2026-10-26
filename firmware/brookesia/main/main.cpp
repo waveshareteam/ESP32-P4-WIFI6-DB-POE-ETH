@@ -4,35 +4,37 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+#include <atomic>
 #include <new>
+#include "esp_lv_adapter_display.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 
-#include "boost/thread.hpp"
+#include "bsp/esp-bsp.h"
 #include "esp_brookesia.hpp"
+#include "boost/thread.hpp"
 #ifdef ESP_UTILS_LOG_TAG
 #   undef ESP_UTILS_LOG_TAG
 #endif
 #define ESP_UTILS_LOG_TAG "Main"
 #include "esp_lib_utils.h"
 
-#include "esp_event.h"
-#include "esp_netif.h"
+#include "esp_system.h"
+#include "esp_heap_caps.h"
 #include "nvs_flash.h"
-#include "esp_wifi.h"
 
-#include "esp_lv_adapter.h"
-#include "esp_hal_boards/display_device.hpp"
+#include "bsp_board_extra.h"
 
-#include "esp_brookesia_app_calculator.hpp"
 #include "Drawpanel.hpp"
+#include "SpecAnalyzer.hpp"
+#include "MusicPlayer.hpp"
+#include "Settings.hpp"
 #include "Camera.hpp"
 #include "VideoPlayer.hpp"
-#include "MusicPlayer.hpp"
-#include "SpecAnalyzer.hpp"
-#include "Settings.hpp"
-#include "XiaozhiApp.hpp"
+#include "esp_brookesia_app_calculator.hpp"
 #include "EthernetInfo.hpp"
+#include "XiaozhiApp.hpp"
 
 using namespace esp_brookesia;
 using namespace esp_brookesia::gui;
@@ -41,91 +43,469 @@ using namespace esp_brookesia::systems::phone;
 constexpr bool EXAMPLE_SHOW_MEM_INFO = true;
 constexpr bool EXAMPLE_SHOW_MEM_INFO_LOG = false;
 
-static volatile bool s_wifi_connected = false;
 
-static void wifi_status_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+static std::atomic<bool> s_wifi_connected{false};
+
+// Runs in the Wi-Fi service publisher task; only record the state for the status bar timer.
+static void wifi_service_status_handler(const adf_event_t *event, void *ctx)
 {
-    (void)arg;
-    (void)event_data;
+    (void)ctx;
 
-    if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        s_wifi_connected = true;
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_LOST_IP) {
-        s_wifi_connected = false;
-    } else if (event_base == WIFI_EVENT &&
-               (event_id == WIFI_EVENT_STA_DISCONNECTED || event_id == WIFI_EVENT_STA_STOP)) {
-        s_wifi_connected = false;
+    switch (event->event_id) {
+    case BSP_EXTRA_WIFI_EVENT_STA_GOT_IP:
+        s_wifi_connected.store(true, std::memory_order_relaxed);
+        break;
+    case BSP_EXTRA_WIFI_EVENT_STA_LOST_IP:
+    case BSP_EXTRA_WIFI_EVENT_DISCONNECTED:
+        s_wifi_connected.store(false, std::memory_order_relaxed);
+        break;
+    default:
+        break;
     }
 }
 
-static void register_wifi_status_events()
+static void subscribe_wifi_status_events()
 {
-    static bool registered = false;
-    if (registered) {
-        return;
-    }
-
-    // Nothing else creates the default loop yet, so own it here; a later
-    // network app that also calls this just gets ESP_ERR_INVALID_STATE.
-    esp_err_t ret = esp_event_loop_create_default();
-    if (ret != ESP_OK && ret != ESP_ERR_INVALID_STATE) {
-        ESP_LOGW(ESP_UTILS_LOG_TAG, "Create default event loop failed: %s", esp_err_to_name(ret));
-        return;
-    }
-
-    ret = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_status_event_handler, nullptr);
+    esp_err_t ret = bsp_extra_wifi_service_subscribe(BSP_EXTRA_WIFI_EVENT_ANY, wifi_service_status_handler, nullptr);
     if (ret != ESP_OK) {
-        ESP_LOGW(ESP_UTILS_LOG_TAG, "Register Wi-Fi status handler failed: %s", esp_err_to_name(ret));
-        return;
+        ESP_LOGW(ESP_UTILS_LOG_TAG, "Subscribe Wi-Fi service events failed: %s", esp_err_to_name(ret));
     }
-
-    ret = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_status_event_handler, nullptr);
-    if (ret != ESP_OK) {
-        ESP_LOGW(ESP_UTILS_LOG_TAG, "Register IP status handler failed: %s", esp_err_to_name(ret));
-        esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_status_event_handler);
-        return;
-    }
-
-    registered = true;
 }
 
 static bool is_wifi_connected()
 {
-    return s_wifi_connected;
+    return s_wifi_connected.load(std::memory_order_relaxed);
 }
 
-static bool is_ethernet_connected()
-{
-    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
-    if (!netif) {
-        return false;
+namespace {
+
+class BootLoadingUi {
+public:
+    static constexpr uint32_t READY_HOLD_MS = 300;
+    static constexpr uint32_t FADE_OUT_TIME_MS = 240;
+
+    bool create()
+    {
+        root_ = lv_obj_create(lv_layer_top());
+        if (root_ == nullptr) {
+            return false;
+        }
+
+        spinner_ = lv_spinner_create(root_);
+        title_ = lv_label_create(root_);
+        phase_ = lv_label_create(root_);
+        status_ = lv_label_create(root_);
+        progress_ = lv_bar_create(root_);
+        if (spinner_ == nullptr || title_ == nullptr || phase_ == nullptr ||
+                status_ == nullptr || progress_ == nullptr) {
+            destroy();
+            return false;
+        }
+
+        lv_obj_remove_style_all(root_);
+        lv_obj_set_size(root_, lv_pct(100), lv_pct(100));
+        lv_obj_align(root_, LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_style_bg_color(root_, lv_color_hex(0x101417), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(root_, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_clear_flag(root_, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_add_flag(root_, LV_OBJ_FLAG_CLICKABLE);
+
+        lv_obj_set_size(spinner_, 64, 64);
+        lv_obj_align(spinner_, LV_ALIGN_CENTER, 0, -110);
+        lv_obj_set_style_arc_width(spinner_, 5, LV_PART_MAIN);
+        lv_obj_set_style_arc_width(spinner_, 5, LV_PART_INDICATOR);
+        lv_obj_set_style_arc_color(spinner_, lv_color_hex(0x313B42), LV_PART_MAIN);
+        lv_obj_set_style_arc_color(spinner_, lv_color_hex(0x27C1A8), LV_PART_INDICATOR);
+
+        lv_label_set_text(title_, "ESP32-P4-WIFI6-DB-POE-ETH");
+        lv_obj_set_style_text_font(title_, &lv_font_montserrat_32, LV_PART_MAIN);
+        lv_obj_set_style_text_color(title_, lv_color_hex(0xF7F9FA), LV_PART_MAIN);
+        lv_obj_align(title_, LV_ALIGN_CENTER, 0, -36);
+
+        lv_label_set_text(phase_, "LOADING");
+        lv_obj_set_style_text_font(phase_, &lv_font_montserrat_16, LV_PART_MAIN);
+        lv_obj_set_style_text_color(phase_, lv_color_hex(0xF2B84B), LV_PART_MAIN);
+        lv_obj_align(phase_, LV_ALIGN_CENTER, 0, 4);
+
+        lv_obj_set_width(status_, lv_pct(84));
+        lv_label_set_long_mode(status_, LV_LABEL_LONG_MODE_DOTS);
+        lv_obj_set_style_text_align(status_, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+        lv_obj_set_style_text_font(status_, &lv_font_montserrat_18, LV_PART_MAIN);
+        lv_obj_set_style_text_color(status_, lv_color_hex(0xA8B1B8), LV_PART_MAIN);
+        lv_obj_align(status_, LV_ALIGN_CENTER, 0, 44);
+
+        lv_obj_set_size(progress_, lv_pct(52), 7);
+        lv_obj_align(progress_, LV_ALIGN_CENTER, 0, 82);
+        lv_bar_set_range(progress_, 0, 100);
+        lv_obj_set_style_radius(progress_, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+        lv_obj_set_style_radius(progress_, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
+        lv_obj_set_style_bg_color(progress_, lv_color_hex(0x2A343B), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(progress_, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(progress_, lv_color_hex(0x27C1A8), LV_PART_INDICATOR);
+        lv_obj_set_style_bg_opa(progress_, LV_OPA_COVER, LV_PART_INDICATOR);
+
+        setStage("Preparing display...", 8);
+        return true;
     }
 
-    esp_netif_ip_info_t ip_info = {};
-    return esp_netif_get_ip_info(netif, &ip_info) == ESP_OK && ip_info.ip.addr != 0;
+    /* Caller must hold the LVGL lock. */
+    void setStage(const char *status, int progress)
+    {
+        if (root_ == nullptr || status == nullptr) {
+            return;
+        }
+
+        if (progress < 0) {
+            progress = 0;
+        } else if (progress > 100) {
+            progress = 100;
+        }
+
+        lv_label_set_text(status_, status);
+        lv_bar_set_value(progress_, progress, LV_ANIM_OFF);
+        lv_obj_move_foreground(root_);
+    }
+
+    void showError(const char *status)
+    {
+        if (root_ == nullptr) {
+            return;
+        }
+
+        lv_obj_add_flag(spinner_, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(phase_, "STARTUP FAILED");
+        lv_obj_set_style_text_color(phase_, lv_color_hex(0xF06A6A), LV_PART_MAIN);
+        lv_obj_align(phase_, LV_ALIGN_CENTER, 0, 4);
+        lv_label_set_text(status_, status);
+        lv_obj_set_style_text_color(status_, lv_color_hex(0xF7F9FA), LV_PART_MAIN);
+        lv_bar_set_value(progress_, 100, LV_ANIM_OFF);
+        lv_obj_set_style_bg_color(progress_, lv_color_hex(0xF06A6A), LV_PART_INDICATOR);
+        lv_obj_move_foreground(root_);
+    }
+
+    void finish()
+    {
+        if (root_ == nullptr) {
+            return;
+        }
+
+        setStage("Ready", 100);
+
+        lv_anim_t fade;
+        lv_anim_init(&fade);
+        lv_anim_set_var(&fade, root_);
+        lv_anim_set_values(&fade, LV_OPA_COVER, LV_OPA_TRANSP);
+        lv_anim_set_time(&fade, FADE_OUT_TIME_MS);
+        lv_anim_set_delay(&fade, READY_HOLD_MS);
+        lv_anim_set_exec_cb(&fade, [](void *object, int32_t opacity) {
+            lv_obj_set_style_opa(static_cast<lv_obj_t *>(object), opacity, LV_PART_MAIN);
+        });
+        lv_anim_set_completed_cb(&fade, lv_obj_delete_anim_completed_cb);
+        lv_anim_start(&fade);
+
+        // The animation owns root_ now and deletes it from the LVGL task.
+        clearObjectPointers();
+    }
+
+    void attachToTopLayer(lv_display_t *display)
+    {
+        attachToLayer(display != nullptr ? lv_display_get_layer_top(display) : nullptr);
+    }
+
+    void attachToSystemLayer(lv_display_t *display)
+    {
+        attachToLayer(display != nullptr ? lv_display_get_layer_sys(display) : nullptr);
+    }
+
+    void destroy()
+    {
+        if (root_ != nullptr) {
+            lv_obj_delete(root_);
+        }
+        clearObjectPointers();
+    }
+
+private:
+    void clearObjectPointers()
+    {
+        root_ = nullptr;
+        spinner_ = nullptr;
+        title_ = nullptr;
+        phase_ = nullptr;
+        status_ = nullptr;
+        progress_ = nullptr;
+    }
+
+    void attachToLayer(lv_obj_t *parent)
+    {
+        if (root_ == nullptr || parent == nullptr) {
+            return;
+        }
+
+        if (lv_obj_get_parent(root_) != parent) {
+            lv_obj_set_parent(root_, parent);
+            lv_obj_set_size(root_, lv_pct(100), lv_pct(100));
+            lv_obj_align(root_, LV_ALIGN_CENTER, 0, 0);
+        }
+        lv_obj_move_foreground(root_);
+    }
+
+    lv_obj_t *root_ = nullptr;
+    lv_obj_t *spinner_ = nullptr;
+    lv_obj_t *title_ = nullptr;
+    lv_obj_t *phase_ = nullptr;
+    lv_obj_t *status_ = nullptr;
+    lv_obj_t *progress_ = nullptr;
+};
+
+constexpr uint32_t BOOT_FRAME_WAIT_MS = 100;
+
+static void on_boot_frame_rendered(lv_event_t *event)
+{
+    xSemaphoreGive(static_cast<SemaphoreHandle_t>(lv_event_get_user_data(event)));
 }
+
+/*
+ * Apply an LVGL change and wait until the LVGL task has rendered a frame with
+ * it. esp_lv_adapter_refresh_now() must not be used here: with partial tear
+ * avoidance its flush waits for a buffer-free notification that the panel ISR
+ * sends to the LVGL task, so calling it from app_main deadlocks once all frame
+ * buffers are in flight.
+ */
+template <typename Change>
+static void apply_and_wait_for_frame(lv_display_t *display, Change change)
+{
+    static SemaphoreHandle_t frame_rendered = xSemaphoreCreateBinary();
+
+    {
+        LvLockGuard gui_guard;
+        change();
+        if (display == nullptr || frame_rendered == nullptr) {
+            return;
+        }
+        (void)xSemaphoreTake(frame_rendered, 0);
+        // Registered under the same lock as the change, so the next refresh includes it.
+        lv_display_add_event_cb(display, on_boot_frame_rendered, LV_EVENT_REFR_READY, frame_rendered);
+    }
+
+    if (xSemaphoreTake(frame_rendered, pdMS_TO_TICKS(BOOT_FRAME_WAIT_MS)) != pdTRUE) {
+        ESP_LOGW(ESP_UTILS_LOG_TAG, "Wait for boot loading frame timed out");
+    }
+
+    LvLockGuard gui_guard;
+    lv_display_remove_event_cb_with_user_data(display, on_boot_frame_rendered, frame_rendered);
+}
+
+/*
+ * Draw the stage before the caller starts its work. Most stages hold the LVGL
+ * lock while they run, so the LVGL task would otherwise only render the stage
+ * after it has already finished.
+ */
+static void refresh_boot_loading(BootLoadingUi &loading, lv_display_t *display, const char *status, int progress)
+{
+    ESP_LOGI(ESP_UTILS_LOG_TAG, "Startup stage: %s (%d%%)", status, progress);
+    apply_and_wait_for_frame(display, [&]() {
+        loading.setStage(status, progress);
+    });
+}
+
+class BootLoadingFailureGuard {
+public:
+    BootLoadingFailureGuard(BootLoadingUi &loading, lv_display_t *display)
+        : loading_(loading), display_(display)
+    {
+    }
+
+    ~BootLoadingFailureGuard()
+    {
+        if (!armed_) {
+            return;
+        }
+
+        LvLockGuard gui_guard;
+        loading_.attachToSystemLayer(display_);
+        loading_.showError("Unable to finish startup. Please restart the device.");
+    }
+
+    void dismiss()
+    {
+        armed_ = false;
+    }
+
+private:
+    BootLoadingUi &loading_;
+    lv_display_t *display_;
+    bool armed_ = true;
+};
+
+class PhoneStartupOwner {
+public:
+    PhoneStartupOwner(Phone *phone, BootLoadingUi &loading, lv_display_t *display)
+        : phone_(phone), loading_(loading), display_(display)
+    {
+    }
+
+    ~PhoneStartupOwner()
+    {
+        reset();
+    }
+
+    PhoneStartupOwner(const PhoneStartupOwner &) = delete;
+    PhoneStartupOwner &operator=(const PhoneStartupOwner &) = delete;
+
+    Phone *get() const
+    {
+        return phone_;
+    }
+
+    Phone *release()
+    {
+        Phone *phone = phone_;
+        phone_ = nullptr;
+        return phone;
+    }
+
+private:
+    void reset()
+    {
+        if (phone_ == nullptr) {
+            return;
+        }
+
+        if (!bsp_extra_display_lock(-1)) {
+            ESP_LOGE(ESP_UTILS_LOG_TAG, "Lock display while cleaning up phone failed");
+            return;
+        }
+        loading_.attachToTopLayer(display_);
+        delete phone_;
+        phone_ = nullptr;
+        bsp_extra_display_unlock();
+    }
+
+    Phone *phone_;
+    BootLoadingUi &loading_;
+    lv_display_t *display_;
+};
+
+} // namespace
+
+
+
+/* Batch-test diagnostic: log only abnormal panel content (a blue flash), so a
+ * reproduction leaves evidence in the serial log. Set to false for release. */
+constexpr bool DISPLAY_ANOMALY_PROBE = false;
+constexpr uint32_t PROBE_PERIOD_MS = 60;
+
+namespace {
+void probeSample(const void *fb, uint32_t *avg, uint32_t *blue)
+{
+    const uint16_t *px = static_cast<const uint16_t *>(fb);
+    uint32_t r = 0, g = 0, b = 0, n = 0, blue_cnt = 0;
+    *avg = 0; *blue = 0;
+    if (px == nullptr) return;
+    for (uint32_t y = 0; y < BSP_LCD_V_RES; y += 16) {
+        const uint16_t *row = px + (size_t)y * BSP_LCD_H_RES;
+        for (uint32_t x = 0; x < BSP_LCD_H_RES; x += 8) {
+            const uint16_t v = row[x];
+            const uint32_t rr = (v >> 11) & 0x1F, gg = (v >> 5) & 0x3F, bb = v & 0x1F;
+            r += rr; g += gg; b += bb; n++;
+            if ((bb > 24) && (bb > rr + 10) && (bb > (gg >> 1) + 10)) blue_cnt++;
+        }
+    }
+    if (n) {
+        *avg = ((r / n) << 16) | ((g / n) << 8) | (b / n);
+        *blue = blue_cnt * 100 / n;
+    }
+}
+
+void startDisplayAnomalyProbe(void)
+{
+    static void *fbs[CONFIG_BSP_LCD_DPI_BUFFER_NUMS] = {};
+    static uint32_t last_avg[CONFIG_BSP_LCD_DPI_BUFFER_NUMS] = {};
+    static uint32_t last_blue[CONFIG_BSP_LCD_DPI_BUFFER_NUMS] = {};
+    esp_err_t ret = ESP_OK;
+    esp_lcd_panel_handle_t panel = bsp_display_get_panel_handle();
+    if (panel == nullptr) return;
+#if CONFIG_BSP_LCD_DPI_BUFFER_NUMS >= 3
+    ret = esp_lcd_dpi_panel_get_frame_buffer(panel, 3, &fbs[0], &fbs[1], &fbs[2]);
+#else
+    ret = esp_lcd_dpi_panel_get_frame_buffer(panel, 2, &fbs[0], &fbs[1]);
+#endif
+    if (ret != ESP_OK) { ESP_LOGE("DispProbe", "no frame buffers"); return; }
+    ESP_LOGI("DispProbe", "watching %d frame buffers", CONFIG_BSP_LCD_DPI_BUFFER_NUMS);
+    lv_timer_create([](lv_timer_t *) {
+        for (size_t i = 0; i < CONFIG_BSP_LCD_DPI_BUFFER_NUMS; ++i) {
+            uint32_t avg = 0, blue = 0;
+            probeSample(fbs[i], &avg, &blue);
+            const bool blue_jump = (blue >= 12) && (last_blue[i] < 12);
+            const uint32_t dr = (avg >> 16) & 0xFF, lr = (last_avg[i] >> 16) & 0xFF;
+            const bool colour_jump = (dr > lr + 10) || (lr > dr + 10);
+            if (blue_jump || (colour_jump && blue >= 8)) {
+                ESP_LOGW("DispProbe", "ANOMALY fb%u avg=%06x blue=%u%% (prev %06x/%u%%)",
+                         (unsigned)i, (unsigned)avg, (unsigned)blue,
+                         (unsigned)last_avg[i], (unsigned)last_blue[i]);
+            }
+            last_avg[i] = avg; last_blue[i] = blue;
+        }
+    }, PROBE_PERIOD_MS, nullptr);
+}
+} // namespace
 
 extern "C" void app_main(void)
 {
     esp_log_level_set("rpc_rsp", ESP_LOG_ERROR);
 
+    ESP_UTILS_LOGI("Reset reason: %d", static_cast<int>(esp_reset_reason()));
     ESP_UTILS_LOGI("Display ESP-Brookesia phone demo");
 
-    /* Configure display */
-    lv_display_t *disp = esp_hal_boards::DisplayDevice::get_instance().init();
-    ESP_UTILS_CHECK_NULL_EXIT(disp, "Start display failed");
+    bsp_display_cfg_t cfg = {
+        .lv_adapter_cfg = ESP_LV_ADAPTER_DEFAULT_CONFIG(),
+        .rotation = ESP_LV_ADAPTER_ROTATE_0,
+        .tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_TRIPLE_PARTIAL,
+        .touch_flags = {
+            .swap_xy = 0,
+            .mirror_x = 0,
+            .mirror_y = 0
+        }
+    };
 
-    /* Route the Brookesia GUI lock to the esp_lvgl_adapter mutex */
+    // Keep LVGL on core 1 with a larger PSRAM-backed stack; high-resolution UI and
+    // app switching can otherwise starve the GUI task or overflow the default stack.
+    cfg.lv_adapter_cfg.task_stack_size = 16 * 1024;
+    cfg.lv_adapter_cfg.task_priority = 10;
+    cfg.lv_adapter_cfg.task_core_id = 1;
+    cfg.lv_adapter_cfg.stack_in_psram = true;
+
+    /* Configure display */
+    lv_display_t *disp = bsp_display_start_with_config(&cfg);
+    ESP_UTILS_CHECK_NULL_EXIT(disp, "Start display failed");
+    bsp_display_backlight_off();
+
+    /* Configure GUI lock */
     LvLock::registerCallbacks([](int timeout_ms) {
-        ESP_UTILS_CHECK_FALSE_RETURN(esp_lv_adapter_lock(timeout_ms) == ESP_OK, false,
-                                     "Lock failed (timeout_ms: %d)", timeout_ms);
+        bool locked = bsp_extra_display_lock(timeout_ms);
+        ESP_UTILS_CHECK_FALSE_RETURN(locked, false, "Lock failed (timeout_ms: %d)", timeout_ms);
+
         return true;
     }, []() {
-        esp_lv_adapter_unlock();
+        bsp_extra_display_unlock();
         return true;
     });
 
-    /* Init NVS */
+    BootLoadingUi boot_loading;
+    ESP_LOGI(ESP_UTILS_LOG_TAG, "Startup stage: Preparing display... (8%%)");
+    // Wait for the first loading frame before enabling the backlight.
+    apply_and_wait_for_frame(disp, [&]() {
+        if (!boot_loading.create()) {
+            ESP_LOGE(ESP_UTILS_LOG_TAG, "Create boot loading UI failed");
+        }
+    });
+    bsp_display_backlight_on();
+
+    BootLoadingFailureGuard boot_failure_guard(boot_loading, disp);
+
+    refresh_boot_loading(boot_loading, disp, "Initializing settings...", 16);
+    ESP_LOGI(ESP_UTILS_LOG_TAG, "NVS initialization begin");
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_LOGW(ESP_UTILS_LOG_TAG, "NVS requires erase before initialization: %s", esp_err_to_name(err));
@@ -140,74 +520,123 @@ extern "C" void app_main(void)
         ESP_LOGE(ESP_UTILS_LOG_TAG, "NVS initialization failed: %s", esp_err_to_name(err));
         return;
     }
+    ESP_LOGI(ESP_UTILS_LOG_TAG, "NVS initialization complete");
+
+    refresh_boot_loading(boot_loading, disp, "Mounting storage...", 20);
+    err = bsp_spiffs_mount();
+    if (err != ESP_OK) {
+        ESP_LOGE(ESP_UTILS_LOG_TAG, "SPIFFS mount failed: %s", esp_err_to_name(err));
+        return;
+    }
+    ESP_LOGI(ESP_UTILS_LOG_TAG, "SPIFFS mount successfully");
+
+    refresh_boot_loading(boot_loading, disp, "Starting audio...", 28);
+    err = bsp_extra_codec_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(ESP_UTILS_LOG_TAG, "Codec initialization failed: %s", esp_err_to_name(err));
+        return;
+    }
+
+    refresh_boot_loading(boot_loading, disp, "Configuring audio...", 45);
+    err = bsp_extra_codec_volume_set(CODEC_DEFAULT_VOLUME, NULL);
+    if (err != ESP_OK) {
+        ESP_LOGE(ESP_UTILS_LOG_TAG, "Codec volume setup failed: %s", esp_err_to_name(err));
+        return;
+    }
 
     /* Create a phone object */
-    Phone *phone = new (std::nothrow) Phone(disp);
+    refresh_boot_loading(boot_loading, disp, "Building home screen...", 55);
+    PhoneStartupOwner phone_owner(new (std::nothrow) Phone(disp), boot_loading, disp);
+    Phone *phone = phone_owner.get();
     ESP_UTILS_CHECK_NULL_EXIT(phone, "Create phone failed");
 
     {
         // When operating on non-GUI tasks, should acquire a lock before operating on LVGL
         LvLockGuard gui_guard;
 
-        const auto &stylesheet = ESP_BROOKESIA_PHONE_800_1280_DARK_STYLESHEET();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->addStylesheet(stylesheet), "Add stylesheet failed");
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->activateStylesheet(stylesheet), "Activate stylesheet failed");
+        // Pick the phone stylesheet that matches the panel selected in the BSP.
+#if CONFIG_BSP_LCD_TYPE_720_1280_5_INCH_A || CONFIG_BSP_LCD_TYPE_720_1280_7_INCH_A
+        const auto &target_stylesheet = ESP_BROOKESIA_PHONE_720_1280_DARK_STYLESHEET();
+#elif CONFIG_BSP_LCD_TYPE_800_1280_8_INCH_A || CONFIG_BSP_LCD_TYPE_800_1280_10_1_INCH_A
+        const auto &target_stylesheet = ESP_BROOKESIA_PHONE_800_1280_DARK_STYLESHEET();
+#else
+#error "No Brookesia phone stylesheet for the selected BSP LCD type"
+#endif
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->addStylesheet(target_stylesheet), "Add display stylesheet failed");
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->activateStylesheet(target_stylesheet), "Activate display stylesheet failed");
 
         /* Begin the phone */
         ESP_UTILS_CHECK_FALSE_EXIT(phone->begin(), "Begin failed");
+        boot_loading.attachToSystemLayer(disp);
         // assert(phone->getDisplay().showContainerBorder() && "Show container border failed");
     }
 
-    // Light the panel only after the home screen has had a frame to render,
-    // instead of flashing an empty LVGL screen.
-    vTaskDelay(pdMS_TO_TICKS(50));
-    err = esp_hal_boards::display_backlight_set(100);
-    if (err != ESP_OK) {
-        ESP_LOGW(ESP_UTILS_LOG_TAG, "Backlight on failed: %s", esp_err_to_name(err));
-    }
-
-    /* Init and install apps from registry */
+    /* Install Drawpanel first, then initialize and install registry apps. */
+    refresh_boot_loading(boot_loading, disp, "Loading application registry...", 65);
     {
+        // installApp() creates home-screen widgets; hold the LVGL lock.
         LvLockGuard gui_guard;
+
+        auto app = esp_brookesia::apps::Drawpanel::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app), "Start Drawpanel failed");
 
         std::vector<systems::base::Manager::RegistryAppInfo> inited_apps;
         ESP_UTILS_CHECK_FALSE_EXIT(phone->initAppFromRegistry(inited_apps), "Init app registry failed");
         ESP_UTILS_CHECK_FALSE_EXIT(phone->installAppFromRegistry(inited_apps), "Install app registry failed");
     }
 
-    /* Install local apps */
+    refresh_boot_loading(boot_loading, disp, "Loading tools...", 74);
     {
+        // installApp() creates home-screen widgets; hold the LVGL lock.
         LvLockGuard gui_guard;
 
-        auto calculator_app = esp_brookesia::apps::Calculator::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(calculator_app), "Start Calculator failed");
+        auto app2 = esp_brookesia::apps::Calculator::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app2), "Start Calculator failed");
 
-        auto drawpanel_app = esp_brookesia::apps::Drawpanel::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(drawpanel_app), "Start DrawPanel failed");
-
-        auto camera_app = esp_brookesia::apps::Camera::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(camera_app), "Start Camera failed");
-
-        auto setting_app = esp_brookesia::apps::Settings::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(setting_app), "Start Camera failed");
-
-        auto video_app = esp_brookesia::apps::VideoPlayer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(video_app), "Start Camera failed");
-
-        auto music_app = esp_brookesia::apps::MusicPlayer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(music_app), "Install MusicPlayer failed");
-
-        auto specanalyzer_app = esp_brookesia::apps::SpecAnalyzer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(specanalyzer_app), "Start Camera failed");
-
-        auto xiaozhi_app = esp_brookesia::apps::XiaozhiApp::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(xiaozhi_app), "Start Camera failed");
-
-        auto ethernet_info_app = esp_brookesia::apps::EthernetInfo::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(ethernet_info_app), "Start Camera failed");
+        auto app1 = esp_brookesia::apps::SpecAnalyzer::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app1), "Start SpecAnalyzer failed");
     }
 
-    register_wifi_status_events();
+    refresh_boot_loading(boot_loading, disp, "Loading media...", 82);
+    {
+        // installApp() creates home-screen widgets; hold the LVGL lock.
+        LvLockGuard gui_guard;
+
+        auto app5 = esp_brookesia::apps::MusicPlayer::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app5), "Start MusicPlayer failed");
+        auto camera_app = esp_brookesia::apps::Camera::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(camera_app), "Start Camera failed");
+        auto video_player_app = esp_brookesia::apps::VideoPlayer::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(video_player_app), "Start VideoPlayer failed");
+    }
+
+    refresh_boot_loading(boot_loading, disp, "Loading system applications...", 90);
+    {
+        // installApp() creates home-screen widgets; hold the LVGL lock.
+        LvLockGuard gui_guard;
+
+        auto settings_app = esp_brookesia::apps::Settings::requestInstance(false, false);
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(settings_app), "Start Settings failed");
+        auto ethernet = esp_brookesia::apps::EthernetInfo::requestInstance(false, false);
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(ethernet), "Start Settings failed");
+        auto xiaozhi_app = esp_brookesia::apps::XiaozhiApp::requestInstance();
+        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(xiaozhi_app), "Start Xiaozhi failed");
+    }
+
+    // Apps subscribed to Wi-Fi service events during install; start Wi-Fi last so it does not delay the UI.
+    refresh_boot_loading(boot_loading, disp, "Starting Wi-Fi...", 93);
+    subscribe_wifi_status_events();
+    err = bsp_extra_wifi_service_init();
+    if (err != ESP_OK) {
+        // Keep booting without networking.
+        ESP_LOGE(ESP_UTILS_LOG_TAG, "Wi-Fi service initialization failed: %s", esp_err_to_name(err));
+    }
+    // The service may already have an address (e.g. the init call was a no-op).
+    if (bsp_extra_wifi_service_is_connected()) {
+        s_wifi_connected.store(true, std::memory_order_relaxed);
+    }
+
+    refresh_boot_loading(boot_loading, disp, "Finishing setup...", 96);
 
     {
         LvLockGuard gui_guard;
@@ -229,21 +658,28 @@ extern "C" void app_main(void)
             );
 
             bool connected = is_wifi_connected();
-            StatusBar::WifiState wifi_state = connected ? StatusBar::WifiState::SIGNAL_3 : StatusBar::WifiState::DISCONNECTED;
+            StatusBar::WifiState wifi_state = connected ?
+                StatusBar::WifiState::SIGNAL_3 :
+                StatusBar::WifiState::DISCONNECTED;
 
             ESP_UTILS_CHECK_FALSE_EXIT(
                 phone->getDisplay().getStatusBar()->setWifiIconState(wifi_state),
                 "Refresh status bar failed"
             );
-            ESP_UTILS_CHECK_FALSE_EXIT(
-                phone->getDisplay().getStatusBar()->setEthernetIconState(is_ethernet_connected()),
-                "Refresh Ethernet status icon failed"
-            );
         }, 1000, phone);
         ESP_UTILS_CHECK_NULL_EXIT(status_timer, "Create status timer failed");
+
+        phone_owner.release();
+        boot_failure_guard.dismiss();
+        // Keep the completed state visible briefly, then reveal the home screen smoothly.
+        boot_loading.finish();
     }
 
-    if constexpr(EXAMPLE_SHOW_MEM_INFO) {
+    if constexpr (DISPLAY_ANOMALY_PROBE) {
+        startDisplayAnomalyProbe();
+    }
+
+    if constexpr (EXAMPLE_SHOW_MEM_INFO) {
         esp_utils::thread_config_guard thread_config({
             .name = "mem_info",
             .stack_size = 4096,
@@ -260,7 +696,7 @@ extern "C" void app_main(void)
                 internal_total = heap_caps_get_total_size(MALLOC_CAP_INTERNAL);
                 external_free = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
                 external_total = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
-                if constexpr(EXAMPLE_SHOW_MEM_INFO_LOG) {
+                if (EXAMPLE_SHOW_MEM_INFO_LOG) {
                     snprintf(
                         buffer,
                         sizeof(buffer),

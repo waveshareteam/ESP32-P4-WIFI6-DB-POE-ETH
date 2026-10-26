@@ -2,84 +2,12 @@
 #include "SettingsUI.hpp"
 #include "esp_log.h"
 #include "../Settings.hpp"
-#include <algorithm>
-#include <optional>
-#include "brookesia/service_helper/media/audio.hpp"
-#include "brookesia/service_manager/service/manager.hpp"
-#include "brookesia/service_helper/system/storage.hpp"
 
 #define ESP_UTILS_LOG_TAG "BS:SoundPage"
 #include "esp_lib_utils.h"
 
 namespace esp_brookesia::apps
 {
-    namespace {
-        using StorageHelper = service::helper::Storage;
-        using AudioPlaybackHelper = service::helper::AudioPlayback;
-        constexpr char MEDIA_VOLUME_STORAGE_KEY[] = "media_volume";
-        constexpr char MEDIA_VOLUME_INITIALIZED_KEY[] = "media_volume_initialized";
-        constexpr char MEDIA_VOLUME_STORAGE_NAMESPACE[] = "storage";
-        constexpr int DEFAULT_MEDIA_VOLUME = 70;
-        constexpr int MAX_MEDIA_VOLUME = 95;
-        constexpr uint32_t STORAGE_TIMEOUT_MS = 1000;
-        int last_media_volume = DEFAULT_MEDIA_VOLUME;
-
-        bool bind_audio_playback_service(service::ServiceBinding &binding)
-        {
-            if (binding.is_valid()) {
-                return true;
-            }
-
-            auto &manager = service::ServiceManager::get_instance();
-            if (!manager.is_initialized() && !manager.init()) {
-                ESP_LOGW("SoundPage", "Initialize service manager failed");
-                return false;
-            }
-            if (!manager.is_running() && !manager.start()) {
-                ESP_LOGW("SoundPage", "Start service manager failed");
-                return false;
-            }
-
-            binding = manager.bind(AudioPlaybackHelper::get_name().data());
-            if (!binding.is_valid()) {
-                ESP_LOGW("SoundPage", "Bind audio playback service failed");
-                return false;
-            }
-            return true;
-        }
-
-        std::optional<int> read_media_volume()
-        {
-            auto result = StorageHelper::get_key_value<int32_t>(
-                              MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_STORAGE_KEY, STORAGE_TIMEOUT_MS);
-            if (!result) {
-                return std::nullopt;
-            }
-            return std::clamp(static_cast<int>(result.value()), 0, MAX_MEDIA_VOLUME);
-        }
-
-        bool save_media_volume(int volume)
-        {
-            auto result = StorageHelper::save_key_value(
-                              MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_STORAGE_KEY,
-                              static_cast<int32_t>(std::clamp(volume, 0, MAX_MEDIA_VOLUME)), STORAGE_TIMEOUT_MS);
-            if (!result) {
-                ESP_LOGW("SoundPage", "Storage save media volume failed: %s", result.error().c_str());
-            }
-            return result.has_value();
-        }
-
-        void mark_media_volume_initialized()
-        {
-            auto result = StorageHelper::save_key_value(
-                              MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_INITIALIZED_KEY,
-                              static_cast<int32_t>(1), STORAGE_TIMEOUT_MS);
-            if (!result) {
-                ESP_LOGW("SoundPage", "Save media volume initialization flag failed: %s", result.error().c_str());
-            }
-        }
-    }
-
     SoundPage *SoundPage::_instance = nullptr;
 
     SoundPage *SoundPage::requestInstance(bool use_status_bar, bool use_navigation_bar)
@@ -97,12 +25,16 @@ namespace esp_brookesia::apps
     {
     }
 
+    SoundPage::~SoundPage()
+    {
+    }
+
     bool SoundPage::run()
     {
         ESP_UTILS_LOGD("SoundPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
+        page_root = settings_ui::create_page(lv_scr_act());
         settings_ui::create_header(page_root, "Sound", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {
@@ -130,39 +62,10 @@ namespace esp_brookesia::apps
         lv_obj_set_style_text_color(title, lv_color_hex(settings_ui::COLOR_PRIMARY_TEXT), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
 
-        const bool audio_service_available = bind_audio_playback_service(audio_service_binding);
-        const auto saved_volume = read_media_volume();
-        auto initialized_result = StorageHelper::get_key_value<int32_t>(
-                                     MEDIA_VOLUME_STORAGE_NAMESPACE, MEDIA_VOLUME_INITIALIZED_KEY,
-                                     STORAGE_TIMEOUT_MS);
-        const bool volume_was_initialized = initialized_result && initialized_result.value() != 0;
-        bool volume_value_saved = saved_volume.has_value();
-        if (saved_volume) {
-            last_media_volume = saved_volume.value();
-            // The previous startup path accidentally persisted the service's
-            // initial zero. Migrate that unmarked value to the intended default.
-            if (last_media_volume == 0 && !volume_was_initialized) {
-                last_media_volume = DEFAULT_MEDIA_VOLUME;
-                volume_value_saved = save_media_volume(last_media_volume);
-            }
-        } else {
-            last_media_volume = DEFAULT_MEDIA_VOLUME;
-            volume_value_saved = save_media_volume(last_media_volume);
+        uint32_t value = bsp_extra_codec_volume_get();
+        if (value > 95) {
+            value = 95;
         }
-        if (!volume_was_initialized && volume_value_saved) {
-            mark_media_volume_initialized();
-        }
-
-        if (audio_service_available) {
-            auto result = AudioPlaybackHelper::call_function_sync(
-                              AudioPlaybackHelper::FunctionId::SetVolume,
-                              static_cast<double>(last_media_volume)
-                          );
-            if (!result) {
-                ESP_LOGW("SoundPage", "Restore audio output volume failed: %s", result.error().c_str());
-            }
-        }
-        const uint32_t value = static_cast<uint32_t>(last_media_volume);
 
         label = lv_label_create(slider_container);
         lv_label_set_text_fmt(label, "%lu%%", static_cast<unsigned long>(value));
@@ -183,7 +86,6 @@ namespace esp_brookesia::apps
         lv_obj_set_style_pad_all(volume_slider, 7, LV_PART_KNOB);
         lv_obj_set_style_radius(volume_slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
         lv_obj_add_event_cb(volume_slider, event_handler_cb, LV_EVENT_VALUE_CHANGED, this);
-        lv_obj_add_event_cb(volume_slider, event_handler_cb, LV_EVENT_RELEASED, this);
         return true;
     }
 
@@ -199,39 +101,7 @@ namespace esp_brookesia::apps
         if (instance->label != nullptr) {
             lv_label_set_text_fmt(instance->label, "%lu%%", static_cast<unsigned long>(value));
         }
-
-        // Keep dragging responsive; apply and persist the volume only after release.
-        if (lv_event_get_code(e) != LV_EVENT_RELEASED) {
-            return;
-        }
-
-        if (!bind_audio_playback_service(instance->audio_service_binding)) {
-            lv_slider_set_value(slider, last_media_volume, LV_ANIM_OFF);
-            if (instance->label != nullptr) {
-                lv_label_set_text_fmt(instance->label, "%d%%", last_media_volume);
-            }
-            return;
-        }
-        auto result = AudioPlaybackHelper::call_function_sync(
-                          AudioPlaybackHelper::FunctionId::SetVolume,
-                          static_cast<double>(value)
-                      );
-        if (!result) {
-            ESP_LOGW("SoundPage", "Set audio output volume failed: %s", result.error().c_str());
-            lv_slider_set_value(slider, last_media_volume, LV_ANIM_OFF);
-            if (instance->label != nullptr) {
-                lv_label_set_text_fmt(instance->label, "%d%%", last_media_volume);
-            }
-            return;
-        }
-
-        last_media_volume = static_cast<int>(value);
-        const bool saved = save_media_volume(last_media_volume);
-        if (!saved) {
-            ESP_LOGW("SoundPage", "Save audio output volume failed");
-        } else {
-            mark_media_volume_initialized();
-        }
+        bsp_extra_codec_volume_set(value, nullptr);
     }
 
     bool SoundPage::back()
@@ -244,7 +114,6 @@ namespace esp_brookesia::apps
     bool SoundPage::close()
     {
         ESP_UTILS_LOGD("SoundPage Close");
-        audio_service_binding.release();
         if (page_root != nullptr)
         {
             lv_obj_del(page_root);

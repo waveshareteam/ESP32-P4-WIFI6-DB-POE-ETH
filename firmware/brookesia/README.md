@@ -1,219 +1,154 @@
-# ESP-Brookesia Factory Firmware
+<h1 align="center">ESP-Brookesia Factory Firmware</h1>
 
-[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.5.4-E7352C?logo=espressif)](https://github.com/espressif/esp-idf/releases/tag/v5.5.4)
-[![Target](https://img.shields.io/badge/target-ESP32--P4-1F6FEB)](https://www.espressif.com/en/products/socs/esp32-p4)
-[![LVGL](https://img.shields.io/badge/LVGL-9.4.0-2AA9E0?logo=lvgl)](https://lvgl.io/)
+<p align="center">
+  <a href="https://github.com/espressif/esp-idf/releases"><img src="https://img.shields.io/badge/ESP--IDF-v5.5.6%20%7C%20v6.1-E7352C?logo=espressif" alt="ESP-IDF"></a>
+  <a href="https://www.espressif.com/en/products/socs/esp32-p4"><img src="https://img.shields.io/badge/target-ESP32--P4-1F6FEB" alt="Target"></a>
+  <a href="https://lvgl.io/"><img src="https://img.shields.io/badge/LVGL-9.4.0-2AA9E0?logo=lvgl" alt="LVGL"></a>
+</p>
 
-English | [简体中文](README_CN.md)
+<p align="center">English | <a href="README_CN.md">简体中文</a></p>
 
-This directory contains the ESP-Brookesia firmware source for the
-**Waveshare ESP32-P4-WIFI6-DB-POE-ETH**. It supports the display, touch, audio,
-camera, SD card, and ESP32-C5 hosted Wi-Fi. The board configuration also
-includes an IP101 RMII Ethernet device.
+<p align="center">
+  Factory firmware for the Waveshare ESP32-P4-WIFI6-DB-Touch-LCD-7C, built on the ESP-Brookesia phone-style launcher, with multimedia, camera, RS485/RS232, CAN and Xiaozhi AI voice assistant apps.
+</p>
 
-## Platform configuration
+---
 
-| Item | Configuration |
-| --- | --- |
-| Host MCU | ESP32-P4NRW32X, 32 MB flash, 32 MB PSRAM |
-| Display / touch | Supports Waveshare [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm), [7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm), [8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm), and [10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm)-inch panels |
-| Framework | ESP-IDF v5.5.4; `idf_component.yml` requires `>=5.5` |
-| UI | LVGL 9.4.0 with the local ESP-Brookesia core 0.6.0-beta2 |
-| Board Manager | `esp32_p4_wifi6_db_poe_eth`, `espressif/esp_board_manager` 0.7.4 |
-| LVGL adapter | `espressif/esp_lvgl_adapter` 0.6.4 |
-| Wireless | ESP32-C5 over SDIO slot 1 using ESP-Hosted / `esp_wifi_remote` |
-| Voice assistant | `espressif/esp_xiaozhi` 0.1.1, ESP-SR 2.4.6, and xiaozhi-fonts 1.6.0 |
+## 🧩 Hardware platform
 
-The Board Manager board definition provides the display, touch, ES8311, SD card,
-camera, backlight, and IP101 devices. See the
-[hardware reference guide](../../docs/zh_CN/hw-reference/user-guide-esp32-p4-wifi6-db-poe-eth.md)
-for interfaces and pin assignments. The ESP32-P4/ESP32-C5 companion project is
-[`15_wifi_iperf`](../../examples/esp-idf/15_wifi_iperf/).
+<table>
+  <tr><th>Module</th><th>Chip</th><th>Description</th></tr>
+  <tr><td>SoC</td><td>ESP32-P4NRW32X</td><td>Dual-core RISC-V at 400 MHz, 32 MiB in-package PSRAM, external 32 MiB flash</td></tr>
+  <tr><td>Display</td><td>EK79007</td><td>7-inch 1024 x 600 MIPI-DSI panel</td></tr>
+  <tr><td>Touch</td><td>GT911</td><td>Capacitive touch</td></tr>
+  <tr><td>Camera</td><td>OV5647</td><td>5 MP MIPI-CSI sensor</td></tr>
+  <tr><td>Audio</td><td>ES8389</td><td>Low-power audio codec, two differential microphones</td></tr>
+  <tr><td>Wireless</td><td>ESP32-C5-MINI-1</td><td>Dual-band Wi-Fi 6 and Bluetooth LE co-processor over SDIO</td></tr>
+  <tr><td>Storage</td><td>Micro SD card slot</td><td>4-bit SDMMC, mounted at <code>/sdcard</code></td></tr>
+  <tr><td>RTC</td><td>PCF85063ATL</td><td>Low-power real-time clock</td></tr>
+  <tr><td>CAN</td><td>TJA1051T/3/1J</td><td>High-speed CAN transceiver</td></tr>
+  <tr><td>RS232</td><td>SP3232EEN</td><td>3.3 V RS-232 transceiver</td></tr>
+  <tr><td>RS485</td><td>SP3485EN</td><td>3.3 V half-duplex RS-485 transceiver</td></tr>
+</table>
 
-## Applications
+> See the [board user guide](../../docs/en/hw-reference/user-guide-esp32-p4-wifi6-db-touch-lcd-7c.md) for more hardware details.
+>
+> Board support package (BSP): [BSP overview](../../components/bsp/esp32_p4_wifi6_db_touch_lcd_7c/README.md) | [API reference](../../components/bsp/esp32_p4_wifi6_db_touch_lcd_7c/API.md)
+
+## 🛠️ Build and flash
+
+You need ESP-IDF v5.5.x or v6.1 and network access to the ESP Component Registry. Run from this directory:
+
+```sh
+idf.py set-target esp32p4
+idf.py build
+idf.py -p PORT flash monitor
+```
+
+> [!NOTE]
+> The first installation must use a full `flash` so the partition table, ESP-SR models (`srmodels.bin`) and SPIFFS resources (`storage.bin`) are written. If you later change only application code, `idf.py -p PORT app-flash monitor` is faster.
+
+### Flash partitions
+
+The 32 MiB flash layout is defined in `partitions.csv`; the partition table is at `0x8000`:
+
+<table>
+  <tr><th>Name</th><th>Type</th><th>Offset</th><th>Size</th><th>Purpose</th></tr>
+  <tr><td><code>nvsfactory</code></td><td>data / nvs</td><td><code>0x9000</code></td><td>200 KiB</td><td>Factory NVS data</td></tr>
+  <tr><td><code>nvs</code></td><td>data / nvs</td><td><code>0x3B000</code></td><td>840 KiB</td><td>Wi-Fi, app settings and Xiaozhi state</td></tr>
+  <tr><td><code>otadata</code></td><td>data / ota</td><td><code>0x10D000</code></td><td>8 KiB</td><td>OTA data (reserved)</td></tr>
+  <tr><td><code>phy_init</code></td><td>data / phy</td><td><code>0x10F000</code></td><td>4 KiB</td><td>PHY calibration data</td></tr>
+  <tr><td><code>model</code></td><td>data / spiffs</td><td><code>0x110000</code></td><td>960 KiB</td><td>ESP-SR speech models (<code>srmodels.bin</code>)</td></tr>
+  <tr><td><code>factory</code></td><td>app / factory</td><td><code>0x200000</code></td><td>8 MiB</td><td>Application</td></tr>
+  <tr><td><code>storage</code></td><td>data / spiffs</td><td><code>0xA00000</code></td><td>3 MiB</td><td>Music, Xiaozhi prompts and font (<code>storage.bin</code>)</td></tr>
+</table>
+
+## 📱 Applications
 
 <table>
   <tr>
-    <td align="center"><img src="components/XiaozhiApp/assets/img_app_xiaozhi.png" width="64" alt="AIChats icon"><br><b>AIChats</b></td>
+    <td align="center"><img src="components/DrawPanel/assets/img_app_drawpanel.png" width="64" alt="DrawPanel icon"><br><b>DrawPanel</b></td>
+    <td align="center"><img src="components/brookesia_app_squareline_demo/assets/esp_brookesia_app_icon_launcher_squareline_112_112.png" width="64" alt="Squareline icon"><br><b>Squareline</b></td>
     <td align="center"><img src="components/brookesia_app_calculator/assets/img_app_calculator.png" width="64" alt="Calculator icon"><br><b>Calculator</b></td>
-    <td align="center"><img src="components/draw/assets/img_app_drawpanel.png" width="64" alt="DrawPanel icon"><br><b>DrawPanel</b></td>
     <td align="center"><img src="components/SpecAnalyzer/assets/img_app_specanalyzer.png" width="64" alt="SpecAnalyzer icon"><br><b>SpecAnalyzer</b></td>
     <td align="center"><img src="components/MusicPlayer/assets/img_app_musicplayer.png" width="64" alt="MusicPlayer icon"><br><b>MusicPlayer</b></td>
-    <td align="center"><img src="components/Settings/assets/img_app_settings.png" width="64" alt="Settings icon"><br><b>Settings</b></td>
+    <td align="center"><img src="components/Camera/assets/img_app_camera.png" width="64" alt="Camera icon"><br><b>Camera</b></td>
   </tr>
   <tr>
-    <td align="center"><img src="components/Camera/assets/img_app_camera.png" width="64" alt="Camera icon"><br><b>Camera</b></td>
     <td align="center"><img src="components/VideoPlayer/assets/img_app_vedioplayer.png" width="64" alt="VideoPlayer icon"><br><b>VideoPlayer</b></td>
-    <td align="center"><img src="components/brookesia_app_squareline_demo/assets/esp_brookesia_app_icon_launcher_squareline_112_112.png" width="64" alt="Squareline icon"><br><b>Squareline</b></td>
+    <td align="center"><img src="components/UartViewer/assets/img_app_uart_tool.png" width="64" alt="UART icon"><br><b>UART</b></td>
+    <td align="center"><img src="components/CANViewer/assets/img_app_can_tool.png" width="64" alt="CAN icon"><br><b>CAN</b></td>
+    <td align="center"><img src="components/Settings/assets/img_app_settings.png" width="64" alt="Settings icon"><br><b>Settings</b></td>
+    <td align="center"><img src="components/XiaozhiApp/assets/img_app_xiaozhi.png" width="64" alt="AIChats icon"><br><b>AIChats</b></td>
   </tr>
 </table>
 
-| Application | Function | Runtime dependency |
-| --- | --- | --- |
-| AIChats | Network check, Xiaozhi activation, WakeNet wake word, VAD, Opus uplink/downlink, server transcript and TTS | Wi-Fi, `model`/`storage` images, ES8311 |
-| Calculator | Touch-friendly Brookesia calculator | Display and touch |
-| DrawPanel | Drawing in a fixed canvas area without dragging the entire app at the edge | Display and touch |
-| SpecAnalyzer | Single-channel FFT spectrum from the FC microphone | Audio ADC channel 0 |
-| MusicPlayer | Up to five local MP3 tracks with a spectrum visualizer | SPIFFS `storage`, ES8311 output |
-| Settings | WLAN scan/connect, sound, display brightness, and device information | ESP32-C5 hosted Wi-Fi and board services |
-| Squareline | Registry-installed Squareline Studio UI demo and application template | Display and touch |
-| Camera | Centered, aspect-preserving MIPI CSI preview using PPA | OV5647, `esp_video` |
-| VideoPlayer | Full-screen SD-card AVI/MJPEG playback, with audio when available | SD card, JPEG/PPA, ES8311 output |
+<table>
+  <tr><th>Application</th><th>Function</th><th>Component directory</th></tr>
+  <tr><td>DrawPanel</td><td>Fixed canvas; drawing near the edges does not drag the app</td><td><code>components/DrawPanel/</code></td></tr>
+  <tr><td>Squareline</td><td>Registry-installed Squareline Studio UI demo and app template</td><td><code>components/brookesia_app_squareline_demo/</code></td></tr>
+  <tr><td>Calculator</td><td>Touch-friendly Brookesia calculator</td><td><code>components/brookesia_app_calculator/</code></td></tr>
+  <tr><td>SpecAnalyzer</td><td>FFT spectrum of the on-board microphones</td><td><code>components/SpecAnalyzer/</code></td></tr>
+  <tr><td>MusicPlayer</td><td>Plays local MP3 files from <code>/spiffs/music</code> with a spectrum view</td><td><code>components/MusicPlayer/</code></td></tr>
+  <tr><td>Camera</td><td>OV5647 MIPI CSI preview, scaled by the PPA to fill the landscape panel</td><td><code>components/Camera/</code></td></tr>
+  <tr><td>VideoPlayer</td><td>Full-screen AVI/MJPEG playback from the SD card, with audio when available</td><td><code>components/VideoPlayer/</code></td></tr>
+  <tr><td>UART</td><td>RS485/RS232 serial terminal with selectable baud rate, frame format and HEX send/receive</td><td><code>components/UartViewer/</code></td></tr>
+  <tr><td>CAN</td><td>TWAI terminal, 125 kbit/s to 1 Mbit/s; reports bus state</td><td><code>components/CANViewer/</code></td></tr>
+  <tr><td>Settings</td><td>WLAN scan/connect, sound, screen brightness, SNTP time and device information</td><td><code>components/Settings/</code></td></tr>
+  <tr><td>AIChats</td><td>Network check, Xiaozhi activation, WakeNet wake word, VAD, Opus uplink/downlink, server text, emotions and TTS</td><td><code>components/XiaozhiApp/</code></td></tr>
+</table>
 
-## Build
+In addition, `components/brookesia_core/` is the local ESP-Brookesia core, and `components/bsp_extra/` provides audio, Wi-Fi service and board peripheral extensions on top of the BSP.
 
-### Requirements
+## 🚀 Quick start
 
-Use ESP-IDF v5.5.4 with the `esp32p4` toolchain. Network access to the ESP
-Component Registry and Waveshare component repository is required. Use a
-data-capable USB cable for flashing.
+1. Power on the board and wait for the boot screen to finish loading the home screen.
+2. Open **Settings → WLAN** and connect to Wi-Fi; the clock is synchronized automatically once connected.
+3. Open **AIChats**. On first use it shows and reads out an activation code; add the device in the [Xiaozhi console](https://xiaozhi.me) and enter the code.
+4. Copy MJPEG-encoded `.avi` videos to the `avi/` folder on the SD card, insert the card and play them in **VideoPlayer**.
+5. Use the **UART** and **CAN** apps with external RS485/RS232 or CAN devices to send and receive data; parameters are set inside each app.
 
-```sh
-idf.py --version
-idf.py -C firmware/brookesia set-target esp32p4
-idf.py -C firmware/brookesia build
+## 🎙️ Voice interaction
+
+Once AIChats is activated and in standby, say the wake word **"Ni Hao Xiao Zhi" (你好小智)** or tap the emoji on screen to start a conversation.
+
+<table>
+  <tr><th>Situation</th><th>Behavior</th></tr>
+  <tr><td>While Xiaozhi speaks</td><td>Half-duplex, it does not listen; the wake word interrupts it and starts listening again, tapping the screen does not</td></tr>
+  <tr><td>While Xiaozhi answers</td><td>The screen shows the text and emotion returned by the server</td></tr>
+  <tr><td>After each answer</td><td>Listening resumes automatically for a continuous conversation</td></tr>
+  <tr><td>Server ends the session</td><td>Returns to standby; say the wake word again to start a new conversation</td></tr>
+  <tr><td>Close / switch apps</td><td>Closing AIChats disconnects and reopening reconnects automatically; switching to another app keeps the connection</td></tr>
+</table>
+
+> [!NOTE]
+> The firmware does not register any MCP tools yet, so Xiaozhi cannot control device functions such as volume, brightness or the camera by voice.
+
+### Change the wake word
+
+The default wake word is "Ni Hao Xiao Zhi" (`wn9l_nihaoxiaozhi_tts3`). Change it in `menuconfig`:
+
+```text
+idf.py menuconfig
+  ESP Speech Recognition
+    Load Multiple Wake Words (WakeNet9)
+      [ ] 你好小智 (wn9l_nihaoxiaozhi_tts3)   <- deselect
+      [*] Hi,ESP (wn9_hiesp)                  <- select the new wake word
 ```
 
-### First full flash and partition changes
+- Select only one wake word: the firmware loads only the first WakeNet model it finds.
+- ESP32-P4 supports WakeNet9 / WakeNet9l; do not select models from the WakeNet9s menu.
+- Wake-word models are packed into `srmodels.bin`, so rebuild and run a full `flash` after the change; `app-flash` does not apply it.
+- The model must fit in the 960 KiB `model` partition.
 
-The first installation must write the bootloader, partition table, application,
-ESP-SR model, and SPIFFS resources:
+### Change the Xiaozhi UI language
 
-```sh
-idf.py -C firmware/brookesia -p PORT flash monitor
-```
-
-Erase the flash before a full flash when changing partition offsets or sizes,
-upgrading from an older partition layout, or investigating stale model or
-filesystem images:
-
-```sh
-idf.py -C firmware/brookesia -p PORT erase-flash flash monitor
-```
-
-When the partition layout, voice model, and `spiffs/` resources are unchanged,
-you can flash only the application:
-
-```sh
-idf.py -C firmware/brookesia -p PORT app-flash monitor
-```
-
-`app-flash` does not update `srmodels.bin`, `storage.bin`, or the partition
-table. Run a full `flash` after changing `partitions.csv`, WakeNet/model Kconfig,
-xiaozhi-fonts, bundled music, or prompt audio.
-
-## AIChats / Xiaozhi
-
-AIChats uses `esp_xiaozhi` for the protocol. This project provides the UI,
-activation, audio, and lifecycle integration.
-
-First use:
-
-1. Configure WLAN in Settings or connect Ethernet.
-2. Open AIChats. If the device is not associated with an account, it displays
-   and announces an activation code.
-3. Add the device in the Xiaozhi control panel and enter the activation code.
-4. When the page reaches standby, say the wake phrase. The default is
-   “Ni Hao Xiao Zhi.”
-
-If the log reports `No speech model found` or `contains no compatible models`,
-rebuild and perform a full flash to write both the partition table and
-`srmodels/srmodels.bin`.
-
-The local UI language can be selected in this menu:
+The local AIChats UI text defaults to English and can be switched to Simplified Chinese:
 
 ```text
 idf.py menuconfig
   Xiaozhi Application
-    Local UI language
-      English
-      Simplified Chinese
+    Local UI language  (English / Simplified Chinese)
 ```
 
-This option controls firmware-owned text only. It does not translate
-conversation text, TTS, or activation messages returned by the server. Local
-strings are in `components/XiaozhiApp/XiaozhiLocalization.*`.
-
-The board audio bus uses ES8311 at 48 kHz, 16-bit, two-channel `FC,RE`. The
-hardware has one working microphone. The AFE uses the `MN` layout: `FC` is the
-microphone input, and the second I2S slot is ignored and is not an AEC reference.
-AIChats converts captured audio to 16 kHz mono Opus for uplink; the playback
-chain converts server audio as needed for 48 kHz output. SpecAnalyzer also uses
-only the `FC` channel.
-
-## Board hardware
-
-### Ethernet
-
-The Board Manager configuration includes the board's IP101 (PHY address 1)
-RMII device. The launcher does not install separate Ethernet, Relay Control, or
-RS485 applications.
-
-## Camera and media
-
-Camera uses the OV5647 MIPI RAW8 800 x 800, 50 FPS mode. Three V4L2 MMAP buffers
-are scaled by PPA to fit the display area and copied into two PSRAM image
-buffers. LVGL centers the preview without cropping. The displayed frame rate in
-DEBUG logs must be confirmed on hardware.
-
-VideoPlayer scans only `/sdcard/avi`; the `.avi` extension is case-insensitive.
-AVI files in the SD card root and MP4 files are not enumerated. The player reads
-AVI through `avi_player`, decodes MJPEG with `esp_new_jpeg`, then scales frames
-with PPA and writes them directly to the LCD frame buffer. If audio
-initialization fails, video playback continues silently.
-
-MusicPlayer reads up to five MP3 files from `/spiffs/music`. After changing
-tracks, regenerate and flash `storage.bin`; `app-flash` alone does not update it.
-
-## Development notes
-
-- The MCP tool entry point is `registerXiaozhiDeveloperTools()` in
-  `components/XiaozhiApp/XiaozhiDeveloperTools.cpp`. Register only implemented
-  tools that return real results; run long operations in an application task.
-- New apps derive from `esp_brookesia::systems::phone::App` and implement
-  `run()` and `back()`. Override other lifecycle functions according to
-  resource ownership.
-- Access LVGL objects on the LVGL thread or while holding the display lock
-  briefly. On app shutdown, release its timers, tasks, queues, codec sessions,
-  SD handles, and LVGL objects.
-- During playback, VideoPlayer enables the adapter's Dummy Draw and pauses LVGL.
-  On exit, it stops `avi_player` and resumes LVGL rendering.
-
-## Project structure
-
-| Path | Purpose |
-| --- | --- |
-| `CMakeLists.txt` | ESP-IDF project entry point |
-| `main/main.cpp` | Initializes the Phone, installs apps, and handles Wi-Fi status events |
-| `components/brookesia_core/` | Local Brookesia core implementation |
-| `components/esp_hal_boards/` | Brookesia audio and display HAL adapters |
-| `components/gen_bmgr_codes/` | Selects and generates Board Manager board configuration code |
-| `components/{brookesia_app_calculator, brookesia_app_squareline_demo, draw, Camera, XiaozhiApp, VideoPlayer, MusicPlayer, SpecAnalyzer, Settings}/` | Launcher apps: calculator, Squareline demo, drawing, camera, Xiaozhi, video, music, spectrum analyzer, and settings |
-| `spiffs/` | Music and Xiaozhi resources used to generate the `storage` partition image |
-| `partitions.csv` | Flash partition layout |
-| `sdkconfig.defaults` | Project default configuration |
-
-## Notes
-
-- Use the LVGL lock only for UI operations. Run networking, SD scans, audio
-  initialization, NVS access, and model loading outside the lock.
-- Model, font, prompt, music, and partition changes require a full `flash`.
-- Audio apps share one physical bus. Stop or hand off the codec session when
-  switching between apps.
-- The host component must remain compatible with the coprocessor firmware on
-  the ESP32-C5.
-- Review Board Manager interface changes in upstream PRs/releases before
-  updating the BSP.
-
-`EXAMPLE_SHOW_MEM_INFO` in `main/main.cpp` is currently `true`, so periodic
-SRAM/PSRAM statistics are enabled. The detailed log output is controlled
-separately by `EXAMPLE_SHOW_MEM_INFO_LOG`.
-
-When reporting an issue, include the board revision, ESP-IDF version, complete
-reproduction steps, and the first actual error in the logs.
-
-The local Brookesia core uses the
-[Apache-2.0 license](components/brookesia_core/license.txt), which applies only
-to that component. A repository-level license still needs to be selected before
-public distribution; retain component licenses, SPDX headers, and third-party
-notices.
+Rebuild and flash after the change; `app-flash` is enough when only the application changed. This option only affects the firmware's built-in status text and activation hints; conversations, TTS and activation messages from the server are unchanged. Local strings are in `components/XiaozhiApp/XiaozhiLocalization.cpp`.

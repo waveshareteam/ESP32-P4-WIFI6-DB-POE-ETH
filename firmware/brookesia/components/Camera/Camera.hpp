@@ -1,75 +1,90 @@
-/*
- * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 #pragma once
 
-#include "lvgl.h"
+#include <atomic>
+
 #include "systems/phone/esp_brookesia_phone_app.hpp"
-#include "CameraPreview.hpp"
+#include "bsp/esp-bsp.h"
+#include "bsp_board_extra.h"
+#include "driver/ppa.h"
+#include "esp_lcd_touch.h"
+#include "esp_lcd_types.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "lvgl.h"
+#include "sdkconfig.h"
 
-namespace esp_brookesia::apps {
+namespace esp_brookesia::apps
+{
 
-/**
- * @brief Camera application: full-screen MIPI CSI preview
- *
- * The app owns an LVGL image and status label. CameraPreview produces frames in its own task and
- * publishes stable image descriptors for the GUI timer to consume. The worker never calls LVGL.
- */
-class Camera : public systems::phone::App {
-public:
-    /**
-     * @brief Get the singleton instance of Camera
-     *
-     * @param use_status_bar Show status bar
-     * @param use_navigation_bar Show navigation bar
-     * @return Camera* Singleton instance pointer
-     */
-    static Camera *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
+    class Camera : public systems::phone::App
+    {
+    public:
+        static Camera *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
+        ~Camera();
 
-    ~Camera();
+    protected:
+        Camera(bool use_status_bar, bool use_navigation_bar);
 
-protected:
-    Camera(bool use_status_bar, bool use_navigation_bar);
+        bool run(void) override;
+        bool back(void) override;
+        bool close(void) override;
+        bool init(void) override;
+        bool deinit(void) override;
+        bool pause(void) override;
+        bool resume(void) override;
 
-    bool run(void) override;
-    bool back(void) override;
-    bool close(void) override;
-    bool init(void) override;
-    bool deinit(void) override;
-    bool pause(void) override;
-    bool resume(void) override;
+    private:
+        static Camera *_instance;
 
-private:
-    static Camera *_instance;
+        static constexpr int CAMERA_BUFFER_COUNT = 2;
+        static constexpr int PREVIEW_TASK_STACK_SIZE = 8 * 1024;
+        static constexpr int PREVIEW_TASK_PRIORITY = 8;
+        static constexpr int SWIPE_EXIT_THRESHOLD = 180;
 
-    static constexpr uint32_t OBSERVER_PERIOD_MS = 50;
-    static constexpr uint32_t STOP_TIMEOUT_MS = 3000;
+        lv_obj_t *_status_label = nullptr;
+        lv_display_t *_display = nullptr;
+        esp_lcd_panel_handle_t _display_panel = nullptr;
+        ppa_client_handle_t _ppa_srm_handle = nullptr;
+        esp_lcd_touch_handle_t _touch_handle = nullptr;
 
-    /**
-     * @brief Start the preview task and the observer timer that reacts to its state
-     *
-     * @return false if the task could not be created; the error is shown on the status label
-     */
-    bool startPreview();
+        TaskHandle_t _preview_task_handle = nullptr;
+        lv_timer_t *_close_request_timer = nullptr;
+        int _video_fd = -1;
+        bool _video_driver_initialized = false;
+        std::atomic<bool> _preview_running{false};
+        std::atomic<bool> _preview_exited{true};
+        std::atomic<bool> _close_requested{false};
+        std::atomic<bool> _close_notification_posted{false};
+        bool _dummy_enabled = false;
+        bool _lvgl_paused = false;
+        bool _touch_active = false;
+        uint16_t _touch_start_x = 0;
+        uint16_t _touch_start_y = 0;
+        uint32_t _camera_width = 0;
+        uint32_t _camera_height = 0;
+        size_t _camera_buffer_size = 0;
+        size_t _camera_buffer_lengths[CAMERA_BUFFER_COUNT] = {};
+        size_t _data_cache_line_size = 64;
+        void *_camera_buffers[CAMERA_BUFFER_COUNT] = {};
+        void *_lcd_buffers[CONFIG_BSP_LCD_DPI_BUFFER_NUMS] = {};
+        int _current_lcd_buffer_index = 0;
 
-    /**
-     * @brief Stop the preview task, wait for it, hand the display back to LVGL (safe to call repeatedly)
-     */
-    bool stopPreview();
+        bool startPreview();
+        bool requestStopPreview();
+        bool createCloseRequestTimer();
+        void destroyCloseRequestTimer();
+        esp_err_t initVideoDriver();
+        esp_err_t openVideoDevice();
+        esp_err_t setupCameraBuffers();
+        esp_err_t startDummyPreview();
+        void stopDummyPreview();
+        void releaseCameraBuffers();
+        bool shouldExitBySwipe();
+        esp_err_t handleFrame();
+        void previewTask();
 
-    void setStatusText(const char *text);
-    void showError(esp_err_t err);
-    void onObserverTick();
-
-    static void observerTimerCb(lv_timer_t *timer);
-
-    CameraPreview _preview;
-    lv_display_t *_display = nullptr;
-    lv_obj_t *_preview_image = nullptr;
-    lv_obj_t *_status_label = nullptr;
-    lv_timer_t *_observer_timer = nullptr;
-};
+        static void previewTaskEntry(void *arg);
+        static void closeRequestTimerCallback(lv_timer_t *timer);
+    };
 
 } // namespace esp_brookesia::apps

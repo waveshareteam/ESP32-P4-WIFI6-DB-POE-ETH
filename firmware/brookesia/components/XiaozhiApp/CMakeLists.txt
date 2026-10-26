@@ -8,7 +8,7 @@ set(PROJ_SRCS_CPP
     "XiaozhiActivationClient.cpp"
     "XiaozhiActivationPrompt.cpp"
     "XiaozhiApp.cpp"
-    "XiaozhiAudio.cpp"
+    "XiaozhiAudioProcessor.cpp"
     "XiaozhiClient.cpp"
     "XiaozhiDeveloperTools.cpp"
     "XiaozhiLocalization.cpp"
@@ -22,19 +22,9 @@ set(PROJ_SRCS_CC
 idf_component_register(
     SRCS ${PROJ_SRCS_C} ${PROJ_SRCS_CPP} ${PROJ_SRCS_CC}
     INCLUDE_DIRS ${PROJ_SRC}
-    REQUIRES
-        brookesia_core
-        xiaozhi-fonts
-        esp_event
-        esp_netif
-        esp_xiaozhi
-        nvs_flash
+    REQUIRES brookesia_core bsp_extra esp_audio_codec esp_audio_effects esp-sr xiaozhi-fonts esp_event esp_netif esp_xiaozhi nvs_flash
     PRIV_REQUIRES
-        brookesia_service_audio
-        esp_hal_boards
         app_update
-        esp_lvgl_adapter
-        spiffs
         esp_http_client
         cjson
         efuse
@@ -46,21 +36,6 @@ idf_component_register(
         mcp-c-sdk
         spi_flash
 )
-
-# Keep warnings visible while allowing the managed MCP SDK's known
-# stringop-truncation warning to compile under this project's -Werror=all.
-idf_component_get_property(
-    MCP_C_SDK_COMPONENT_LIB
-    espressif__mcp-c-sdk
-    COMPONENT_LIB
-)
-if(MCP_C_SDK_COMPONENT_LIB)
-    target_compile_options(
-        ${MCP_C_SDK_COMPONENT_LIB}
-        PRIVATE
-        -Wno-error=stringop-truncation
-    )
-endif()
 
 set_source_files_properties(
     ${PROJ_SRCS_CPP} ${PROJ_SRCS_CC}

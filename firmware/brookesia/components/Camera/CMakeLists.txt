@@ -6,12 +6,7 @@ file(GLOB_RECURSE PROJ_SRCS_CPP ${PROJ_SRC}/*.cpp)
 idf_component_register(
     SRCS  ${PROJ_SRCS_C} ${PROJ_SRCS_CPP}
     INCLUDE_DIRS ${PROJ_SRC}
-    REQUIRES
-        brookesia_core
-        esp_board_manager
-        esp_driver_ppa
-        esp_video
-        esp_timer)
+    REQUIRES brookesia_core driver esp_driver_ppa esp_hw_support esp_lcd esp_lcd_touch esp_lvgl_adapter esp_video bsp_extra)
 
 set_source_files_properties(
     ${PROJ_SRCS_CPP}

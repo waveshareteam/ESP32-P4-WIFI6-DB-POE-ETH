@@ -27,9 +27,6 @@ dependencies:
   espressif/esp_lvgl_adapter:
     public: true
     version: ^0.6.2
-    matches:
-      - if: "idf_version >=5.5.5"
-        version: ">=0.7.2,<0.8.0"
   idf: '>=5.5'
   lvgl/lvgl:
     public: true

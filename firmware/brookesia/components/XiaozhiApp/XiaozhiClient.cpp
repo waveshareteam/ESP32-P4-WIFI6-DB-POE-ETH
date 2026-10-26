@@ -8,6 +8,7 @@
 #include "XiaozhiDeveloperTools.hpp"
 
 #include <atomic>
+#include <cstring>
 #include <new>
 #include <utility>
 
@@ -345,6 +346,31 @@ private:
         case ESP_XIAOZHI_CHAT_EVENT_CHAT_ERROR: {
             auto *error =
                 static_cast<esp_xiaozhi_chat_error_info_t *>(event_data);
+            const bool transport_error =
+                error && error->source && strcmp(error->source, "transport") == 0;
+            if (transport_error) {
+                ESP_LOGW(
+                    TAG,
+                    "Reconnecting after transport error: %s",
+                    error ? esp_err_to_name(error->code) : "unknown"
+                );
+                // esp_xiaozhi reports a transport error immediately before (or
+                // alongside) DISCONNECTED. Treat it as a reconnectable link
+                // transition; promoting it to ChatError makes the UI show a
+                // permanent service failure while the websocket is recovering.
+                const bool was_connected = self->_connected.exchange(false);
+                self->_channel_open.store(false);
+                if (was_connected && self->_callbacks.onDisconnected) {
+                    self->_callbacks.onDisconnected();
+                }
+                break;
+            }
+            ESP_LOGE(
+                TAG,
+                "Xiaozhi chat error: %s (%s)",
+                error ? esp_err_to_name(error->code) : "ESP_FAIL",
+                error && error->source ? error->source : "esp_xiaozhi"
+            );
             if (self->_callbacks.onError) {
                 self->_callbacks.onError(
                     error ? error->code : ESP_FAIL,
@@ -382,13 +408,14 @@ private:
                 self->_callbacks.onConnected();
             }
             break;
-        case ESP_XIAOZHI_CHAT_EVENT_DISCONNECTED:
-            self->_connected.store(false);
+        case ESP_XIAOZHI_CHAT_EVENT_DISCONNECTED: {
+            const bool was_connected = self->_connected.exchange(false);
             self->_channel_open.store(false);
-            if (self->_callbacks.onDisconnected) {
+            if (was_connected && self->_callbacks.onDisconnected) {
                 self->_callbacks.onDisconnected();
             }
             break;
+        }
         case ESP_XIAOZHI_CHAT_EVENT_AUDIO_CHANNEL_OPENED:
             self->_channel_open.store(true);
             if (self->_callbacks.onAudioChannelOpened) {

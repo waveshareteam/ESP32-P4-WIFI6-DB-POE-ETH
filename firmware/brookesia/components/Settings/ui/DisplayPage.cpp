@@ -1,38 +1,10 @@
 #include "DisplayPage.hpp"
 #include "SettingsUI.hpp"
-#include <stdint.h>
-#include <algorithm>
-#include "brookesia/service_helper/system/storage.hpp"
-#include "esp_hal_boards/display_device.hpp"
 #include "esp_log.h"
 #include "../Settings.hpp"
 
 #define ESP_UTILS_LOG_TAG "BS:DisplayPage"
 #include "esp_lib_utils.h"
-
-namespace
-{
-    constexpr char BRIGHTNESS_NAMESPACE[] = "display";
-    constexpr char BRIGHTNESS_KEY[] = "brightness";
-    constexpr uint32_t STORAGE_TIMEOUT_MS = 1000;
-    // Cache the restored / last successfully applied brightness for the UI.
-    int s_display_brightness_percent = 100;
-
-    esp_err_t set_display_brightness(int value)
-    {
-        if (value < 0) {
-            value = 0;
-        } else if (value > 100) {
-            value = 100;
-        }
-
-        const esp_err_t ret = esp_hal_boards::display_backlight_set(value);
-        if (ret == ESP_OK) {
-            s_display_brightness_percent = value;
-        }
-        return ret;
-    }
-}
 
 namespace esp_brookesia::apps
 {
@@ -62,7 +34,7 @@ namespace esp_brookesia::apps
         ESP_UTILS_LOGD("DisplayPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
+        page_root = settings_ui::create_page(lv_scr_act());
         settings_ui::create_header(page_root, "Display", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {
@@ -90,10 +62,9 @@ namespace esp_brookesia::apps
         lv_obj_set_style_text_color(title, lv_color_hex(settings_ui::COLOR_PRIMARY_TEXT), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
 
-        s_display_brightness_percent = esp_hal_boards::display_backlight_get_saved();
-        int value = s_display_brightness_percent;
-        if (value < 0) {
-            value = 0;
+        int32_t value = bsp_display_brightness_get();
+        if (value < 20) {
+            value = 20;
         } else if (value > 100) {
             value = 100;
         }
@@ -108,12 +79,8 @@ namespace esp_brookesia::apps
         lv_obj_set_width(brightness_slider, lv_pct(100));
         lv_obj_set_height(brightness_slider, 14);
         lv_obj_align(brightness_slider, LV_ALIGN_BOTTOM_MID, 0, -5);
-        lv_slider_set_range(brightness_slider, 0, 100);
+        lv_slider_set_range(brightness_slider, 20, 100);
         lv_slider_set_value(brightness_slider, value, LV_ANIM_OFF);
-        const esp_err_t apply_ret = set_display_brightness(value);
-        if (apply_ret != ESP_OK) {
-            ESP_LOGW("DisplayPage", "Restore display brightness failed: %s", esp_err_to_name(apply_ret));
-        }
 
         lv_obj_set_style_bg_color(brightness_slider, lv_color_hex(0x505050), LV_PART_MAIN);
         lv_obj_set_style_bg_color(brightness_slider, lv_color_hex(settings_ui::COLOR_ACCENT), LV_PART_INDICATOR);
@@ -121,7 +88,6 @@ namespace esp_brookesia::apps
         lv_obj_set_style_pad_all(brightness_slider, 7, LV_PART_KNOB);
         lv_obj_set_style_radius(brightness_slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
         lv_obj_add_event_cb(brightness_slider, event_handler_cb, LV_EVENT_VALUE_CHANGED, this);
-        lv_obj_add_event_cb(brightness_slider, event_handler_cb, LV_EVENT_RELEASED, this);
         return true;
     }
 
@@ -134,23 +100,10 @@ namespace esp_brookesia::apps
         }
 
         const int32_t value = lv_slider_get_value(slider);
-        if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
-            // Persist only the value successfully applied to the backlight.
-            auto result = esp_brookesia::service::helper::Storage::save_key_value(
-                              BRIGHTNESS_NAMESPACE, BRIGHTNESS_KEY,
-                              static_cast<int32_t>(s_display_brightness_percent), STORAGE_TIMEOUT_MS);
-            if (!result) {
-                ESP_LOGW("DisplayPage", "Save brightness failed: %s", result.error().c_str());
-            }
-            return;
-        }
         if (instance->label != nullptr) {
             lv_label_set_text_fmt(instance->label, "%ld%%", static_cast<long>(value));
         }
-        const esp_err_t ret = set_display_brightness(value);
-        if (ret != ESP_OK) {
-            ESP_LOGW("DisplayPage", "Set display brightness failed: %s", esp_err_to_name(ret));
-        }
+        bsp_display_brightness_set(value);
     }
 
     bool DisplayPage::back()

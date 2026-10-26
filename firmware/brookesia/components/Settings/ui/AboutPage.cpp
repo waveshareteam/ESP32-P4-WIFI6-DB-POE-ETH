@@ -1,7 +1,10 @@
 #include "AboutPage.hpp"
 #include "SettingsUI.hpp"
+#include "esp_app_desc.h"
+#include <cstdio>
+#include <cstring>
 #include "esp_log.h"
-#include "esp_board_manager.h"
+#include "sdkconfig.h"
 #include "../Settings.hpp"
 
 #define ESP_UTILS_LOG_TAG "BS:AboutPage"
@@ -9,13 +12,43 @@
 
 LV_IMG_DECLARE(logo);
 
-namespace
+namespace {
+
+const char *product_name()
 {
-    const char *board_info_value(const char *value)
-    {
-        return value != nullptr && value[0] != '\0' ? value : "Unknown";
-    }
+    return "ESP32-P4-WIFI6-DB-POE-ETH";
 }
+
+const char *firmware_version()
+{
+    static char version[7] = {};
+    if (version[0] != '\0') {
+        return version;
+    }
+
+    // Use the firmware build date, including when this file is not recompiled.
+    const char *date = esp_app_get_description()->date;
+    char month_name[4] = {};
+    int day = 0;
+    int year = 0;
+    if (std::sscanf(date, "%3s %d %d", month_name, &day, &year) != 3 ||
+        day < 1 || day > 31 || year < 0) {
+        return "Unknown";
+    }
+    static const char *months[] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+    for (int month = 0; month < 12; ++month) {
+        if (std::strcmp(month_name, months[month]) == 0) {
+            std::snprintf(version, sizeof(version), "%02d%02d%02d", year % 100, month + 1, day);
+            return version;
+        }
+    }
+    return "Unknown";
+}
+
+} // namespace
 
 namespace esp_brookesia::apps
 {
@@ -45,7 +78,7 @@ namespace esp_brookesia::apps
         ESP_UTILS_LOGD("AboutPage Run");
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act(), *Settings::requestInstance());
+        page_root = settings_ui::create_page(lv_scr_act());
         settings_ui::create_header(page_root, "About", [](lv_event_t *e) {
             (void)e;
             lv_async_call([](void *param) {
@@ -59,26 +92,11 @@ namespace esp_brookesia::apps
         lv_obj_add_style(list1, &style_list, LV_PART_MAIN);
 
         settings_ui::add_section(list1, "Device", style_list_text);
-        esp_board_info_t board_info = {};
-        const esp_err_t ret = esp_board_manager_get_board_info(&board_info);
-        if (ret != ESP_OK) {
-            ESP_LOGW("AboutPage", "Read Board Manager board info failed: %s", esp_err_to_name(ret));
-        }
-
-        settings_ui::add_info_row(
-            list1, &logo, "Manufacturer",
-            ret == ESP_OK ? board_info_value(board_info.manufacturer) : "Waveshare", style_list_btn);
-        settings_ui::add_info_row(
-            list1, nullptr, "Board",
-            ret == ESP_OK ? board_info_value(board_info.name) : "Unknown", style_list_btn);
-        settings_ui::add_info_row(
-            list1, nullptr, "Chip",
-            ret == ESP_OK ? board_info_value(board_info.chip) : "Unknown", style_list_btn);
-        settings_ui::add_info_row(
-            list1, nullptr, "Board Version",
-            ret == ESP_OK ? board_info_value(board_info.version) : "Unknown", style_list_btn);
+        settings_ui::add_info_row(list1, &logo, "Manufacturer", "Waveshare", style_list_btn);
+        settings_ui::add_info_row(list1, nullptr, "Product", product_name(), style_list_btn);
 
         settings_ui::add_section(list1, "Software", style_list_text);
+        settings_ui::add_info_row(list1, nullptr, "Version", firmware_version(), style_list_btn);
         settings_ui::add_info_row(list1, nullptr, "UI Framework", "ESP-Brookesia", style_list_btn);
         return true;
     }

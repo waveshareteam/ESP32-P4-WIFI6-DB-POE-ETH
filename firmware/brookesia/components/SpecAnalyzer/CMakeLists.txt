@@ -6,9 +6,7 @@ file(GLOB_RECURSE PROJ_SRCS_CPP ${PROJ_SRC}/*.cpp)
 idf_component_register(
     SRCS  ${PROJ_SRCS_C} ${PROJ_SRCS_CPP}
     INCLUDE_DIRS ${PROJ_SRC}
-    REQUIRES brookesia_core brookesia_service_audio brookesia_service_manager
-        esp_hw_support esp_system freertos esp-dsp
-    PRIV_REQUIRES brookesia_service_helper
+    REQUIRES brookesia_core driver esp-dsp bsp_extra
 )
 
 set_source_files_properties(

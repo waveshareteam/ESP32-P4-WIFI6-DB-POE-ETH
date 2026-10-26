@@ -1,49 +1,58 @@
 /*
  * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <memory>
-#include <string>
-#include <vector>
+#include "file_iterator.h"
 #include "systems/phone/esp_brookesia_phone_app.hpp"
-#include "src/lv_demo_music.h"
-#include "esp_err.h"
+
 namespace esp_brookesia::apps {
+
+/**
+ * @brief MusicPlayer application for displaying the app name on the device screen
+ *
+ */
 class MusicPlayer: public systems::phone::App {
 public:
+    /**
+     * @brief Get the singleton instance of MusicPlayer
+     *
+     * @param use_status_bar Show status bar
+     * @param use_navigation_bar Show navigation bar
+     * @return MusicPlayer* Singleton instance pointer
+     */
     static MusicPlayer *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
+
+    /**
+     * @brief Destroy the MusicPlayer object
+     *
+     */
     ~MusicPlayer();
+
 protected:
+    /**
+     * @brief Construct a new MusicPlayer object (private to enforce singleton)
+     *
+     * @param use_status_bar Show status bar
+     * @param use_navigation_bar Show navigation bar
+     */
     MusicPlayer(bool use_status_bar, bool use_navigation_bar);
-    bool run() override;
-    bool back() override;
-    bool close() override;
-    bool init() override;
-    bool deinit() override;
-    bool pause() override;
-    bool resume() override;
+
+    bool run(void) override;
+    bool back(void) override;
+    bool close(void) override;
+    bool init(void) override;
+    bool deinit(void) override;
+    bool pause(void) override;
+    bool resume(void) override;
+
 private:
-    class PlaybackStateMonitor;
     static MusicPlayer *_instance;
-    static const char *title_cb(void *context, uint32_t id);
-    static bool play_cb(void *context, uint32_t id);
-    static bool pause_cb(void *context);
-    static bool resume_cb(void *context, uint32_t id);
-    static app_music_state_t status_cb(void *context, uint32_t *position, uint32_t *duration);
-    esp_err_t cleanup_player();
-    void show_message(const char *message, esp_err_t error = ESP_OK);
-    std::unique_ptr<PlaybackStateMonitor> _state_monitor;
-    std::vector<std::string> _tracks;
-    lv_obj_t *_message = nullptr;
-    uint32_t _loaded_track = UINT32_MAX;
-    uint32_t _play_request_ms = 0;
-    uint32_t _play_started_ms = 0;
-    uint32_t _elapsed_ms = 0;
-    bool _play_pending = false;
-    bool _playback_started = false;
-    bool _is_counting = false;
-    bool _spiffs_owned = false;
+    file_iterator_instance_t *_file_iterator;
+    bool _player_active = false;
+    bool _resume_playback = false;
     bool _ui_active = false;
 };
-}
+
+} // namespace esp_brookesia::apps

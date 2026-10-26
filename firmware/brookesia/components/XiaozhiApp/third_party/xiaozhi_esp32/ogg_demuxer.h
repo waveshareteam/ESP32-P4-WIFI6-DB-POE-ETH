@@ -42,18 +42,18 @@ private:
         size_t body_size = 0;           // 数据体总大小
         size_t body_offset = 0;         // 数据体已读取的字节数
     };
-    
+
 public:
     OggDemuxer() {
         Reset();
     }
-    
+
     void Reset();
-    
+
     size_t Process(const uint8_t* data, size_t size);
 
     /// @brief 设置解封装完毕后回调处理函数
-    /// @param on_demuxer_finished 
+    /// @param on_demuxer_finished
     void OnDemuxerFinished(std::function<void(const uint8_t* data, int sample_rate, size_t len)> on_demuxer_finished) {
         on_demuxer_finished_ = on_demuxer_finished;
     }

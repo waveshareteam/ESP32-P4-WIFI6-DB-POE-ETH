@@ -2,7 +2,6 @@
 
 #include "esp_brookesia.hpp"
 #include "lvgl.h"
-#include "brookesia/service_manager/service/manager.hpp"
 
 namespace esp_brookesia::apps {
     class Settings;
@@ -14,7 +13,7 @@ public:
     static SoundPage *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
 
     SoundPage(bool use_status_bar, bool use_navigation_bar);
-    ~SoundPage() override = default;
+    virtual ~SoundPage();
 
     bool run() override;
     bool back() override;
@@ -30,7 +29,6 @@ private:
     lv_style_t style_list_btn;
     lv_style_t style_list_text;
     lv_style_t style_list_btn_pressed;
-    service::ServiceBinding audio_service_binding;
 };
 
 } // namespace esp_brookesia::apps

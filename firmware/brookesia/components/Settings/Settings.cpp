@@ -7,11 +7,8 @@
 #include "ui/SettingsUI.hpp"
 #include "lvgl.h"
 #include "esp_brookesia.hpp"
-#include "esp_event.h"
-#include "esp_netif.h"
 #include "esp_sntp.h"
-#include "brookesia/service_helper/network/wifi.hpp"
-#include "brookesia/service_manager.hpp"
+#include <atomic>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
@@ -21,6 +18,8 @@
 #define ESP_UTILS_LOG_TAG "BS:Settings"
 #include "esp_lib_utils.h"
 
+#define I2C_MASTER_FREQ_HZ 100000
+#define I2C_MASTER_TIMEOUT_MS 1000
 // Settings page icons.
 LV_IMG_DECLARE(WIFI);
 LV_IMG_DECLARE(sound);
@@ -32,11 +31,9 @@ LV_IMG_DECLARE(img_app_settings);
 
 namespace esp_brookesia::apps
 {
-    static bool s_time_sync_started = false;
+    // Set from both the app task and the Wi-Fi service publisher task.
+    static std::atomic<bool> s_time_sync_started{false};
     static bool s_time_synced = false;
-    static bool s_service_manager_initialized = false;
-    static bool s_service_manager_started = false;
-    static service::ServiceBinding s_wifi_service_binding;
 
     static void time_sync_notification_cb(struct timeval *tv)
     {
@@ -49,7 +46,7 @@ namespace esp_brookesia::apps
 
     static void start_time_sync_once()
     {
-        if (s_time_sync_started || esp_sntp_enabled()) {
+        if (esp_sntp_enabled() || s_time_sync_started.exchange(true)) {
             return;
         }
 
@@ -59,16 +56,15 @@ namespace esp_brookesia::apps
         esp_sntp_setservername(0, "ntp.aliyun.com");
         esp_sntp_set_time_sync_notification_cb(time_sync_notification_cb);
         esp_sntp_init();
-        s_time_sync_started = true;
         ESP_UTILS_LOGI("SNTP time sync started");
     }
 
-    static void wifi_time_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+    // Runs in the Wi-Fi service publisher task.
+    static void wifi_time_event_handler(const adf_event_t *event, void *ctx)
     {
-        (void)arg;
-        (void)event_data;
+        (void)ctx;
 
-        if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        if (event->event_id == BSP_EXTRA_WIFI_EVENT_STA_GOT_IP) {
             start_time_sync_once();
         }
     }
@@ -99,7 +95,7 @@ namespace esp_brookesia::apps
         destroy_settings_ui();
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act(), *this);
+        page_root = settings_ui::create_page(lv_scr_act());
         settings_ui::create_header(page_root, "Settings");
         settings_ui::init_list_styles(style_list, style_list_btn, style_list_text, style_list_btn_pressed);
 
@@ -242,6 +238,38 @@ namespace esp_brookesia::apps
         create_settings_ui();
     }
 
+    int Settings::pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+    {
+        Settings *instance = Settings::requestInstance();
+        esp_err_t ret = i2c_master_transmit_receive(instance->pmu_dev_handle, &regAddr, 1, data, len, I2C_MASTER_TIMEOUT_MS);
+        if (ret != ESP_OK)
+        {
+            ESP_UTILS_LOGI("PMU READ FAILED!");
+            return -1;
+        }
+        return 0;
+    }
+
+    int Settings::pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len)
+    {
+        Settings *instance = Settings::requestInstance();
+        uint8_t *buffer = (uint8_t *)malloc(len + 1);
+        if (!buffer)
+            return -1;
+        buffer[0] = regAddr;
+        memcpy(&buffer[1], data, len);
+
+        esp_err_t ret = i2c_master_transmit(instance->pmu_dev_handle, buffer, len + 1, I2C_MASTER_TIMEOUT_MS);
+        free(buffer);
+
+        if (ret != ESP_OK)
+        {
+            ESP_UTILS_LOGI("PMU WRITE FAILED!");
+            return -1;
+        }
+        return 0;
+    }
+
     bool Settings::run(void)
     {
         ESP_UTILS_LOGD("Run");
@@ -275,7 +303,7 @@ namespace esp_brookesia::apps
     bool Settings::init()
     {
         ESP_UTILS_LOGD("Init");
-        initWifi();
+        subscribeWifiEvents();
         return true;
     }
 
@@ -297,52 +325,25 @@ namespace esp_brookesia::apps
         return true;
     }
 
-    esp_err_t Settings::initWifi()
+    esp_err_t Settings::subscribeWifiEvents()
     {
-        static bool time_event_handler_registered = false;
-
-        auto &service_manager = service::ServiceManager::get_instance();
-        if (!s_service_manager_initialized) {
-            if (!service_manager.init()) {
-                ESP_UTILS_LOGE("Initialize ServiceManager failed");
-                return ESP_FAIL;
-            }
-            s_service_manager_initialized = true;
-        }
-        if (!s_service_manager_started) {
-            if (!service_manager.start()) {
-                ESP_UTILS_LOGE("Start ServiceManager failed");
-                return ESP_FAIL;
-            }
-            s_service_manager_started = true;
+        static bool subscribed = false;
+        if (subscribed) {
+            return ESP_OK;
         }
 
-        using WifiHelper = service::helper::Wifi;
-        if (!WifiHelper::is_available()) {
-            ESP_UTILS_LOGE("brookesia_service_wifi is not available");
-            return ESP_ERR_NOT_FOUND;
+        esp_err_t ret = bsp_extra_wifi_service_subscribe(
+            BSP_EXTRA_WIFI_EVENT_STA_GOT_IP, wifi_time_event_handler, nullptr);
+        if (ret != ESP_OK) {
+            ESP_UTILS_LOGE("Subscribe Wi-Fi service events failed: %s", esp_err_to_name(ret));
+            return ret;
         }
-        if (!s_wifi_service_binding.is_valid()) {
-            s_wifi_service_binding = service_manager.bind(WifiHelper::get_name().data());
-            if (!s_wifi_service_binding.is_valid()) {
-                ESP_UTILS_LOGE("Bind brookesia_service_wifi failed");
-                return ESP_FAIL;
-            }
-        }
+        subscribed = true;
 
-        if (!time_event_handler_registered) {
-            esp_err_t ret = esp_event_handler_register(
-                IP_EVENT,
-                IP_EVENT_STA_GOT_IP,
-                &wifi_time_event_handler,
-                nullptr);
-            if (ret != ESP_OK) {
-                ESP_UTILS_LOGE("Register time sync event handler failed: %s", esp_err_to_name(ret));
-                return ret;
-            }
-            time_event_handler_registered = true;
+        // Covers Settings being subscribed after the station already obtained an address.
+        if (bsp_extra_wifi_service_is_connected()) {
+            start_time_sync_once();
         }
-
         return ESP_OK;
     }
 } // namespace esp_brookesia::apps

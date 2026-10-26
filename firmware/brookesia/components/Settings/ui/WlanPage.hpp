@@ -1,15 +1,12 @@
 #pragma once
 
+#include <atomic>
+#include <mutex>
+#include <vector>
 #include "esp_brookesia.hpp"
 #include "lvgl.h"
-#include <atomic>
-#include <map>
-#include <mutex>
-#include <string>
-#include <vector>
-#include <string.h>
-#include "brookesia/service_helper/network/wifi.hpp"
-#include "brookesia/service_manager.hpp"
+#include "esp_wifi_types.h"
+#include "bsp_board_extra.h"
 
 namespace esp_brookesia::apps {
     class Settings;
@@ -17,21 +14,16 @@ namespace esp_brookesia::apps {
 
 namespace esp_brookesia::apps {
 
+/**
+ * WLAN settings page.
+ *
+ * Wi-Fi is owned by the board Wi-Fi service (bsp_extra). The page only subscribes to the service
+ * events, requests scans from the shared scan agent and asks the service to connect. Service
+ * callbacks run outside the LVGL task, so they only record what happened; an LVGL timer applies
+ * the changes to the UI.
+ */
 class WlanPage : public systems::phone::App {
 public:
-    using WifiHelper = service::helper::Wifi;
-    using WifiScanApInfo = WifiHelper::ScanApInfo;
-
-    enum WifiState {
-        WIFIOPEN,
-        WIFICLOSE,
-        WIFISCAN,
-        CONNECTED,
-        CONNECTING,
-        DISCONNECT,
-    };
-
-
     static WlanPage *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
 
     WlanPage(bool use_status_bar, bool use_navigation_bar);
@@ -41,50 +33,53 @@ public:
     bool back() override;
     bool close() override;
 
-    void toggleWifiUI(WifiState visible);
-
 private:
+    enum class UiState {
+        Off,
+        Scanning,
+        Idle,
+        Password,
+        Connecting,
+    };
 
-    typedef struct {
-        WifiScanApInfo ap;
-        void *self;
-    } btn_user_data_t;
+    // Bits recorded by service callbacks and consumed by the LVGL timer.
+    enum PendingEvent : uint32_t {
+        PENDING_SCAN_DONE      = 1u << 0,
+        PENDING_CONNECTED      = 1u << 1,
+        PENDING_DISCONNECTED   = 1u << 2,
+        PENDING_GOT_IP         = 1u << 3,
+        PENDING_LOST_IP        = 1u << 4,
+        PENDING_CONNECT_FAILED = 1u << 5,
+    };
 
-    // Maximum number of APs displayed from a scan.
-    #define DEFAULT_SCAN_LIST_SIZE 20
+    struct ApInfo {
+        char ssid[33];
+        int8_t rssi;
+        wifi_auth_mode_t authmode;
+    };
+
+    static constexpr size_t MAX_AP_NUM = 12;
+    static constexpr uint32_t UI_POLL_PERIOD_MS = 100;
+    static constexpr uint32_t CONNECT_TIMEOUT_MS = 20000;
+    static constexpr uint8_t CONNECT_PRIORITY = 10;
 
     static WlanPage *_instance;
-    int wifi_status_icon_state = 0;
 
-    lv_obj_t *page_root;
-    lv_obj_t *label;
-    lv_obj_t *list1;
-    lv_obj_t *status_btn;
-    lv_obj_t *wlan_switch;
-    lv_obj_t *wifi_icon;
-
-    lv_obj_t *spinner;
-    lv_obj_t *scan_status = nullptr;
+    // UI objects, valid while the page is shown.
+    lv_obj_t *page_root = nullptr;
+    lv_obj_t *list1 = nullptr;
+    lv_obj_t *wlan_switch = nullptr;
+    lv_obj_t *password_title = nullptr;
+    lv_obj_t *ta = nullptr;
+    lv_obj_t *kb = nullptr;
+    lv_obj_t *dialog = nullptr;
+    lv_obj_t *dialog_footer = nullptr;
+    lv_obj_t *connected_text = nullptr;
+    lv_obj_t *conn_btn = nullptr;
+    lv_obj_t *available_text = nullptr;
     lv_obj_t *refresh_btn = nullptr;
-    lv_obj_t *empty_text = nullptr;
-    lv_obj_t *connection_spinner = nullptr;
-    lv_obj_t *password_title;
-    static lv_obj_t *ta;
-    static lv_obj_t *kb;
-    
-
-    // UI controls that are updated from scan/connect callbacks.
-    lv_obj_t *connected_text;
-    lv_obj_t *conn_btn;
-    lv_obj_t *available_text;
     std::vector<lv_obj_t *> wifi_btns;
-    struct ApRow {
-        lv_obj_t *button;
-        lv_obj_t *progress;
-        lv_obj_t *status;
-        std::string ssid;
-    };
-    std::vector<ApRow> ap_rows;
+    lv_timer_t *ui_timer = nullptr;
 
     // Styles are owned by the page and reset when the page closes.
     lv_style_t style_list;
@@ -92,65 +87,62 @@ private:
     lv_style_t style_list_text;
     lv_style_t style_list_btn_pressed;
 
-    // Wi-Fi state and service event subscriptions.
-    std::atomic_bool page_active{false};
-    std::atomic<WifiState> Wifi_state{WIFICLOSE};
-    service::EventRegistry::SignalConnection general_event_connection;
-    service::EventRegistry::SignalConnection action_event_connection;
-    service::EventRegistry::SignalConnection scan_event_connection;
-    service::EventRegistry::SignalConnection scan_state_connection;
-    std::mutex ap_info_mutex;
-    std::mutex wifi_ssid_mutex;
-    std::vector<WifiScanApInfo> ap_info;
-    std::string wifi_ssid;
-    std::string selected_ssid;
-    bool selected_ap_is_locked = true;
-    std::atomic_bool scan_start_pending{false};
-    std::atomic_bool scan_running{false};
-    std::atomic_bool scan_failed{false};
-    std::atomic_bool auto_connect_waiting{false};
-    std::atomic_bool auto_connect_check_pending{false};
-    bool password_editing = false;
+    // LVGL-task state.
+    UiState ui_state = UiState::Off;
+    std::vector<ApInfo> ap_list;
+    ApInfo selected_ap = {};
     char wifi_pwd[65] = {};
+    char connecting_ssid[33] = {};
+    // Link state the list was last built with, to rebuild only when it changes.
+    bsp_extra_wifi_link_t rendered_link = {};
+    bool ignore_next_disconnect = false;
+    bool restore_profile_on_fail = false;
+    esp_wifi_service_profile_t previous_profile = {};
+    uint32_t connect_start_tick = 0;
+    // A scan requested while the station is joining an AP; started once the attempt settles.
+    bool scan_deferred = false;
 
-    void CreateWifiUI();
-    void rebuild_network_list();
-    void update_network_ui();
-    static void scan_ui_cb(void *param);
-    static void wifi_btn_cb(lv_event_t * e);
+    // Shared with service callbacks.
+    bool events_subscribed = false;
+    std::atomic<uint32_t> pending_events{0};
+    std::mutex shared_mutex;
+    std::vector<wifi_ap_record_t> scan_records;
+    esp_err_t scan_error = ESP_OK;
+    char disconnected_ssid[33] = {};
 
-    static void wifi_state_cb(void *param);
-    void subscribe_wifi_events();
-    void unsubscribe_wifi_events();
-    void on_general_event(const std::string &event, bool is_unexpected);
-    void on_scan_ap_infos(const boost::json::array &ap_infos);
-    void start_wifi_scan(bool manual = false);
-    void refresh_wifi_state();
-    void check_auto_connect_before_scan();
-    void handle_startup_ap(const std::string &ssid);
-    void refresh_connected_ap();
-    void connect_selected_ap();
-    
-    bool OpenWifi();
-    bool CloseWifi();
+    void createUi();
+    void destroyUi();
+    void subscribeEvents();
 
-    // Password input and keyboard helpers.
-    static void adjust_content_for_keyboard();
-    static void restore_content_padding();
+    void setUiState(UiState state);
+    void rebuildList();
+    void clearListRows();
+    lv_obj_t *addListRow(const char *text);
+    void addRowProgress(lv_obj_t *row, const char *text);
+    void showPasswordInput(const ApInfo &ap);
+    void hidePasswordInput();
+    void showMessage(const char *title, const char *text);
+    void showForgetConfirm();
+    void createDialog(const char *title, const char *text);
+    void addDialogButton(const char *text, intptr_t action, bool primary);
+    void closeDialog(bool async);
+
+    void requestScan();
+    void startConnect(const ApInfo &ap, const char *password);
+    void finishConnect(bool success, bool abort_attempt = false);
+    void forgetConnectedNetwork();
+    void processPendingEvents();
+    void applyScanRecords();
+
+    static void wifi_service_event_cb(const adf_event_t *event, void *ctx);
+    static void wifi_scan_done_cb(esp_err_t scan_err, uint16_t ap_count, const wifi_ap_record_t *ap_records, void *ctx);
+    static void ui_timer_cb(lv_timer_t *timer);
+    static void switch_event_cb(lv_event_t *e);
+    static void refresh_event_cb(lv_event_t *e);
+    static void ap_btn_event_cb(lv_event_t *e);
+    static void conn_btn_event_cb(lv_event_t *e);
     static void kb_event_cb(lv_event_t *e);
-    static void ta_event_cb(lv_event_t *e);
-    static void connection_event_cb(lv_event_t * e);
-    static void cancel_event_cb(lv_event_t * e);
-    static lv_obj_t* create_labeled_ta(lv_obj_t *parent, const char *label_txt, const char *placeholder);
-
-    // NVS keys for page-level settings.
-    #define NVS_STORAGE_NAMESPACE           "storage"
-    #define NVS_KEY_WIFI_ENABLE             "wifi_en"
-
-    std::map<std::string, int32_t> _nvs_param_map;
-
-    bool loadNvsParam(void);
-    bool setNvsParam(std::string key, int value);
+    static void dialog_btn_event_cb(lv_event_t *e);
 };
 
 } // namespace esp_brookesia::apps

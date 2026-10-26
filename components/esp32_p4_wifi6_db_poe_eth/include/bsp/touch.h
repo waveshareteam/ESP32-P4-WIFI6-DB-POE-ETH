@@ -49,6 +49,20 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
  */
 void bsp_touch_delete(void);
 
+/**
+ * @brief Get the GT911 handle owned by the BSP
+ *
+ * The handle stays owned by the BSP; do not delete it. When the LVGL adapter
+ * also polls it, read it directly only while the adapter is paused.
+ *
+ * @param[out] ret_touch Touch handle
+ * @return
+ *      - ESP_OK: Success
+ *      - ESP_ERR_INVALID_ARG: ret_touch is NULL
+ *      - ESP_ERR_INVALID_STATE: bsp_touch_new() has not created the controller
+ */
+esp_err_t bsp_touch_get_shared(esp_lcd_touch_handle_t *ret_touch);
+
 /** @} */ // end of display
 
 #ifdef __cplusplus

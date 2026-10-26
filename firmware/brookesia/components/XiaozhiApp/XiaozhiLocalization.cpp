@@ -16,7 +16,7 @@ namespace {
 
 #if defined(CONFIG_XIAOZHI_APP_UI_LANGUAGE_SIMPLIFIED_CHINESE)
 constexpr const char *UI_TEXTS[] = {
-    "等待 Wi-Fi 或以太网连接",
+    "需要网络连接",
     "正在准备小智",
     "等待设备激活",
     "正在连接",
@@ -29,7 +29,7 @@ constexpr const char *UI_TEXTS[] = {
 };
 #else
 constexpr const char *UI_TEXTS[] = {
-    "Waiting for Wi-Fi or Ethernet",
+    "Network connection required",
     "Preparing Xiaozhi",
     "Waiting for device activation",
     "Connecting",

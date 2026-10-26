@@ -21,7 +21,7 @@ esp_err_t registerXiaozhiDeveloperTools(esp_mcp_t *mcp)
      *
      * Suggested extension points:
      * - device.display.set_brightness: validate a bounded brightness value,
-     *   then use the Board Manager lcd_brightness device.
+     *   then call the BSP backlight API.
      * - device.audio.set_volume: validate a bounded volume value, then update
      *   the shared codec/output-volume service.
      * - device.camera.capture: capture a current frame and return it through

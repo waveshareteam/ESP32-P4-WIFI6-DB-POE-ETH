@@ -1,12 +1,10 @@
 #pragma once
 
 #include "lvgl.h"
-#include "systems/phone/esp_brookesia_phone.hpp"
 
 namespace esp_brookesia::apps::settings_ui {
 
 static constexpr lv_coord_t PAGE_HEADER_HEIGHT = 72;
-static constexpr lv_coord_t PAGE_CONTENT_TOP = PAGE_HEADER_HEIGHT;
 static constexpr lv_coord_t PAGE_HORIZONTAL_MARGIN = 32;
 static constexpr lv_coord_t CONTENT_TOP_GAP = 12;
 static constexpr lv_coord_t CONTENT_BOTTOM_MARGIN = 20;
@@ -21,35 +19,16 @@ static constexpr uint32_t COLOR_PRIMARY_TEXT = 0xFFFFFF;
 static constexpr uint32_t COLOR_SECONDARY_TEXT = 0xA7A7AD;
 static constexpr uint32_t COLOR_ACCENT = 0x00BFFF;
 
-inline lv_obj_t *create_page(lv_obj_t *screen, systems::phone::App &owner)
+inline lv_obj_t *create_page(lv_obj_t *screen)
 {
     lv_obj_set_style_bg_color(screen, lv_color_hex(COLOR_BACKGROUND), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_update_layout(screen);
-    lv_coord_t top_inset = 0;
-    auto *phone = owner.getSystem();
-    if (phone != nullptr && owner.getActiveConfig().status_bar_visual_mode ==
-            systems::phone::StatusBar::VisualMode::SHOW_FIXED) {
-        auto &display = phone->getDisplay();
-        if (display.getStatusBar() != nullptr) {
-            const auto status_bar_height = display.getData().status_bar.data.main.size.height;
-            lv_area_t screen_coords;
-            lv_obj_get_coords(screen, &screen_coords);
-            // Reserve only the portion not already excluded by the app screen position.
-            top_inset = status_bar_height > screen_coords.y1 ? status_bar_height - screen_coords.y1 : 0;
-        }
-    }
-    const lv_coord_t screen_height = lv_obj_get_height(screen);
-    if (top_inset >= screen_height) {
-        top_inset = screen_height > 0 ? screen_height - 1 : 0;
-    }
-
     lv_obj_t *page = lv_obj_create(screen);
     lv_obj_remove_style_all(page);
-    lv_obj_set_size(page, lv_pct(100), screen_height - top_inset);
-    lv_obj_align(page, LV_ALIGN_TOP_MID, 0, top_inset);
+    lv_obj_set_size(page, lv_pct(100), lv_pct(100));
+    lv_obj_center(page);
     lv_obj_set_style_bg_color(page, lv_color_hex(COLOR_BACKGROUND), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(page, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_clear_flag(page, LV_OBJ_FLAG_SCROLLABLE);
@@ -112,7 +91,7 @@ inline lv_obj_t *create_content_list(lv_obj_t *page)
 {
     lv_obj_update_layout(page);
     lv_coord_t content_width = lv_obj_get_width(page) - PAGE_HORIZONTAL_MARGIN * 2;
-    lv_coord_t content_height = lv_obj_get_height(page) - PAGE_CONTENT_TOP -
+    lv_coord_t content_height = lv_obj_get_height(page) - PAGE_HEADER_HEIGHT -
                                 CONTENT_TOP_GAP - CONTENT_BOTTOM_MARGIN;
     if (content_width < 1) {
         content_width = 1;
@@ -123,7 +102,7 @@ inline lv_obj_t *create_content_list(lv_obj_t *page)
 
     lv_obj_t *list = lv_list_create(page);
     lv_obj_set_size(list, content_width, content_height);
-    lv_obj_align(list, LV_ALIGN_TOP_MID, 0, PAGE_CONTENT_TOP + CONTENT_TOP_GAP);
+    lv_obj_align(list, LV_ALIGN_TOP_MID, 0, PAGE_HEADER_HEIGHT + CONTENT_TOP_GAP);
     lv_obj_set_scroll_dir(list, LV_DIR_VER);
     lv_obj_set_scrollbar_mode(list, LV_SCROLLBAR_MODE_OFF);
     return list;

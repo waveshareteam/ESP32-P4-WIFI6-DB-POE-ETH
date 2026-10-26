@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "esp_lv_adapter.h"
+#include "bsp/esp-bsp.h"
+#include "bsp_board_extra.h"
 #include "cbin_font.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -25,7 +26,7 @@ namespace {
 
 constexpr char TAG[] = "XiaozhiUi";
 constexpr char COMMON_FONT_PATH[] =
-    "/spiffs/xiaozhi/font.bin";
+    BSP_SPIFFS_MOUNT_POINT "/xiaozhi/font.bin";
 constexpr size_t MAX_COMMON_FONT_SIZE = 4 * 1024 * 1024;
 constexpr int TOP_BAR_HEIGHT = 54;
 constexpr int SUBTITLE_SINGLE_HEIGHT = 62;
@@ -67,6 +68,8 @@ void prepareTransparentObject(lv_obj_t *object)
     lv_obj_set_style_border_width(object, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(object, 0, LV_PART_MAIN);
     lv_obj_clear_flag(object, LV_OBJ_FLAG_SCROLLABLE);
+    // Only the explicit tap targets below are clickable.
+    lv_obj_clear_flag(object, LV_OBJ_FLAG_CLICKABLE);
 }
 
 void setLabelTextIfChanged(lv_obj_t *label, const char *text)
@@ -113,9 +116,9 @@ bool XiaozhiUi::preload()
         (void)loadTextFont();
     }
     if (!_emoji_font) {
-        if (esp_lv_adapter_lock(-1) == ESP_OK) {
+        if (bsp_extra_display_lock(-1)) {
             _emoji_font = font_emoji_64_init();
-            esp_lv_adapter_unlock();
+            bsp_extra_display_unlock();
         } else {
             ESP_LOGW(TAG, "Unable to lock LVGL while loading the emoji font");
         }
@@ -135,8 +138,8 @@ bool XiaozhiUi::create(
     }
 
     destroyView();
-    (void)action_callback;
-    (void)action_context;
+    _action_callback = action_callback;
+    _action_context = action_context;
     _text_font = _cbin_font ? _cbin_font : &font_puhui_basic_30_4;
 
     _root = lv_obj_create(parent);
@@ -207,6 +210,15 @@ bool XiaozhiUi::create(
         LV_PART_MAIN
     );
 
+    // The emoji, or the activation code shown in its place, is the tap target.
+    if (_action_callback) {
+        lv_obj_t *tap_targets[] = {_emoji_box, _activation_box};
+        for (lv_obj_t *target : tap_targets) {
+            lv_obj_add_flag(target, LV_OBJ_FLAG_CLICKABLE);
+            lv_obj_add_event_cb(target, tapCallback, LV_EVENT_CLICKED, this);
+        }
+    }
+
     _subtitle_bar = lv_obj_create(_root);
     prepareTransparentObject(_subtitle_bar);
     lv_obj_set_size(
@@ -214,7 +226,7 @@ bool XiaozhiUi::create(
         lv_pct(100),
         multiline_subtitle ? SUBTITLE_MULTILINE_HEIGHT : SUBTITLE_SINGLE_HEIGHT
     );
-    lv_obj_align_to(_subtitle_bar, _emoji_box, LV_ALIGN_OUT_BOTTOM_MID, 0, 12);
+    lv_obj_align(_subtitle_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_bg_color(_subtitle_bar, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(_subtitle_bar, LV_OPA_70, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(_subtitle_bar, 16, LV_PART_MAIN);
@@ -324,8 +336,6 @@ void XiaozhiUi::setEmotion(const char *emotion)
     }
 
     const char *emoji = emojiForEmotion(name);
-    ESP_LOGI(TAG, "Apply emotion: %s (emoji_font=%d, mapped=%d)",
-             name, _emoji_font != nullptr, emoji != nullptr);
     if (_emoji_font && emoji) {
         lv_obj_set_style_text_font(_emoji_label, _emoji_font, LV_PART_MAIN);
         lv_label_set_text(_emoji_label, emoji);
@@ -398,13 +408,13 @@ bool XiaozhiUi::loadTextFont()
         return false;
     }
 
-    if (esp_lv_adapter_lock(-1) != ESP_OK) {
+    if (!bsp_extra_display_lock(-1)) {
         ESP_LOGW(TAG, "Unable to lock LVGL while decoding the common font");
         heap_caps_free(data);
         return false;
     }
     lv_font_t *font = cbin_font_create(data);
-    esp_lv_adapter_unlock();
+    bsp_extra_display_unlock();
 
     if (!font) {
         ESP_LOGW(TAG, "Common font could not be decoded");
@@ -421,18 +431,26 @@ bool XiaozhiUi::loadTextFont()
 
 void XiaozhiUi::releaseTextFont()
 {
-    if (_cbin_font && esp_lv_adapter_lock(-1) != ESP_OK) {
+    if (_cbin_font && !bsp_extra_display_lock(-1)) {
         ESP_LOGE(TAG, "Unable to lock LVGL while releasing the common font");
         return;
     }
     if (_cbin_font) {
         cbin_font_delete(_cbin_font);
         _cbin_font = nullptr;
-        esp_lv_adapter_unlock();
+        bsp_extra_display_unlock();
     }
     if (_font_data) {
         heap_caps_free(_font_data);
         _font_data = nullptr;
+    }
+}
+
+void XiaozhiUi::tapCallback(lv_event_t *event)
+{
+    auto *ui = static_cast<XiaozhiUi *>(lv_event_get_user_data(event));
+    if (ui && ui->_action_callback) {
+        ui->_action_callback(ui->_action_context);
     }
 }
 

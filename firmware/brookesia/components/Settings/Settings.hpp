@@ -7,6 +7,8 @@
 
 #include "systems/phone/esp_brookesia_phone_app.hpp"
 #include "lvgl.h"
+#include "bsp/esp-bsp.h"
+#include "bsp_board_extra.h"
 #include "./ui/AboutPage.hpp"
 #include "./ui/DisplayPage.hpp"
 #include "./ui/SoundPage.hpp"
@@ -22,10 +24,14 @@ namespace esp_brookesia::apps
     class Settings : public systems::phone::App
     {
     public:
-        static Settings *requestInstance(bool use_status_bar = true, bool use_navigation_bar = false);
+        static Settings *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
         ~Settings();
         bool run(void) override;
         void showRootPage();
+        i2c_master_bus_handle_t i2c_bus_handle;
+        i2c_master_dev_handle_t pmu_dev_handle;
+        static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);
+        static int pmu_register_write_byte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);
 
     protected:
         Settings(bool use_status_bar, bool use_navigation_bar);
@@ -56,8 +62,8 @@ namespace esp_brookesia::apps
         void open_page(const char *page_name);
         void close_active_page();
 
-        esp_err_t initWifi();
-        
+        esp_err_t subscribeWifiEvents();
+
     private:
         static Settings *_instance;
         lv_obj_t *page_root;
