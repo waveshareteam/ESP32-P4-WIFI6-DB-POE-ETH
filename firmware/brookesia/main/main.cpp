@@ -4,8 +4,12 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+#include <algorithm>
 #include <atomic>
+#include <string>
+#include <iterator>
 #include <new>
+#include <vector>
 #include "esp_lv_adapter_display.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -25,16 +29,7 @@
 #include "nvs_flash.h"
 
 #include "bsp_board_extra.h"
-
-#include "Drawpanel.hpp"
-#include "SpecAnalyzer.hpp"
-#include "MusicPlayer.hpp"
-#include "Settings.hpp"
-#include "Camera.hpp"
-#include "VideoPlayer.hpp"
-#include "esp_brookesia_app_calculator.hpp"
-#include "EthernetInfo.hpp"
-#include "XiaozhiApp.hpp"
+#include "SettingsStorage.hpp"
 
 using namespace esp_brookesia;
 using namespace esp_brookesia::gui;
@@ -42,6 +37,25 @@ using namespace esp_brookesia::systems::phone;
 
 constexpr bool EXAMPLE_SHOW_MEM_INFO = true;
 constexpr bool EXAMPLE_SHOW_MEM_INFO_LOG = false;
+
+/*
+ * Apps register themselves with ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR and
+ * are installed from the registry. This table only sets the home-screen order
+ * and the boot stage shown while each group installs; names are the app names.
+ * Registered apps that are not listed here are installed after the last group.
+ */
+struct BootAppGroup {
+    const char *status;
+    int progress;
+    std::vector<const char *> apps;
+};
+
+static const BootAppGroup BOOT_APP_GROUPS[] = {
+    {"Loading application registry...", 65, {"DrawPanel", "Squareline"}},
+    {"Loading tools...",                74, {"Calculator", "SpecAnalyzer"}},
+    {"Loading media...",                82, {"MusicPlayer", "Camera", "VideoPlayer"}},
+    {"Loading system applications...",  90, {"Settings", "Ethernet", "AIChats"}},
+};
 
 
 static std::atomic<bool> s_wifi_connected{false};
@@ -259,6 +273,14 @@ private:
 };
 
 constexpr uint32_t BOOT_FRAME_WAIT_MS = 100;
+// The first frame redraws the whole 800x1280 screen in software, which can take
+// well over BOOT_FRAME_WAIT_MS.
+constexpr uint32_t BOOT_FIRST_FRAME_WAIT_MS = 1000;
+// REFR_READY only means LVGL finished drawing. The DPI panel switches to the new
+// frame buffer at the next vsync, so allow a couple of panel frames to scan out.
+constexpr uint32_t BOOT_SCANOUT_WAIT_MS = 40;
+constexpr uint32_t BOOT_BACKLIGHT_FADE_MS = 300;
+constexpr uint32_t BOOT_BACKLIGHT_FADE_STEP_MS = 15;
 
 static void on_boot_frame_rendered(lv_event_t *event)
 {
@@ -273,7 +295,8 @@ static void on_boot_frame_rendered(lv_event_t *event)
  * buffers are in flight.
  */
 template <typename Change>
-static void apply_and_wait_for_frame(lv_display_t *display, Change change)
+static bool apply_and_wait_for_frame(lv_display_t *display, Change change,
+                                     uint32_t timeout_ms = BOOT_FRAME_WAIT_MS)
 {
     static SemaphoreHandle_t frame_rendered = xSemaphoreCreateBinary();
 
@@ -281,19 +304,41 @@ static void apply_and_wait_for_frame(lv_display_t *display, Change change)
         LvLockGuard gui_guard;
         change();
         if (display == nullptr || frame_rendered == nullptr) {
-            return;
+            return false;
         }
         (void)xSemaphoreTake(frame_rendered, 0);
         // Registered under the same lock as the change, so the next refresh includes it.
         lv_display_add_event_cb(display, on_boot_frame_rendered, LV_EVENT_REFR_READY, frame_rendered);
     }
 
-    if (xSemaphoreTake(frame_rendered, pdMS_TO_TICKS(BOOT_FRAME_WAIT_MS)) != pdTRUE) {
-        ESP_LOGW(ESP_UTILS_LOG_TAG, "Wait for boot loading frame timed out");
+    const bool rendered = xSemaphoreTake(frame_rendered, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
+    if (!rendered) {
+        ESP_LOGW(ESP_UTILS_LOG_TAG, "Wait for boot loading frame timed out (%lu ms)",
+                 static_cast<unsigned long>(timeout_ms));
     }
 
     LvLockGuard gui_guard;
     lv_display_remove_event_cb_with_user_data(display, on_boot_frame_rendered, frame_rendered);
+    return rendered;
+}
+
+/*
+ * Ramp the backlight up to target_percent instead of switching it on at once,
+ * so power-on does not flash. Quadratic easing compensates for the eye's
+ * non-linear response to brightness, keeping the ramp visually even.
+ */
+static void fade_in_backlight(int target_percent)
+{
+    const uint32_t steps = BOOT_BACKLIGHT_FADE_MS / BOOT_BACKLIGHT_FADE_STEP_MS;
+    for (uint32_t step = 1; step < steps; ++step) {
+        const int percent = static_cast<int>(target_percent * step * step / (steps * steps));
+        if (bsp_display_brightness_set(percent) != ESP_OK) {
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(BOOT_BACKLIGHT_FADE_STEP_MS));
+    }
+    // Always end exactly at the target, even if a step above failed.
+    (void)bsp_display_brightness_set(target_percent);
 }
 
 /*
@@ -322,9 +367,15 @@ public:
             return;
         }
 
-        LvLockGuard gui_guard;
-        loading_.attachToSystemLayer(display_);
-        loading_.showError("Unable to finish startup. Please restart the device.");
+        {
+            LvLockGuard gui_guard;
+            loading_.attachToSystemLayer(display_);
+            loading_.showError("Unable to finish startup. Please restart the device.");
+        }
+        // Startup can fail before the backlight is faded in; make the error visible.
+        if (bsp_display_brightness_get() == 0) {
+            (void)bsp_display_backlight_on();
+        }
     }
 
     void dismiss()
@@ -494,13 +545,12 @@ extern "C" void app_main(void)
 
     BootLoadingUi boot_loading;
     ESP_LOGI(ESP_UTILS_LOG_TAG, "Startup stage: Preparing display... (8%%)");
-    // Wait for the first loading frame before enabling the backlight.
+    // The backlight stays off until the saved brightness has been loaded below.
     apply_and_wait_for_frame(disp, [&]() {
         if (!boot_loading.create()) {
             ESP_LOGE(ESP_UTILS_LOG_TAG, "Create boot loading UI failed");
         }
-    });
-    bsp_display_backlight_on();
+    }, BOOT_FIRST_FRAME_WAIT_MS);
 
     BootLoadingFailureGuard boot_failure_guard(boot_loading, disp);
 
@@ -522,6 +572,17 @@ extern "C" void app_main(void)
     }
     ESP_LOGI(ESP_UTILS_LOG_TAG, "NVS initialization complete");
 
+    // Load the persisted parameters before any app reads them. Apps can still
+    // run without the service, so a failure only disables persistence.
+    if (!services::StorageNVS::requestInstance().begin()) {
+        ESP_LOGW(ESP_UTILS_LOG_TAG, "StorageNVS service failed to start; settings will not persist");
+    }
+
+    // The "Initializing settings..." frame was rendered above; let the panel
+    // scan it out, then light the backlight at the user's saved brightness.
+    vTaskDelay(pdMS_TO_TICKS(BOOT_SCANOUT_WAIT_MS));
+    fade_in_backlight(apps::settings_storage::loadBrightness());
+
     refresh_boot_loading(boot_loading, disp, "Mounting storage...", 20);
     err = bsp_spiffs_mount();
     if (err != ESP_OK) {
@@ -538,7 +599,7 @@ extern "C" void app_main(void)
     }
 
     refresh_boot_loading(boot_loading, disp, "Configuring audio...", 45);
-    err = bsp_extra_codec_volume_set(CODEC_DEFAULT_VOLUME, NULL);
+    err = bsp_extra_codec_volume_set(apps::settings_storage::loadVolume(), NULL);
     if (err != ESP_OK) {
         ESP_LOGE(ESP_UTILS_LOG_TAG, "Codec volume setup failed: %s", esp_err_to_name(err));
         return;
@@ -571,56 +632,43 @@ extern "C" void app_main(void)
         // assert(phone->getDisplay().showContainerBorder() && "Show container border failed");
     }
 
-    /* Install Drawpanel first, then initialize and install registry apps. */
-    refresh_boot_loading(boot_loading, disp, "Loading application registry...", 65);
-    {
-        // installApp() creates home-screen widgets; hold the LVGL lock.
+    /* Install registered apps group by group, in BOOT_APP_GROUPS order. */
+    std::vector<systems::base::Manager::RegistryAppInfo> registry_apps;
+    auto &app_manager = phone->getManager();
+    const size_t group_count = std::size(BOOT_APP_GROUPS);
+    for (size_t group_index = 0; group_index < group_count; ++group_index) {
+        const BootAppGroup &group = BOOT_APP_GROUPS[group_index];
+        refresh_boot_loading(boot_loading, disp, group.status, group.progress);
+
+        // Creating and installing apps builds home-screen widgets; hold the LVGL lock.
         LvLockGuard gui_guard;
+        if (group_index == 0) {
+            ESP_UTILS_CHECK_FALSE_EXIT(app_manager.initAppFromRegistry(registry_apps), "Init app registry failed");
+        }
 
-        auto app = esp_brookesia::apps::Drawpanel::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app), "Start Drawpanel failed");
+        auto install = [&](const std::string &name, systems::base::App *app) {
+            ESP_UTILS_LOGI("Install app: %s", name.c_str());
+            return app_manager.checkAppID_Valid(app_manager.installApp(app));
+        };
+        for (const char *app_name : group.apps) {
+            auto it = std::find_if(registry_apps.begin(), registry_apps.end(), [app_name](const auto &info) {
+                return std::get<0>(info) == app_name;
+            });
+            if (it == registry_apps.end()) {
+                ESP_UTILS_LOGW("App %s is not registered; skip it", app_name);
+                continue;
+            }
+            ESP_UTILS_CHECK_FALSE_EXIT(install(std::get<0>(*it), std::get<1>(*it).get()),
+                                       "Install app %s failed", app_name);
+            registry_apps.erase(it);
+        }
 
-        std::vector<systems::base::Manager::RegistryAppInfo> inited_apps;
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->initAppFromRegistry(inited_apps), "Init app registry failed");
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installAppFromRegistry(inited_apps), "Install app registry failed");
-    }
-
-    refresh_boot_loading(boot_loading, disp, "Loading tools...", 74);
-    {
-        // installApp() creates home-screen widgets; hold the LVGL lock.
-        LvLockGuard gui_guard;
-
-        auto app2 = esp_brookesia::apps::Calculator::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app2), "Start Calculator failed");
-
-        auto app1 = esp_brookesia::apps::SpecAnalyzer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app1), "Start SpecAnalyzer failed");
-    }
-
-    refresh_boot_loading(boot_loading, disp, "Loading media...", 82);
-    {
-        // installApp() creates home-screen widgets; hold the LVGL lock.
-        LvLockGuard gui_guard;
-
-        auto app5 = esp_brookesia::apps::MusicPlayer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(app5), "Start MusicPlayer failed");
-        auto camera_app = esp_brookesia::apps::Camera::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(camera_app), "Start Camera failed");
-        auto video_player_app = esp_brookesia::apps::VideoPlayer::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(video_player_app), "Start VideoPlayer failed");
-    }
-
-    refresh_boot_loading(boot_loading, disp, "Loading system applications...", 90);
-    {
-        // installApp() creates home-screen widgets; hold the LVGL lock.
-        LvLockGuard gui_guard;
-
-        auto settings_app = esp_brookesia::apps::Settings::requestInstance(false, false);
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(settings_app), "Start Settings failed");
-        auto ethernet = esp_brookesia::apps::EthernetInfo::requestInstance(false, false);
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(ethernet), "Start Settings failed");
-        auto xiaozhi_app = esp_brookesia::apps::XiaozhiApp::requestInstance();
-        ESP_UTILS_CHECK_FALSE_EXIT(phone->installApp(xiaozhi_app), "Start Xiaozhi failed");
+        if (group_index + 1 == group_count) {
+            for (const auto &[name, app] : registry_apps) {
+                ESP_UTILS_CHECK_FALSE_EXIT(install(name, app.get()), "Install app %s failed", name.c_str());
+            }
+            registry_apps.clear();
+        }
     }
 
     // Apps subscribed to Wi-Fi service events during install; start Wi-Fi last so it does not delay the UI.

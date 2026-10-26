@@ -219,4 +219,10 @@ namespace esp_brookesia::apps
         return true;
     }
 
+    // The app is a singleton owned by itself; the registry must not delete it.
+    ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, MusicPlayer, "MusicPlayer", []()
+    {
+        return std::shared_ptr<MusicPlayer>(MusicPlayer::requestInstance(), [](MusicPlayer *) {});
+    })
+
 } // namespace esp_brookesia::apps

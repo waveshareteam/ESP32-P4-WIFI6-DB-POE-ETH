@@ -95,7 +95,7 @@ namespace esp_brookesia::apps
         destroy_settings_ui();
         lv_obj_clean(lv_scr_act());
 
-        page_root = settings_ui::create_page(lv_scr_act());
+        page_root = settings_ui::create_page(lv_scr_act(), getContentTopInset());
         settings_ui::create_header(page_root, "Settings");
         settings_ui::init_list_styles(style_list, style_list_btn, style_list_text, style_list_btn_pressed);
 
@@ -232,6 +232,20 @@ namespace esp_brookesia::apps
         active_page = ActivePage::None;
     }
 
+    lv_coord_t Settings::getContentTopInset()
+    {
+        // The core only shrinks the app screen for an opaque, fixed status bar. The phone
+        // stylesheets use a transparent one that floats over the app, so reserve its height here.
+        if (getActiveConfig().status_bar_visual_mode != systems::phone::StatusBar::VisualMode::SHOW_FIXED) {
+            return 0;
+        }
+        const auto &status_bar = getSystem()->getDisplay().getData().status_bar.data.main;
+        if (status_bar.background_color.opacity == LV_OPA_COVER) {
+            return 0;
+        }
+        return static_cast<lv_coord_t>(status_bar.size.height);
+    }
+
     void Settings::showRootPage()
     {
         close_active_page();
@@ -346,4 +360,14 @@ namespace esp_brookesia::apps
         }
         return ESP_OK;
     }
+
+    // The app is a singleton owned by itself; the registry must not delete it.
+    // Keep the status bar visible: the core then shrinks the app screen below it.
+    ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, Settings, "Settings", []()
+    {
+        return std::shared_ptr<Settings>(
+                   Settings::requestInstance(/* use_status_bar */ true, /* use_navigation_bar */ false),
+                   [](Settings *) {});
+    })
+
 } // namespace esp_brookesia::apps

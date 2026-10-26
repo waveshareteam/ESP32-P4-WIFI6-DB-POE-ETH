@@ -31,6 +31,9 @@ constexpr size_t MAX_COMMON_FONT_SIZE = 4 * 1024 * 1024;
 constexpr int TOP_BAR_HEIGHT = 54;
 constexpr int SUBTITLE_SINGLE_HEIGHT = 62;
 constexpr int SUBTITLE_MULTILINE_HEIGHT = 132;
+constexpr int EMOJI_BOX_SIZE = 96;
+constexpr int EMOJI_CENTER_OFFSET_Y = -18;
+constexpr int SUBTITLE_EMOJI_GAP = 12;
 
 struct EmotionGlyph {
     const char *name;
@@ -172,8 +175,8 @@ bool XiaozhiUi::create(
 
     _emoji_box = lv_obj_create(_root);
     prepareTransparentObject(_emoji_box);
-    lv_obj_set_size(_emoji_box, 96, 96);
-    lv_obj_align(_emoji_box, LV_ALIGN_CENTER, 0, -18);
+    lv_obj_set_size(_emoji_box, EMOJI_BOX_SIZE, EMOJI_BOX_SIZE);
+    lv_obj_align(_emoji_box, LV_ALIGN_CENTER, 0, EMOJI_CENTER_OFFSET_Y);
 
     _emoji_label = lv_label_create(_emoji_box);
     lv_obj_set_style_text_color(_emoji_label, lv_color_hex(0x000000), LV_PART_MAIN);
@@ -219,14 +222,18 @@ bool XiaozhiUi::create(
         }
     }
 
+    // The reply text sits directly below the emoji.
+    const int subtitle_height =
+        multiline_subtitle ? SUBTITLE_MULTILINE_HEIGHT : SUBTITLE_SINGLE_HEIGHT;
     _subtitle_bar = lv_obj_create(_root);
     prepareTransparentObject(_subtitle_bar);
-    lv_obj_set_size(
+    lv_obj_set_size(_subtitle_bar, lv_pct(100), subtitle_height);
+    lv_obj_align(
         _subtitle_bar,
-        lv_pct(100),
-        multiline_subtitle ? SUBTITLE_MULTILINE_HEIGHT : SUBTITLE_SINGLE_HEIGHT
+        LV_ALIGN_CENTER,
+        0,
+        EMOJI_CENTER_OFFSET_Y + EMOJI_BOX_SIZE / 2 + SUBTITLE_EMOJI_GAP + subtitle_height / 2
     );
-    lv_obj_align(_subtitle_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_bg_color(_subtitle_bar, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(_subtitle_bar, LV_OPA_70, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(_subtitle_bar, 16, LV_PART_MAIN);

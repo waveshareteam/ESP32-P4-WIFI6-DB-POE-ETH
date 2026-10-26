@@ -1,34 +1,37 @@
-set(SRCS "")
-list(APPEND SRCS
-    "src/bsp_board_extra.c"
-    "src/bsp_board_wifi.c"
-)
-
-set(INCLUDE_DIRS "")
-list(APPEND INCLUDE_DIRS "include")
-
-foreach(SRC_DIR IN LISTS SRC_DIRS)
-    file(GLOB_RECURSE SRC ${SRC_DIR}/*.c)
-    list(APPEND SRCS ${SRC})
-    list(APPEND INCLUDE_DIRS ${SRC_DIR}/include)
-endforeach()
-
 idf_component_register(
-    SRCS ${SRCS}
-    INCLUDE_DIRS ${INCLUDE_DIRS}
-    REQUIRES driver esp_codec_dev esp_driver_gpio esp_driver_i2s esp_wifi_service esp_service adf_event_hub
-    PRIV_REQUIRES esp_timer fatfs esp_psram esp_mm esp_driver_ledc esp_driver_uart
-                 esp_config_manager esp_netif esp_wifi esp_wifi_remote nvs_flash
+    SRCS
+        "src/bsp_board_extra.c"
+        "src/bsp_board_wifi.c"
+    INCLUDE_DIRS "include"
+    REQUIRES
+        adf_event_hub
+        driver
+        esp_codec_dev
+        esp_driver_gpio
+        esp_driver_i2s
+        esp_service
+        esp_wifi_service
+    PRIV_REQUIRES
+        esp_config_manager
+        esp_driver_ledc
+        esp_driver_uart
+        esp_mm
+        esp_netif
+        esp_psram
+        esp_timer
+        esp_wifi
+        esp_wifi_remote
+        fatfs
+        nvs_flash
 )
 
-target_compile_options(
-    ${COMPONENT_LIB} PRIVATE
-        -Wno-format
-        -Wno-int-conversion
-        -Wno-incompatible-pointer-types
-        -Wunused-function
-        -Wno-unused-variable
-        -Wno-unused-function
-        -Wno-overflow
-        -Wno-unused-but-set-variable
-        -Wno-discarded-qualifiers)
+target_compile_options(${COMPONENT_LIB} PRIVATE
+    -Wno-discarded-qualifiers
+    -Wno-format
+    -Wno-incompatible-pointer-types
+    -Wno-int-conversion
+    -Wno-overflow
+    -Wno-unused-but-set-variable
+    -Wno-unused-function
+    -Wno-unused-variable
+)

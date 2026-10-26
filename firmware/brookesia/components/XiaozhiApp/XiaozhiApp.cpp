@@ -3155,4 +3155,10 @@ void XiaozhiApp::uiActionCallback(void *context)
     instance->postControlEvent(event);
 }
 
+// The app is a singleton owned by itself; the registry must not delete it.
+ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, XiaozhiApp, "AIChats", []()
+{
+    return std::shared_ptr<XiaozhiApp>(XiaozhiApp::requestInstance(), [](XiaozhiApp *) {});
+})
+
 } // namespace esp_brookesia::apps

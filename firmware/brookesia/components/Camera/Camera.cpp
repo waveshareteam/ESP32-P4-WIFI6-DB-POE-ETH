@@ -846,4 +846,10 @@ namespace esp_brookesia::apps
         }
     }
 
+    // The app is a singleton owned by itself; the registry must not delete it.
+    ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, Camera, "Camera", []()
+    {
+        return std::shared_ptr<Camera>(Camera::requestInstance(), [](Camera *) {});
+    })
+
 } // namespace esp_brookesia::apps

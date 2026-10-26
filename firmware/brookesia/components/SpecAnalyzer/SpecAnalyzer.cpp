@@ -495,4 +495,10 @@ void SpecAnalyzer::timer_cb(lv_timer_t *timer)
     lv_canvas_finish_layer(app->_canvas, &layer);
 }
 
+// The app is a singleton owned by itself; the registry must not delete it.
+ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, SpecAnalyzer, APP_NAME, []()
+{
+    return std::shared_ptr<SpecAnalyzer>(SpecAnalyzer::requestInstance(), [](SpecAnalyzer *) {});
+})
+
 } // namespace esp_brookesia::apps

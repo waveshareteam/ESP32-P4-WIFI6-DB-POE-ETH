@@ -9,6 +9,7 @@
 #include <string.h>
 #include "esp_log.h"
 #include "esp_check.h"
+#include "esp_attr.h"
 #include "esp_codec_dev_defaults.h"
 #include "esp_err.h"
 #include "esp_log.h"
@@ -296,6 +297,23 @@ static esp_err_t bsp_extra_audio_deinit(void)
     return ret;
 }
 
+/* TEMPORARY diagnostics: TX DMA ran out of queued audio (played silence). */
+static volatile uint32_t s_i2s_tx_underruns;
+
+static bool IRAM_ATTR i2s_tx_underrun_cb(i2s_chan_handle_t handle, i2s_event_data_t *event, void *user_ctx)
+{
+    (void)handle;
+    (void)event;
+    (void)user_ctx;
+    s_i2s_tx_underruns = s_i2s_tx_underruns + 1;
+    return false;
+}
+
+uint32_t bsp_extra_i2s_get_tx_underrun_count(void)
+{
+    return s_i2s_tx_underruns;
+}
+
 static esp_err_t bsp_extra_audio_bus_init(void)
 {
     ESP_RETURN_ON_FALSE(
@@ -309,6 +327,12 @@ static esp_err_t bsp_extra_audio_bus_init(void)
     i2s_chan_config_t channel_config =
         I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
     channel_config.auto_clear = true;
+    // The default 6 x 240 frames hold only 30 ms at 48 kHz, less than one video
+    // frame of audio (33 ms at 30 fps). The AVI player feeds audio once per video
+    // frame, so playback underran on every frame. 8 x 480 frames hold 80 ms; one
+    // buffer of 480 frames stays below the 4 KB DMA limit even at 32-bit stereo.
+    channel_config.dma_desc_num = BSP_EXTRA_I2S_DMA_DESC_NUM;
+    channel_config.dma_frame_num = BSP_EXTRA_I2S_DMA_FRAME_NUM;
 
     i2s_std_config_t tx_config = {
         .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(CODEC_VOICE_SAMPLE_RATE),
@@ -340,6 +364,16 @@ static esp_err_t bsp_extra_audio_bus_init(void)
         TAG,
         "Initialize I2S RX failed"
     );
+    // TEMPORARY diagnostics: count TX underruns. Must be registered before enable.
+    {
+        const i2s_event_callbacks_t tx_callbacks = {
+            .on_send_q_ovf = i2s_tx_underrun_cb,
+        };
+        ESP_GOTO_ON_ERROR(
+            i2s_channel_register_event_callback(i2s_tx_chan, &tx_callbacks, NULL),
+            fail, TAG, "Register I2S TX callbacks failed"
+        );
+    }
     ESP_GOTO_ON_ERROR(
         i2s_channel_enable(i2s_tx_chan), fail, TAG, "Enable I2S TX failed"
     );

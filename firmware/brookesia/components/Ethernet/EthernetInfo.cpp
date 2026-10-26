@@ -486,4 +486,10 @@ void EthernetInfo::refreshButtonCallback(lv_event_t *event)
     }
 }
 
+// The app is a singleton owned by itself; the registry must not delete it.
+ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR(systems::base::App, EthernetInfo, "Ethernet", []()
+{
+    return std::shared_ptr<EthernetInfo>(EthernetInfo::requestInstance(), [](EthernetInfo *) {});
+})
+
 } // namespace esp_brookesia::apps

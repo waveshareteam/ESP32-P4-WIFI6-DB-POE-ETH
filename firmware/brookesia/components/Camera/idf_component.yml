@@ -1,6 +1,6 @@
 version: 0.6.0
 dependencies:
-  esp_video:
-    version: ^2.3.0
+  espressif/esp_video:
+    version: "^2.3.0"
     public: true
-  espressif/esp_ipa: ^2.4.0
+  espressif/esp_ipa: "^2.4.0"

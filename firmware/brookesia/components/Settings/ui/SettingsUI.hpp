@@ -19,10 +19,16 @@ static constexpr uint32_t COLOR_PRIMARY_TEXT = 0xFFFFFF;
 static constexpr uint32_t COLOR_SECONDARY_TEXT = 0xA7A7AD;
 static constexpr uint32_t COLOR_ACCENT = 0x00BFFF;
 
-inline lv_obj_t *create_page(lv_obj_t *screen)
+/*
+ * top_inset reserves space at the top of the screen, e.g. for a status bar
+ * that floats over the app. The page and everything sized in percent inside
+ * it then fit below that space.
+ */
+inline lv_obj_t *create_page(lv_obj_t *screen, lv_coord_t top_inset = 0)
 {
     lv_obj_set_style_bg_color(screen, lv_color_hex(COLOR_BACKGROUND), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(screen, top_inset, LV_PART_MAIN);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *page = lv_obj_create(screen);

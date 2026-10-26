@@ -14,8 +14,9 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
-#include "avi_player.h"
+#include "esp_extractor.h"
 #include "esp_jpeg_dec.h"
+#include "driver/jpeg_decode.h"
 
 namespace esp_brookesia::apps
 {
@@ -53,7 +54,6 @@ namespace esp_brookesia::apps
         uint16_t last_video_width = 0;
         uint16_t last_video_height = 0;
         std::atomic<bool> loop_playback{false};
-        std::atomic<bool> is_playing{false};
         std::atomic<bool> is_paused{false};
         bool sd_mounted = false;
         std::atomic<bool> audio_ready{false};
@@ -70,6 +70,11 @@ namespace esp_brookesia::apps
         std::atomic<bool> close_requested{false};
         std::atomic<bool> close_notification_posted{false};
 
+        /* Hardware JPEG decoder, with the esp_new_jpeg software decoder as fallback. */
+        jpeg_decoder_handle_t jpeg_hw_handle = nullptr;
+        uint8_t *jpeg_hw_output_buffer = nullptr;
+        size_t jpeg_hw_output_buffer_size = 0;
+        bool jpeg_hw_fallback_logged = false;
         jpeg_dec_handle_t jpeg_handle = nullptr;
 
         char **avi_file_list = nullptr;
@@ -88,14 +93,29 @@ namespace esp_brookesia::apps
         esp_err_t initJpegDecoder();
         void deinitJpegDecoder();
         esp_err_t ensureJpegOutputBuffer(int out_len);
+        /* A decoded frame: `buffer` holds pic_w x pic_h pixels (padded to the JPEG MCU), of
+         * which the top-left width x height are the visible picture. */
+        struct DecodedFrame {
+            uint8_t *buffer;
+            uint32_t pic_w;
+            uint32_t pic_h;
+            uint32_t width;
+            uint32_t height;
+        };
+        esp_err_t decodeFrameHw(const uint8_t *jpeg, uint32_t jpeg_size, DecodedFrame &frame);
+        esp_err_t decodeFrameSw(const uint8_t *jpeg, uint32_t jpeg_size, DecodedFrame &frame);
         void releaseJpegOutputBuffer();
         bool shouldExitBySwipe();
 
+        /* One file being played: demux in playTask, audio and video in their own tasks. */
+        struct Playback;
+        void playFile(const char *path, bool &request_close);
+        bool playbackInterrupted(Playback &pb, bool &request_close);
+        void renderJpegFrame(const uint8_t *jpeg, uint32_t jpeg_size);
+
         static void playTask(void *arg);
-        static void videoCallback(frame_data_t *data, void *arg);
-        static void audioCallback(frame_data_t *data, void *arg);
-        static void audioSetClockCallback(uint32_t rate, uint32_t bits_cfg, uint32_t ch, void *arg);
-        static void playEndCallback(void *arg);
+        static void audioTask(void *arg);
+        static void videoTask(void *arg);
         static void closeRequestTimerCallback(lv_timer_t *timer);
     };
 

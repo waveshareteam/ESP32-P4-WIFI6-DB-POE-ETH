@@ -28,6 +28,8 @@ namespace esp_brookesia::apps
         ~Settings();
         bool run(void) override;
         void showRootPage();
+        /** Space every Settings page leaves at the top for the floating status bar. */
+        lv_coord_t getContentTopInset();
         i2c_master_bus_handle_t i2c_bus_handle;
         i2c_master_dev_handle_t pmu_dev_handle;
         static int pmu_register_read(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint8_t len);

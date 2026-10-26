@@ -30,6 +30,10 @@ extern "C" {
 #define CODEC_DEFAULT_CHANNEL               (2)
 #define CODEC_VOICE_INPUT_CHANNELS          (1)
 #define CODEC_DEFAULT_VOLUME                (80)
+/* I2S DMA ring: BSP_EXTRA_I2S_DMA_DESC_NUM buffers of BSP_EXTRA_I2S_DMA_FRAME_NUM frames each.
+ * Players can use the total depth to estimate how much written audio is still queued. */
+#define BSP_EXTRA_I2S_DMA_DESC_NUM          (8)
+#define BSP_EXTRA_I2S_DMA_FRAME_NUM         (480)
 
 /*
  * The ES8311 ADC records the board's single analog microphone. Capture is
@@ -185,6 +189,13 @@ esp_err_t bsp_extra_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read,
  *    - Others: Fail
  */
 esp_err_t bsp_extra_i2s_write(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
+
+/**
+ * @brief TEMPORARY diagnostics: number of TX DMA underruns since boot.
+ *
+ * Counts each time the TX DMA had no new audio queued and played silence.
+ */
+uint32_t bsp_extra_i2s_get_tx_underrun_count(void);
 
 
 /**
