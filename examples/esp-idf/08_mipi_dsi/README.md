@@ -49,5 +49,5 @@ The LCD should turn on its backlight and show vertical color bars.
   `0x96`, if logs look correct but the backlight stays dark.
 - This board has no LCD reset GPIO; verify DSI power, lane configuration, FPC
   orientation, and panel initialization instead.
-- Run this example before [07_mipi_csi_test](../07_mipi_csi_test/) so panel
+- Run this example before [10_mipi_csi](../10_mipi_csi/) so panel
   bring-up is tested separately from camera processing.

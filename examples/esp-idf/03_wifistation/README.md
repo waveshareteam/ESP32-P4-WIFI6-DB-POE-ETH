@@ -15,7 +15,7 @@ Connect to an AP as a Wi-Fi station with the radio on the **coprocessor** and th
 
 | Host Device | ESP32-P4 | ESP32-H2 | Other MCUs | Linux |
 | :---------: | :------: | :------: | :--------: | :---: |
-| Support     | Yes | Yes | [Yes](https://github.com/espressif/esp-hosted/blob/master/docs/getting-started-mcu.md) | [Yes](https://github.com/espressif/esp-hosted/blob/master/docs/getting-started-linux.md) |
+| Support     | Yes | Yes | [Yes](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/getting-started-mcu.md) | [Yes](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/getting-started-linux.md) |
 
 ### Supported Connection buses
 
@@ -41,11 +41,11 @@ wifi/sta/
 <table width="100%">
   <tr>
     <td width="50%" align="center" bgcolor="#e6f2ff">
-      <h3><a href="#linux-host-setup"><img src="../../../docs/images/lin.jpeg" height="18" alt="Linux"> Linux Host Setup</a></h3>
+      <h3><a href="#linux-host-setup"><img src="https://raw.githubusercontent.com/espressif/esp-hosted-mcu/main/docs/images/lin.jpeg" height="18" alt="Linux"> Linux Host Setup</a></h3>
       <p><a href="#linux-cp">1. Coprocessor</a><br><a href="#linux-host">2. Linux Host</a></p>
     </td>
     <td width="50%" align="center" bgcolor="#f2ffe6">
-      <h3><a href="#mcu-host-setup"><img src="../../../docs/images/mcu.jpeg" height="18" alt="MCU"> MCU Host Setup</a></h3>
+      <h3><a href="#mcu-host-setup"><img src="https://raw.githubusercontent.com/espressif/esp-hosted-mcu/main/docs/images/mcu.jpeg" height="18" alt="MCU"> MCU Host Setup</a></h3>
       <p><a href="#mcu-cp">1. Coprocessor</a><br><a href="#mcu-host">2. MCU Host</a></p>
     </td>
   </tr>
@@ -73,9 +73,9 @@ sequenceDiagram
 <!-- common-stop -->
 
 > [!IMPORTANT]
-> **New here? Get a base example working first.** Follow **[Getting Started: Linux](../../../docs/getting-started-linux.md)** or **[Getting Started: MCU](../../../docs/getting-started-mcu.md)** to wire the boards, install tools, choose a transport, and confirm the host↔co-processor handshake. The steps below only add what is specific to this example.
+> **New here? Get a base example working first.** Follow **[Getting Started: Linux](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/getting-started-linux.md)** or **[Getting Started: MCU](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/getting-started-mcu.md)** to wire the boards, install tools, choose a transport, and confirm the host↔co-processor handshake. The steps below only add what is specific to this example.
 
-<h2 id="linux-host-setup"><img src="../../../docs/images/lin.jpeg" height="22" alt="Linux"> Linux Host Setup</h2>
+<h2 id="linux-host-setup"><img src="https://raw.githubusercontent.com/espressif/esp-hosted-mcu/main/docs/images/lin.jpeg" height="22" alt="Linux"> Linux Host Setup</h2>
 
 <h3 id="linux-cp">1. Coprocessor</h3>
 
@@ -119,7 +119,7 @@ eh.py -p <cp_usb_serial_port> flash monitor
 <h3 id="linux-host">2. Linux Host</h3>
 
 > [!NOTE]
-> Base wiring, OS setup, and transport bring-up live in [Getting Started: Linux](../../../docs/getting-started-linux.md). This section assumes that already works.
+> Base wiring, OS setup, and transport bring-up live in [Getting Started: Linux](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/getting-started-linux.md). This section assumes that already works.
 
 Set up the tools once (from the repo root):
 
@@ -137,7 +137,7 @@ cd examples/wifi/sta/linux_802_3_host/kmod
 # SPI instead: ./build.sh --bus spi --reload --reset-gpio 518 --clock-mhz 10 --spi-mode 3
 ```
 
-`--reload` builds, unloads, and reloads with the given module params. On SPI, start at `--clock-mhz 10`; once stable, raise it in steps to the co-processor's max SPI clock (see [Performance](../../../docs/design/performance.md)).
+`--reload` builds, unloads, and reloads with the given module params. On SPI, start at `--clock-mhz 10`; once stable, raise it in steps to the co-processor's max SPI clock (see [Performance](https://github.com/espressif/esp-hosted-mcu/blob/main/docs/design/performance.md)).
 
 **Native C app** — set the AP credentials (the app shares `esp_hosted_examples_common`, so the options live under the `Example Connection Configuration` menu):
 
@@ -193,7 +193,7 @@ eh.py run
 
 ---
 
-<h2 id="mcu-host-setup"><img src="../../../docs/images/mcu.jpeg" height="22" alt="MCU"> MCU Host Setup</h2>
+<h2 id="mcu-host-setup"><img src="https://raw.githubusercontent.com/espressif/esp-hosted-mcu/main/docs/images/mcu.jpeg" height="22" alt="MCU"> MCU Host Setup</h2>
 
 <h3 id="mcu-cp">1. Coprocessor</h3>
 

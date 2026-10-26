@@ -6,7 +6,7 @@
   </p>
   <p>
     <a href="README_CN.md">简体中文</a> ·
-    <a href="docs/en/hw-reference/user-guide-esp32-p4-wifi6-db-poe-eth.md">📚 Documentation</a> ·
+    <a href="docs/en/hw-reference/user-guide.md">📚 Documentation</a> ·
     <a href="firmware/">📦 Firmware</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF Examples</a> ·
     <a href="examples/Arduino/">🔧 Arduino Examples</a>
@@ -40,7 +40,7 @@ and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
 | PSRAM | On-chip PSRAM, 200 MHz |
 | Wireless | ESP32-C5 coprocessor over SDIO using ESP-Hosted, providing Wi-Fi 6 and Bluetooth |
 | Ethernet | RMII MAC/PHY (generic IEEE 802.3 PHY driver); integrated PoE module |
-| Display | Two-lane MIPI-DSI; supports external Waveshare [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm),[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm),[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm) and [10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm)-inch panels |
+| Display | Two-lane MIPI-DSI; supports external Waveshare [5](https://www.waveshare.com/5-dsi-touch-a.htm),[7](https://www.waveshare.com/7-dsi-touch-a.htm),[8](https://www.waveshare.com/8-dsi-touch-a.htm) and [10.1](https://www.waveshare.com/10.1-dsi-touch-a.htm)-inch panels |
 | Touch | GT911 capacitive touch controller; touch data is polled over shared I2C |
 | Audio | ES8311 codec, speaker output and one analog microphone input |
 | Storage | microSD over 4-bit SDMMC |
@@ -53,10 +53,10 @@ and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
 
 | Panel | Controller | Resolution |
 | --- | --- | --- |
-| [Waveshare 5-DSI-TOUCH-A](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm) | HX8394, 5-inch | 720 × 1280 |
-| [Waveshare 7-DSI-TOUCH-A](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm) | ILI9881C, 7-inch | 720 × 1280 |
-| [Waveshare 8-DSI-TOUCH-A](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm) | JD9365, 8-inch | 800 × 1280 |
-| [Waveshare 10.1-DSI-TOUCH-A](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) | JD9365, 10.1-inch | 800 × 1280 |
+| [Waveshare 5-DSI-TOUCH-A](https://www.waveshare.com/5-dsi-touch-a.htm) | HX8394, 5-inch | 720 × 1280 |
+| [Waveshare 7-DSI-TOUCH-A](https://www.waveshare.com/7-dsi-touch-a.htm) | ILI9881C, 7-inch | 720 × 1280 |
+| [Waveshare 8-DSI-TOUCH-A](https://www.waveshare.com/8-dsi-touch-a.htm) | JD9365, 8-inch | 800 × 1280 |
+| [Waveshare 10.1-DSI-TOUCH-A](https://www.waveshare.com/10.1-dsi-touch-a.htm) | JD9365, 10.1-inch | 800 × 1280 |
 
 Before building, make sure the selected panel matches the one connected to the board.
 
@@ -153,7 +153,7 @@ and the [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.
 
 ## 📚 Documentation
 
-- [Hardware reference guide](docs/en/hw-reference/user-guide-esp32-p4-wifi6-db-poe-eth.md): onboard resources, GPIO functions, and interfaces.
+- [Hardware reference guide](docs/en/hw-reference/user-guide.md): onboard resources, GPIO functions, and interfaces.
 - [BSP README](components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
 - [Arduino board definition and installation guide (Chinese)](examples/Arduino/esp32/README.md).
 - [Factory-test firmware README](firmware/factory_test/README.md) and [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.md).

@@ -30,7 +30,7 @@ Besides that, `esp_eth` component can drive third-party Ethernet module which in
 idf.py menuconfig
 ```
 
-In addition to the common configurations for Ethernet examples from [upper level](../README.md#common-configurations), you might also need to update the default value of following configurations:
+In addition to the common configurations for Ethernet examples from [upper level](https://github.com/espressif/esp-idf/blob/release/v5.5/examples/ethernet/README.md#common-configurations), you might also need to update the default value of following configurations:
 
 In the `Example Configuration` menu:
 * Set the SSID and password for Wi-Fi ap interface under `Wi-Fi SSID` and `Wi-Fi Password`.
@@ -103,7 +103,7 @@ Now your mobile phone should get access to the Internet.
 
 ## Troubleshooting
 
-See common troubleshooting for Ethernet examples from [upper level](../README.md#common-troubleshooting).
+See common troubleshooting for Ethernet examples from [upper level](https://github.com/espressif/esp-idf/blob/release/v5.5/examples/ethernet/README.md#common-troubleshooting).
 
 * If you got error message like `WiFi send packet failed` when running the example, you may need to enlarge the value of `FLOW_CONTROL_WIFI_SEND_DELAY_MS` in "ethernet_example_main.c", because Ethernet process packets faster than Wi-Fi on ESP32.
 * If you got error message like `send flow control message failed or timeout` when running the example, you may need to enlarge the value of `FLOW_CONTROL_QUEUE_LENGTH` in "ethernet_example_main".

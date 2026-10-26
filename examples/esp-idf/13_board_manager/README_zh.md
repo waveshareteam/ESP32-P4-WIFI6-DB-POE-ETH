@@ -8,7 +8,7 @@
 一个交互式串口控制台，通过 [ESP Board Manager](https://github.com/espressif/esp-board-manager)
 初始化 ESP32-P4-WIFI6-DB-POE-ETH 开发板，并在真实硬件上运行功能测试用例
 （LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等）。板卡定义位于
-[`components/waveshare_bmgr`](../../../components/waveshare_bmgr)。
+[`components/waveshare_boards`](../../../components/waveshare_boards)。
 
 本工程改编自 Espressif 官方
 [esp-board-manager](https://github.com/espressif/esp-board-manager) 组件自带的
@@ -32,7 +32,7 @@ pip install esp-bmgr-assist
 验证是否生效：
 
 ```bash
-idf.py bmgr -l -c ../../../components/waveshare_bmgr
+idf.py bmgr -l -c ../../../components/waveshare_boards
 ```
 
 列表中应能看到 `esp32_p4_wifi6_db_poe_eth`。
@@ -49,7 +49,7 @@ idf.py set-target esp32p4
 自动发现）：
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_bmgr
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards
 ```
 
 默认屏幕是 10.1 寸 DSI 屏。如果使用其他 Waveshare DSI 触摸屏，加上 `-a`
@@ -57,7 +57,7 @@ idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_bmgr
 `lcd_8_dsi_touch_a`、`lcd_10_1_dsi_touch_a`）：
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_bmgr -a ../../../components/waveshare_bmgr/amends/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards -a ../../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
 ```
 
 然后编译、烧录并打开串口监视器：

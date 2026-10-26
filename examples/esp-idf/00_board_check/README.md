@@ -64,10 +64,10 @@ your build, flash, and monitor workflow is ready for the other examples.
 - Run [02_sdmmc](../02_sdmmc/) to verify the SD card path, if your board has an
   SD card.
 - Then choose [03_wifistation](../03_wifistation/),
-  [04_ethernetbasic](../04_ethernetbasic/), [05_I2SCodec](../05_I2SCodec/),
-  [06_Displaycolorbar](../06_Displaycolorbar/),
-  [07_lvgl_demo_v9](../07_lvgl_demo_v9/), [08_eth2ap](../08_eth2ap/),
-  [09_simple_video_server](../09_simple_video_server/),
-  [10_video_lcd_display](../10_video_lcd_display/),
-  [11_usb_extend_screen](../11_usb_extend_screen/), or
-  [12_bt_controller_mac_addr](../12_bt_controller_mac_addr/) as needed.
+  [04_i2s_es8311](../04_i2s_es8311/), [05_nvs_rw_value](../05_nvs_rw_value/),
+  [06_eth2ap](../06_eth2ap/), [07_ethernet_basic](../07_ethernet_basic/),
+  [08_mipi_dsi](../08_mipi_dsi/), [09_lvgl](../09_lvgl/),
+  [10_mipi_csi](../10_mipi_csi/), [11_usb_extend_screen](../11_usb_extend_screen/),
+  [12_generic_gpio](../12_generic_gpio/), [13_board_manager](../13_board_manager/),
+  [14_ethernet_iperf](../14_ethernet_iperf/), [15_wifi_iperf](../15_wifi_iperf/), or
+  [16_bleprph_minimal](../16_bleprph_minimal/) as needed.

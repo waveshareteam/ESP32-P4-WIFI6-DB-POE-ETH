@@ -1,154 +1,207 @@
-<h1 align="center">ESP-Brookesia 出厂固件</h1>
+# ESP-Brookesia 出厂固件
 
-<p align="center">
-  <a href="https://github.com/espressif/esp-idf/releases"><img src="https://img.shields.io/badge/ESP--IDF-v5.5.6%20%7C%20v6.1-E7352C?logo=espressif" alt="ESP-IDF"></a>
-  <a href="https://www.espressif.com/en/products/socs/esp32-p4"><img src="https://img.shields.io/badge/target-ESP32--P4-1F6FEB" alt="Target"></a>
-  <a href="https://lvgl.io/"><img src="https://img.shields.io/badge/LVGL-9.4.0-2AA9E0?logo=lvgl" alt="LVGL"></a>
-</p>
+[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.5%2B%20%7C%20v6.1-E7352C?logo=espressif)](https://github.com/espressif/esp-idf/releases)
+[![Target](https://img.shields.io/badge/target-ESP32--P4-1F6FEB)](https://www.espressif.com/en/products/socs/esp32-p4)
+[![LVGL](https://img.shields.io/badge/LVGL-9.4.0-2AA9E0?logo=lvgl)](https://lvgl.io/)
 
-<p align="center"><a href="README.md">English</a> | 简体中文</p>
+[English](README.md) | 简体中文
 
-<p align="center">
-  Waveshare ESP32-P4-WIFI6-DB-Touch-LCD-7C</b> 的出厂固件，基于 ESP-Brookesia 手机风格桌面，集成多媒体、摄像头、RS485/RS232、CAN 和小智 AI 语音助手等应用。
-</p>
+本目录是 **Waveshare ESP32-P4-WIFI6-DB-POE-ETH** 的 ESP-Brookesia 固件源码，
+支持外接 MIPI-DSI 触摸屏、ES8311 音频编解码器、OV5647 摄像头、SD 卡、
+ESP32-C5 Hosted Wi-Fi 和 IP101 以太网。
 
----
+## 平台配置
 
-## 🧩 硬件平台
+| 项目 | 配置 |
+| --- | --- |
+| 主控 | ESP32-P4NRW32X，32 MB Flash，32 MB PSRAM |
+| 显示 / 触摸 | 微雪 [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) 英寸竖屏，GT911 触摸 |
+| 框架 | ESP-IDF v6.1（锁定于 `dependencies.lock`）；`idf_component.yml` 要求 `>=5.5` |
+| UI | LVGL 9.4.0，本地 ESP-Brookesia core 0.6.0-beta2 |
+| BSP | [`components/`](../../components/esp32_p4_wifi6_db_poe_eth/) 下的本地 `esp32_p4_wifi6_db_poe_eth` 组件 |
+| LVGL 适配 | `espressif/esp_lvgl_adapter` 0.6.3 |
+| 无线 | ESP32-C5 经 SDIO 连接，使用 ESP-Hosted 3.0.10 / `esp_wifi_remote` 1.6.5 |
+| 以太网 | IP101 RMII PHY，使用 `espressif/ethernet_init` 1.4.1 |
+| 语音助手 | `espressif/esp_xiaozhi` 0.1.1、ESP-SR 2.4.7、xiaozhi-fonts 1.6.0 |
+| 多媒体 | `espressif/esp_extractor` 1.0.7、`esp_new_jpeg` 1.0.2、`esp_video` 2.5.0 |
 
-<table>
-  <tr><th>模块</th><th>芯片</th><th>说明</th></tr>
-  <tr><td>主控</td><td>ESP32-P4NRW32X</td><td>双核 RISC-V 400 MHz，内置 32 MiB PSRAM，外置 32 MiB Flash</td></tr>
-  <tr><td>显示</td><td>EK79007</td><td>7 英寸 1024 x 600 MIPI-DSI 屏</td></tr>
-  <tr><td>触摸</td><td>GT911</td><td>电容触摸</td></tr>
-  <tr><td>摄像头</td><td>OV5647</td><td>500 万像素 MIPI-CSI 传感器</td></tr>
-  <tr><td>音频</td><td>ES8389</td><td>低功耗音频编解码器，两路差分麦克风</td></tr>
-  <tr><td>无线</td><td>ESP32-C5-MINI-1</td><td>双频 Wi-Fi 6、Bluetooth LE 协处理器，经 SDIO 连接</td></tr>
-  <tr><td>存储</td><td>Micro SD 卡槽</td><td>4-bit SDMMC，挂载于 <code>/sdcard</code></td></tr>
-  <tr><td>RTC</td><td>PCF85063ATL</td><td>低功耗实时时钟</td></tr>
-  <tr><td>CAN</td><td>TJA1051T/3/1J</td><td>高速 CAN 收发器</td></tr>
-  <tr><td>RS232</td><td>SP3232EEN</td><td>3.3 V RS-232 收发器</td></tr>
-  <tr><td>RS485</td><td>SP3485EN</td><td>3.3 V 半双工 RS-485 收发器</td></tr>
-</table>
+在 `menuconfig` 中通过 BSP 的 LCD 类型选项（`CONFIG_BSP_LCD_TYPE_*`）选择屏幕，
+默认是 10.1 英寸 800 x 1280。接口与引脚分配见
+[硬件参考指南](../../docs/zh_CN/hw-reference/user-guide.md)。
+ESP32-P4 / ESP32-C5 配套工程见 [`15_wifi_iperf`](../../examples/esp-idf/15_wifi_iperf/)。
 
-> 更多硬件信息见[开发板用户指南](../../docs/zh_CN/hw-reference/user-guide-esp32-p4-wifi6-db-touch-lcd-7c.md)。
->
-> 板级支持包（BSP）：[BSP 说明](../../components/bsp/esp32_p4_wifi6_db_touch_lcd_7c/README_CN.md) | [API 参考](../../components/bsp/esp32_p4_wifi6_db_touch_lcd_7c/API_CN.md)
-
-## 🛠️ 编译与烧录
-
-需要 ESP-IDF v5.5.x 或 v6.1，并能访问 ESP Component Registry。在本目录下执行：
-
-```sh
-idf.py set-target esp32p4
-idf.py build
-idf.py -p PORT flash monitor
-```
-
-> [!NOTE]
-> 首次烧录必须使用完整 `flash`，以写入分区表、ESP-SR 模型（`srmodels.bin`）和 SPIFFS 资源（`storage.bin`）。之后若只修改了应用代码，可使用 `idf.py -p PORT app-flash monitor` 加快烧录。
-
-### Flash 分区
-
-32 MiB Flash 的分区布局定义在 `partitions.csv`，分区表位于 `0x8000`：
-
-<table>
-  <tr><th>名称</th><th>类型</th><th>偏移</th><th>大小</th><th>用途</th></tr>
-  <tr><td><code>nvsfactory</code></td><td>data / nvs</td><td><code>0x9000</code></td><td>200 KiB</td><td>出厂 NVS 数据</td></tr>
-  <tr><td><code>nvs</code></td><td>data / nvs</td><td><code>0x3B000</code></td><td>840 KiB</td><td>Wi-Fi、应用设置和小智状态</td></tr>
-  <tr><td><code>otadata</code></td><td>data / ota</td><td><code>0x10D000</code></td><td>8 KiB</td><td>OTA 数据（保留）</td></tr>
-  <tr><td><code>phy_init</code></td><td>data / phy</td><td><code>0x10F000</code></td><td>4 KiB</td><td>PHY 校准数据</td></tr>
-  <tr><td><code>model</code></td><td>data / spiffs</td><td><code>0x110000</code></td><td>960 KiB</td><td>ESP-SR 语音模型（<code>srmodels.bin</code>）</td></tr>
-  <tr><td><code>factory</code></td><td>app / factory</td><td><code>0x200000</code></td><td>8 MiB</td><td>应用程序</td></tr>
-  <tr><td><code>storage</code></td><td>data / spiffs</td><td><code>0xA00000</code></td><td>3 MiB</td><td>音乐、小智提示音和字体（<code>storage.bin</code>）</td></tr>
-</table>
-
-## 📱 应用
+## 应用
 
 <table>
   <tr>
-    <td align="center"><img src="components/DrawPanel/assets/img_app_drawpanel.png" width="64" alt="DrawPanel 图标"><br><b>DrawPanel</b></td>
+    <td align="center"><img src="components/draw/assets/img_app_drawpanel.png" width="64" alt="DrawPanel 图标"><br><b>DrawPanel</b></td>
     <td align="center"><img src="components/brookesia_app_squareline_demo/assets/esp_brookesia_app_icon_launcher_squareline_112_112.png" width="64" alt="Squareline 图标"><br><b>Squareline</b></td>
     <td align="center"><img src="components/brookesia_app_calculator/assets/img_app_calculator.png" width="64" alt="Calculator 图标"><br><b>Calculator</b></td>
     <td align="center"><img src="components/SpecAnalyzer/assets/img_app_specanalyzer.png" width="64" alt="SpecAnalyzer 图标"><br><b>SpecAnalyzer</b></td>
     <td align="center"><img src="components/MusicPlayer/assets/img_app_musicplayer.png" width="64" alt="MusicPlayer 图标"><br><b>MusicPlayer</b></td>
-    <td align="center"><img src="components/Camera/assets/img_app_camera.png" width="64" alt="Camera 图标"><br><b>Camera</b></td>
   </tr>
   <tr>
+    <td align="center"><img src="components/Camera/assets/img_app_camera.png" width="64" alt="Camera 图标"><br><b>Camera</b></td>
     <td align="center"><img src="components/VideoPlayer/assets/img_app_vedioplayer.png" width="64" alt="VideoPlayer 图标"><br><b>VideoPlayer</b></td>
-    <td align="center"><img src="components/UartViewer/assets/img_app_uart_tool.png" width="64" alt="UART 图标"><br><b>UART</b></td>
-    <td align="center"><img src="components/CANViewer/assets/img_app_can_tool.png" width="64" alt="CAN 图标"><br><b>CAN</b></td>
     <td align="center"><img src="components/Settings/assets/img_app_settings.png" width="64" alt="Settings 图标"><br><b>Settings</b></td>
+    <td align="center"><img src="components/Ethernet/assets/img_app_ethernet.png" width="64" alt="Ethernet 图标"><br><b>Ethernet</b></td>
     <td align="center"><img src="components/XiaozhiApp/assets/img_app_xiaozhi.png" width="64" alt="AIChats 图标"><br><b>AIChats</b></td>
   </tr>
 </table>
 
-<table>
-  <tr><th>应用</th><th>功能</th><th>组件目录</th></tr>
-  <tr><td>DrawPanel</td><td>固定画布，在边缘绘制时不会拖动应用</td><td><code>components/DrawPanel/</code></td></tr>
-  <tr><td>Squareline</td><td>通过注册表安装的 Squareline Studio UI 示例和应用模板</td><td><code>components/brookesia_app_squareline_demo/</code></td></tr>
-  <tr><td>Calculator</td><td>适合触摸操作的 Brookesia 计算器</td><td><code>components/brookesia_app_calculator/</code></td></tr>
-  <tr><td>SpecAnalyzer</td><td>板载麦克风的 FFT 频谱</td><td><code>components/SpecAnalyzer/</code></td></tr>
-  <tr><td>MusicPlayer</td><td>播放 <code>/spiffs/music</code> 中的本地 MP3，并显示频谱</td><td><code>components/MusicPlayer/</code></td></tr>
-  <tr><td>Camera</td><td>OV5647 MIPI CSI 预览，由 PPA 缩放铺满横屏</td><td><code>components/Camera/</code></td></tr>
-  <tr><td>VideoPlayer</td><td>全屏播放 SD 卡中的 AVI/MJPEG，音频可用时同步播放声音</td><td><code>components/VideoPlayer/</code></td></tr>
-  <tr><td>UART</td><td>RS485/RS232 串口终端，可选波特率、帧格式与 HEX 收发</td><td><code>components/UartViewer/</code></td></tr>
-  <tr><td>CAN</td><td>TWAI 终端，125 kbit/s 到 1 Mbit/s，显示总线状态</td><td><code>components/CANViewer/</code></td></tr>
-  <tr><td>Settings</td><td>WLAN 扫描/连接、声音、屏幕亮度、SNTP 校时和设备信息</td><td><code>components/Settings/</code></td></tr>
-  <tr><td>AIChats</td><td>网络检查、小智激活、WakeNet 唤醒词、VAD、Opus 上下行、服务器文本、表情与 TTS</td><td><code>components/XiaozhiApp/</code></td></tr>
-</table>
+| 应用 | 功能 | 运行依赖 |
+| --- | --- | --- |
+| DrawPanel | 固定画布区域绘图，在边缘绘画不会拖动整个应用 | 显示与触摸 |
+| Squareline | 从组件仓库安装的 Squareline Studio UI 演示与应用模板 | 显示与触摸 |
+| Calculator | 适合触摸操作的 Brookesia 计算器 | 显示与触摸 |
+| SpecAnalyzer | 板载麦克风的单声道 FFT 频谱 | ES8311 输入 |
+| MusicPlayer | 播放 `/spiffs/music` 中的 MP3，带频谱可视化 | SPIFFS `storage`，ES8311 输出 |
+| Camera | OV5647 MIPI CSI 预览，由 PPA 缩放铺满屏幕 | OV5647，`esp_video` |
+| VideoPlayer | 全屏播放 SD 卡中的 AVI/MJPEG 视频，按视频自身方向显示，支持 PCM 音频 | SD 卡，JPEG/PPA，ES8311 输出 |
+| Settings | WLAN 扫描/连接、声音、屏幕亮度、SNTP 时间和设备信息；亮度与音量保存在 NVS | ESP32-C5 Hosted Wi-Fi |
+| Ethernet | 显示 IP101 网口的链路状态、IPv4 地址、子网掩码、网关、MAC 地址和 PHY | IP101，网络中的 DHCP 服务器 |
+| AIChats | 网络检查、小智激活、WakeNet 唤醒词、VAD、Opus 上下行、服务端文本和 TTS | Wi-Fi 或以太网，`model`/`storage` 镜像，ES8311 |
 
-此外，`components/brookesia_core/` 为本地 ESP-Brookesia core，`components/bsp_extra/` 为基于 BSP 的音频、Wi-Fi 服务和板级外设扩展。
+## 编译
 
-## 🚀 快速体验
+### 环境要求
 
-1. 上电后等待启动画面完成，进入主屏幕。
-2. 打开 **Settings → WLAN**，连接 Wi-Fi，连接成功后会自动校时。
-3. 打开 **AIChats**，首次使用会显示并播报激活码；在[小智控制台](https://xiaozhi.me)添加设备并输入激活码。
-4. 将 MJPEG 编码的 `.avi` 视频放到 SD 卡的 `avi/` 目录，插卡后在 **VideoPlayer** 中播放。
-5. 用 **UART** 和 **CAN** 应用连接外部 RS485/RS232 或 CAN 设备进行收发测试，参数在应用内设置。
+使用 ESP-IDF v6.1（或 v5.5 及以上）和 `esp32p4` 工具链，需要能访问 ESP 组件仓库。
+烧录时请使用支持数据传输的 USB 线。
 
-## 🎙️ 语音交互
+以下命令都在本目录下运行。从仓库根目录开始：
 
-AIChats 激活后进入待机，说出唤醒词 **“你好小智”** 或点击屏幕上的表情即可开始对话。
-
-<table>
-  <tr><th>场景</th><th>行为</th></tr>
-  <tr><td>小智说话时</td><td>半双工，不会聆听人声；说唤醒词可打断并重新聆听，点击屏幕不会打断</td></tr>
-  <tr><td>小智应答时</td><td>屏幕同步显示服务器返回的文字和表情</td></tr>
-  <tr><td>一轮应答结束</td><td>自动继续聆听，可连续对话</td></tr>
-  <tr><td>服务器结束会话</td><td>回到待机状态，再次说出唤醒词即可开始新对话</td></tr>
-  <tr><td>关闭 / 切换应用</td><td>关闭 AIChats 会断开连接，再次打开自动重连；切换到其它应用时保持连接</td></tr>
-</table>
-
-> [!NOTE]
-> 当前固件尚未注册 MCP 工具，小智暂不能通过语音控制音量、亮度、摄像头等设备功能。
-
-### 切换唤醒词
-
-默认唤醒词为“你好小智”（`wn9l_nihaoxiaozhi_tts3`）。在 `menuconfig` 中切换：
-
-```text
-idf.py menuconfig
-  ESP Speech Recognition
-    Load Multiple Wake Words (WakeNet9)
-      [ ] 你好小智 (wn9l_nihaoxiaozhi_tts3)   ← 取消勾选
-      [*] Hi,ESP (wn9_hiesp)                  ← 勾选新的唤醒词
+```sh
+cd firmware/brookesia
+idf.py --version
+idf.py set-target esp32p4
+idf.py build
 ```
 
-- 只勾选一个唤醒词：固件只加载找到的第一个 WakeNet 模型。
-- ESP32-P4 支持 WakeNet9 / WakeNet9l，不要选择 WakeNet9s 菜单中的模型。
-- 唤醒词模型打包在 `srmodels.bin` 中，修改后需重新编译并完整 `flash`，`app-flash` 不会生效。
-- 模型需能放进 960 KiB 的 `model` 分区。
+### 首次完整烧录与分区变更
 
-### 切换小智显示语言
+首次安装必须写入 bootloader、分区表、应用、ESP-SR 模型和 SPIFFS 资源：
 
-AIChats 本地界面文字默认为英文，可切换为简体中文：
+```sh
+idf.py -p PORT flash monitor
+```
+
+修改分区偏移或大小、从旧分区布局升级、或排查模型/文件系统镜像残留时，
+先擦除 Flash 再完整烧录：
+
+```sh
+idf.py -p PORT erase-flash flash monitor
+```
+
+分区布局、语音模型和 `spiffs/` 资源都没有变化时，可以只烧录应用：
+
+```sh
+idf.py -p PORT app-flash monitor
+```
+
+`app-flash` 不会更新 `srmodels.bin`、`storage.bin` 和分区表。修改
+`partitions.csv`、WakeNet/模型 Kconfig、xiaozhi-fonts、内置音乐或提示音后，
+需要执行完整 `flash`。
+
+### Flash 分区
+
+分区布局定义在 `partitions.csv`，分区表位于 `0x8000`：
+
+| 名称 | 类型 | 偏移 | 大小 | 用途 |
+| --- | --- | --- | --- | --- |
+| `nvsfactory` | data / nvs | `0x9000` | 200 KiB | 出厂 NVS 数据 |
+| `nvs` | data / nvs | `0x3B000` | 840 KiB | Wi-Fi、应用设置和小智状态 |
+| `otadata` | data / ota | `0x10D000` | 8 KiB | OTA 数据（预留） |
+| `phy_init` | data / phy | `0x10F000` | 4 KiB | PHY 校准数据 |
+| `model` | data / spiffs | `0x110000` | 960 KiB | ESP-SR 语音模型（`srmodels.bin`） |
+| `factory` | app / factory | `0x200000` | 8 MiB | 应用程序 |
+| `storage` | data / spiffs | `0xA00000` | 4 MiB | 音乐、小智提示音和字体（`storage.bin`） |
+
+## AIChats / 小智
+
+AIChats 使用 `esp_xiaozhi` 处理协议，本工程负责 UI、激活、音频和生命周期集成。
+
+首次使用：
+
+1. 在 Settings 中配置 WLAN，或连接以太网。
+2. 打开 AIChats。如果设备尚未绑定账号，会显示并播报激活码。
+3. 在[小智控制台](https://xiaozhi.me)添加设备并输入激活码。
+4. 页面进入待机后说出唤醒词，默认是“你好小智”。
+
+如果日志出现 `No speech model found` 或 `contains no compatible models`，
+请重新编译并完整烧录，以写入分区表和 `srmodels/srmodels.bin`。
+
+本地 UI 语言可在以下菜单中选择：
 
 ```text
 idf.py menuconfig
   Xiaozhi Application
-    Local UI language  (English / Simplified Chinese)
+    Local UI language
+      English
+      Simplified Chinese
 ```
 
-修改后重新编译烧录即可，只改应用时可使用 `app-flash`。该选项只影响固件内置的状态文字和激活提示，服务器返回的对话、TTS 和激活信息不受影响；本地字符串位于 `components/XiaozhiApp/XiaozhiLocalization.cpp`。
+该选项只影响固件自带的文本，不会翻译服务端返回的对话文本、TTS 或激活消息。
+本地字符串位于 `components/XiaozhiApp/XiaozhiLocalization.*`。
+
+开发板的 ES8311 上只有一个麦克风。AIChats 和 SpecAnalyzer 都采集单声道；
+AIChats 将其转换为 16 kHz 单声道 Opus 上行，播放链路会按需转换服务端音频以适配
+编解码器输出。
+
+## 摄像头与多媒体
+
+Camera 使用 OV5647 的 800 x 640 binning 模式。PPA 将画面裁剪后铺满屏幕，
+裁剪尺寸按 PPA 1/16 步进的缩放系数计算。
+
+VideoPlayer 只扫描 `/sdcard/avi`，`.avi` 扩展名不区分大小写。SD 卡根目录下的
+AVI 以及 MP4、MOV 等其他容器不会被列出。播放器使用 `esp_extractor` 解封装 AVI，
+用硬件 JPEG 解码器解码 MJPEG（硬件无法解码的帧，例如渐进式 JPEG，回退到
+`esp_new_jpeg`），再经 PPA 直接写入 LCD 帧缓冲：
+
+- 视频只支持 MJPEG，音频只支持 PCM；其他音频格式会被跳过，视频静音播放。
+- 方向与屏幕不一致的画面会旋转 90°，因此横屏视频会在竖屏上横向铺满。
+  如果画面上下颠倒，把 `VideoPlayer.cpp` 中的 `VIDEO_ROTATED_ANGLE` 改为
+  `PPA_SRM_ROTATION_ANGLE_270`。
+- 画面会裁剪以铺满屏幕；16:9 视频在 16:10 屏幕上左右各裁掉约 5%。
+
+其他视频可用 ffmpeg 转换，例如：
+
+```sh
+ffmpeg -i input.mov -c:v mjpeg -q:v 5 -pix_fmt yuvj420p -r 24 -c:a pcm_s16le -ar 44100 -ac 2 output.avi
+```
+
+如果播放丢帧，可以调大 `-q:v`（降低画质）或缩小视频分辨率。
+
+MusicPlayer 播放 `/spiffs/music` 中的 MP3。更换曲目后需要重新生成并烧录
+`storage.bin`，仅 `app-flash` 不会更新它。
+
+## 开发说明
+
+- 应用通过 `ESP_UTILS_REGISTER_PLUGIN_WITH_CONSTRUCTOR` 自行注册。
+  `main/main.cpp` 中的 `BOOT_APP_GROUPS` 只决定主屏顺序以及各组安装时显示的启动阶段；
+  已注册但未列出的应用会在最后一组之后安装。
+- 新应用继承 `esp_brookesia::systems::phone::App` 并实现 `run()` 和 `back()`，
+  其他生命周期函数按资源归属按需重写。每个组件在自己的 `idf_component.yml`
+  中声明依赖，`main` 只保留直接使用的依赖。
+- MCP 工具入口是 `components/XiaozhiApp/XiaozhiDeveloperTools.cpp` 中的
+  `registerXiaozhiDeveloperTools()`。只注册已实现且返回真实结果的工具，
+  耗时操作放在应用任务中执行。
+- 在 LVGL 线程中访问 LVGL 对象，或短暂持有显示锁。应用关闭时释放其定时器、
+  任务、队列、编解码器会话、SD 句柄和 LVGL 对象。
+- 播放期间 VideoPlayer 会启用适配层的 Dummy Draw 并暂停 LVGL，退出时停止播放并恢复
+  LVGL 渲染。
+
+## 注意事项
+
+- LVGL 锁只用于 UI 操作。网络、SD 扫描、音频初始化、NVS 访问和模型加载都应在锁外执行。
+- 修改模型、字体、提示音、音乐或分区后需要完整 `flash`。
+- 音频应用共用同一条物理总线，切换应用时要停止或交接编解码器会话。
+- Host 组件需要与 ESP32-C5 上的协处理器固件保持兼容。
+
+`main/main.cpp` 中的 `EXAMPLE_SHOW_MEM_INFO` 当前为 `true`，会周期性统计 SRAM/PSRAM；
+详细日志输出由 `EXAMPLE_SHOW_MEM_INFO_LOG` 单独控制。
+
+反馈问题时，请提供开发板版本、ESP-IDF 版本、完整复现步骤和日志中第一个实际错误。
+
+本地 Brookesia core 使用 [Apache-2.0 许可证](components/brookesia_core/license.txt)，
+仅适用于该组件。

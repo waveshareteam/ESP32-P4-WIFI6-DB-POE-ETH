@@ -76,7 +76,7 @@ The display backlight turns on and the LCD shows the live camera image. The log 
 
 ### Troubleshooting
 
-- Run [13_Displaycolorbar](../13_Displaycolorbar/) first to verify the LCD path.
+- Run [08_mipi_dsi](../08_mipi_dsi/) first to verify the LCD path.
 - Check camera FPC orientation, sensor power, SCCB/I2C pins, and selected sensor model if `video cam open failed` appears.
 - Confirm PSRAM is enabled and stable; camera buffers are allocated from PSRAM.
 - If the image is cropped, mirrored, or rotated incorrectly, adjust the sensor output format or the PPA operation in `main/main.c`.

@@ -9,7 +9,7 @@ An interactive console for bringing up the ESP32-P4-WIFI6-DB-POE-ETH board
 through [ESP Board Manager](https://github.com/espressif/esp-board-manager)
 and running functional test cases (LCD, touch, audio, camera, SD card,
 Ethernet, GPIO, ...) on real hardware. The board definition lives in
-[`components/waveshare_bmgr`](../../../components/waveshare_bmgr).
+[`components/waveshare_boards`](../../../components/waveshare_boards).
 
 This project is adapted from the official `test_apps` project shipped with
 Espressif's [esp-board-manager](https://github.com/espressif/esp-board-manager)
@@ -35,7 +35,7 @@ pip install esp-bmgr-assist
 Check that it works:
 
 ```bash
-idf.py bmgr -l -c ../../../components/waveshare_bmgr
+idf.py bmgr -l -c ../../../components/waveshare_boards
 ```
 
 `esp32_p4_wifi6_db_poe_eth` should appear in the list.
@@ -53,7 +53,7 @@ repository (it is not on the component registry, so it is not discovered
 automatically):
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_bmgr
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards
 ```
 
 The default display is the 10.1" DSI panel. For another Waveshare DSI touch
@@ -62,7 +62,7 @@ display add `-a` with the matching amend directory
 `lcd_10_1_dsi_touch_a`):
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_bmgr -a ../../../components/waveshare_bmgr/amends/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards -a ../../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
 ```
 
 Then build, flash and open the monitor:

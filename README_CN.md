@@ -147,7 +147,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 
 ## 📚 文档
 
-- [硬件参考指南](docs/zh_CN/hw-reference/user-guide-esp32-p4-wifi6-db-poe-eth.md)：板载资源、GPIO 功能和接口信息。
+- [硬件参考指南](docs/zh_CN/hw-reference/user-guide.md)：板载资源、GPIO 功能和接口信息。
 - [BSP 中文说明](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)与
   [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
 - [Arduino 板卡文件说明](examples/Arduino/esp32/README.md)：本地板卡定义和安装方式。

@@ -22,7 +22,7 @@
 
 ```bash
 idf.py set-target esp32p4
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../components/waveshare_bmgr -a ../../components/waveshare_bmgr/amends/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../components/waveshare_boards -a ../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
 idf.py build
 idf.py -p PORT flash monitor
 ```

@@ -76,7 +76,7 @@ idf.py -p PORT flash monitor
 
 ### 排障
 
-- 先运行 [13_Displaycolorbar](../13_Displaycolorbar/) 验证 LCD 路径。
+- 先运行 [08_mipi_dsi](../08_mipi_dsi/) 验证 LCD 路径。
 - 如果出现 `video cam open failed`，检查摄像头 FPC 方向、传感器供电、SCCB/I2C 引脚和已选传感器型号。
 - 确认 PSRAM 已启用且稳定；摄像头 buffer 会从 PSRAM 分配。
 - 如果图像裁剪、镜像或旋转不正确，请调整传感器输出格式或 `main/main.c` 中的 PPA 操作。

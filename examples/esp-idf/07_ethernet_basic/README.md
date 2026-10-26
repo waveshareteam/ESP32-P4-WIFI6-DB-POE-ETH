@@ -37,7 +37,7 @@ This example uses the default RMII GPIO configuration as defined by `ETH_ESP32_E
 idf.py menuconfig
 ```
 
-See common configurations for Ethernet examples from [upper level](../README.md#common-configurations).
+See common configurations for Ethernet examples from [upper level](https://github.com/espressif/esp-idf/blob/release/v5.5/examples/ethernet/README.md#common-configurations).
 
 ### Build, Flash, and Run
 
@@ -72,6 +72,6 @@ Now you can ping your ESP32 in the terminal by entering `ping 192.168.2.151` (it
 
 ## Troubleshooting
 
-See common troubleshooting for Ethernet examples from [upper level](../README.md#common-troubleshooting).
+See common troubleshooting for Ethernet examples from [upper level](https://github.com/espressif/esp-idf/blob/release/v5.5/examples/ethernet/README.md#common-troubleshooting).
 
 (For any technical queries, please open an [issue](https://github.com/espressif/esp-idf/issues) on GitHub. We will get back to you as soon as possible.)
