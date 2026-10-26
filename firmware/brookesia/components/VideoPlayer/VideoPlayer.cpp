@@ -9,6 +9,7 @@
 
 #include "bsp/touch.h"
 #include "esp_lib_utils.h"
+#include "esp_cache.h"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -17,8 +18,11 @@
 #include "esp_extractor_defaults.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <mutex>
+#include <utility>
 #include <errno.h>
 #include <sys/stat.h>
 #ifdef ESP_UTILS_LOG_TAG
@@ -34,6 +38,8 @@ LV_IMG_DECLARE(img_app_vedioplayer);
 // Quarter turn (counter-clockwise) applied to video whose orientation differs from the
 // panel's. Switch to PPA_SRM_ROTATION_ANGLE_270 if rotated video comes out upside down.
 #define VIDEO_ROTATED_ANGLE PPA_SRM_ROTATION_ANGLE_90
+// The PPA SRM scale has a 4-bit fraction: it steps in 1/16.
+#define PPA_SCALE_STEPS 16
 
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB565
 #define VIDEO_JPEG_PIXEL_FORMAT JPEG_PIXEL_FORMAT_RGB565_LE
@@ -53,6 +59,11 @@ namespace esp_brookesia::apps
 {
 
     namespace {
+
+    constexpr uint32_t ceil_div(uint32_t num, uint32_t den)
+    {
+        return (num + den - 1) / den;
+    }
 
     /*
      * TEMPORARY playback diagnostics: per-stage timings, logged every
@@ -911,30 +922,36 @@ namespace esp_brookesia::apps
         const uint32_t target_w = rotate ? DISPLAY_HEIGHT : DISPLAY_WIDTH;
         const uint32_t target_h = rotate ? DISPLAY_WIDTH : DISPLAY_HEIGHT;
 
-        uint32_t crop_x = 0;
-        uint32_t crop_y = 0;
-        uint32_t crop_w = frame.width;
-        uint32_t crop_h = frame.height;
+        // PPA truncates the scale to 1/PPA_SCALE_STEPS, so an exact target / crop ratio
+        // leaves the output short of the panel and the uncovered strip shows whatever
+        // each frame buffer last held. Round the smallest cover scale up to a step
+        // instead, and crop the source to what that step fills.
+        const uint32_t scale_steps = std::max(
+            ceil_div(target_w * PPA_SCALE_STEPS, frame.width),
+            ceil_div(target_h * PPA_SCALE_STEPS, frame.height)
+        );
+        const float scale = static_cast<float>(scale_steps) / PPA_SCALE_STEPS;
+        const uint32_t crop_w = std::max<uint32_t>(target_w * PPA_SCALE_STEPS / scale_steps, 1);
+        const uint32_t crop_h = std::max<uint32_t>(target_h * PPA_SCALE_STEPS / scale_steps, 1);
+        const uint32_t crop_x = (frame.width - crop_w) / 2;
+        const uint32_t crop_y = (frame.height - crop_h) / 2;
 
-        if (static_cast<uint64_t>(frame.width) * target_h >
-                static_cast<uint64_t>(frame.height) * target_w) {
-            crop_w = static_cast<uint32_t>(
-                (static_cast<uint64_t>(frame.height) * target_w) / target_h
-            );
-            crop_x = (frame.width - crop_w) / 2;
-        } else {
-            crop_h = static_cast<uint32_t>(
-                (static_cast<uint64_t>(frame.width) * target_h) / target_w
-            );
-            crop_y = (frame.height - crop_h) / 2;
+        // What is left uncovered is at most a pixel or two; center the picture in it.
+        uint32_t out_w = crop_w * scale_steps / PPA_SCALE_STEPS;
+        uint32_t out_h = crop_h * scale_steps / PPA_SCALE_STEPS;
+        if (rotate) {
+            std::swap(out_w, out_h);
         }
 
-        crop_w = crop_w ? crop_w : 1;
-        crop_h = crop_h ? crop_h : 1;
-        float scale_x = static_cast<float>(target_w) / static_cast<float>(crop_w);
-        float scale_y = static_cast<float>(target_h) / static_cast<float>(crop_h);
-
         if (last_video_width != frame.width || last_video_height != frame.height) {
+            // The PPA never writes the margins, so blank them once in every frame buffer.
+            const size_t lcd_buffer_size = DISPLAY_WIDTH * DISPLAY_HEIGHT * VIDEO_BYTES_PER_PIXEL;
+            for (int i = 0; i < CONFIG_BSP_LCD_DPI_BUFFER_NUMS; i++) {
+                memset(lcd_buffers[i], 0, lcd_buffer_size);
+                esp_cache_msync(lcd_buffers[i], lcd_buffer_size,
+                                ESP_CACHE_MSYNC_FLAG_DIR_C2M | ESP_CACHE_MSYNC_FLAG_UNALIGNED);
+            }
+
             ESP_LOGI(ESP_UTILS_LOG_TAG, "Cover video frame: %lux%lu (decoded %lux%lu), crop %lu,%lu %lux%lu%s",
                      static_cast<unsigned long>(frame.width), static_cast<unsigned long>(frame.height),
                      static_cast<unsigned long>(frame.pic_w), static_cast<unsigned long>(frame.pic_h),
@@ -961,13 +978,13 @@ namespace esp_brookesia::apps
         srm_config.out.buffer_size = ALIGN_UP(DISPLAY_WIDTH * DISPLAY_HEIGHT * VIDEO_BYTES_PER_PIXEL, data_cache_line_size);
         srm_config.out.pic_w = DISPLAY_WIDTH;
         srm_config.out.pic_h = DISPLAY_HEIGHT;
-        srm_config.out.block_offset_x = 0;
-        srm_config.out.block_offset_y = 0;
+        srm_config.out.block_offset_x = (DISPLAY_WIDTH - out_w) / 2;
+        srm_config.out.block_offset_y = (DISPLAY_HEIGHT - out_h) / 2;
         srm_config.out.srm_cm = VIDEO_PPA_COLOR_MODE;
 
         srm_config.rotation_angle = rotate ? VIDEO_ROTATED_ANGLE : PPA_SRM_ROTATION_ANGLE_0;
-        srm_config.scale_x = scale_x;
-        srm_config.scale_y = scale_y;
+        srm_config.scale_x = scale;
+        srm_config.scale_y = scale;
         srm_config.mirror_x = 1;
         srm_config.mirror_y = 1;
         srm_config.rgb_swap = 0;

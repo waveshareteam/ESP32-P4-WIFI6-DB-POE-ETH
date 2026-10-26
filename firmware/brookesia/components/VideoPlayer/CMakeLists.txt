@@ -23,6 +23,7 @@ idf_component_register(
         esp_lvgl_adapter
         esp_new_jpeg
     PRIV_REQUIRES
+        esp_mm
         esp_timer
     WHOLE_ARCHIVE
 )
