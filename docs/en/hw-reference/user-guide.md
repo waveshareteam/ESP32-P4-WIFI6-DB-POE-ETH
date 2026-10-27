@@ -286,7 +286,9 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 # 4. Related Documents
 
-## 4.1. Datasheets
+## 4.1. Datasheets and Schematic
+
+- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../../hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
 
 - [ESP32-P4 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf) (PDF)
 - [ESP32-C5 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_en.pdf) (PDF)

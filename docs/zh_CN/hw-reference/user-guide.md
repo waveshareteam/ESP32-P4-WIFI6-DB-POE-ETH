@@ -286,7 +286,9 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 # 4. 相关文档
 
-## 4.1. 数据手册
+## 4.1. 数据手册与原理图
+
+- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../../hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
 
 - [ESP32-P4 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_cn.pdf)（PDF）
 - [ESP32-C5 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_cn.pdf)（PDF）
