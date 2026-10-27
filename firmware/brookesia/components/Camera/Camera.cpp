@@ -51,10 +51,9 @@ LV_IMG_DECLARE(img_app_camera);
 
 namespace esp_brookesia::apps
 {
-    // The OV5647 runs its 800x640 binned mode (the 800x1280 mode has a much
-    // stronger colour cast) and the PPA cover-fills the LCD panel with it. A
-    // portrait sensor mode is still turned a quarter turn. Three hardware rules
-    // drive the geometry:
+    // The PPA cover-fills the LCD panel with the camera's native frame. When
+    // frame and panel orientations differ, the frame is turned a quarter turn.
+    // Three hardware rules drive the geometry:
     //   * the SRM scale factor is quantised to 1/16 steps, so a plain float ratio
     //     leaves black bands;
     //   * the scaled output block must stay inside out.pic_w x out.pic_h, so the
