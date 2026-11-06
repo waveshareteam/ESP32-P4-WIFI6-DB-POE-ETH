@@ -1,23 +1,29 @@
-# 06_eth2ap
+# 以太网转 Wi-Fi AP
 
-[English](README.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
 ## 功能
 
-将以太网连接共享给 Wi-Fi 接入点。
+在 MAC 层桥接以太网和 Wi-Fi 接入点，由 ESP32-C5 提供射频。
 
 ## 硬件需求
 
-开发板、以太网连接以及兼容的 Wi-Fi 协处理器固件。
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- 网线和路由器或交换机
+- Wi-Fi 客户端设备
 
-## 运行方法
+## 怎么运行
 
-按英文说明配置网络参数，编译并烧录工程。
+ESP32-C5 需要先烧录 [03_wifistation/cp](../03_wifistation/cp/README_ZH.md) 的协处理器固件。
+
+```bash
+idf.py set-target esp32p4 build flash monitor
+```
 
 ## 预期现象
 
-串口显示以太网和 Wi-Fi 接入点的运行状态。
+以太网连接后出现 `eth2ap` 接入点，连接它的设备可以访问有线网络。
 
 ## 常见问题
 
-Wi-Fi 功能需要匹配的 ESP-Hosted 协处理器固件。
+默认 SSID 和密码是 `eth2ap` 和 `12345678`，可在 `Example Configuration` 中修改。

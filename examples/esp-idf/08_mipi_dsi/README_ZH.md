@@ -1,48 +1,29 @@
-# 显示色条
+# MIPI-DSI 显示
 
-[English Version](./README.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
-在受支持的 LCD 面板上显示色条。这是本仓库中最简单的 ESP-IDF 显示 bring-up 示例。
+## 功能
 
-## 难度
+在屏幕上显示硬件彩条。可在 menuconfig 中切换为白屏测试、触摸画点测试或深度睡眠测试。
 
-中级。
+## 硬件需求
 
-## 硬件要求
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- 支持的 MIPI-DSI 屏幕（5、7、8 或 10.1 英寸）
 
-- ESP32-P4-WIFI6-DB 开发板。
-- 连接到显示接口的 BSP 支持的 MIPI-DSI 屏幕，并在 `menuconfig` 中选择
-  匹配的 5、7、8 或 10.1 英寸型号。
+## 怎么运行
 
-该示例使用本地 `esp32_p4_wifi6_db_poe_eth` BSP 组件。它是本板很合适的第一个显示测试，因为应用不会创建 LVGL UI；它只初始化面板，并请求 DPI 面板驱动生成硬件垂直色条图案。
+在 `Component config > Board Support Package (ESP32-P4-WIFI6-DB-POE-ETH) > Display > Select LCD type` 中选择实际连接的屏幕，默认是 10.1 英寸屏。
 
-## 构建和烧录
-
-```powershell
-cd examples\esp_idf\06_mipi_dsi_test
-idf.py set-target esp32p4
-idf.py menuconfig
-idf.py build
-idf.py -p PORT flash monitor
+```bash
+idf.py set-target esp32p4 menuconfig
+idf.py build flash monitor
 ```
 
-## 预期行为
+## 预期现象
 
-串口日志应显示：
+背光点亮并显示竖向彩条，日志打印 `Show color bar pattern drawn by hardware`。
 
-```text
-Initialize LCD device
-Show color bar pattern drawn by hardware
-```
+## 常见问题
 
-LCD 应点亮背光并显示垂直色条。
-
-## 排障
-
-- 确认显示面板型号和接口。
-- 如果面板路径需要 PSRAM，确认 PSRAM 已启用。
-- 如果日志正常但背光不亮，检查 GPIO7/GPIO8 上的共享 I2C 总线，以及
-  `0x45` 设备的 `0x96` 寄存器写入。
-- 本板没有 LCD 复位 GPIO；请检查 DSI 供电、lane 配置、FPC 方向和面板初始化。
-- 在运行 [10_mipi_csi](../10_mipi_csi/) 前先运行此示例，把面板
-  bring-up 与摄像头处理分开测试。
+日志正常但屏幕不亮时，检查 FPC 方向和屏幕型号选择。本板没有 LCD 复位 GPIO。

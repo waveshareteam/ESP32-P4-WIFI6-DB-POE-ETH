@@ -1,104 +1,33 @@
-# Hardware Validation Firmware (factory_test)
+# Hardware Validation Firmware
 
-[中文版本](README_ZH.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
-A single ESP32-P4 firmware for validating every piece of hardware on the
-ESP32-P4-WIFI6-DB-POE-ETH board from a serial console, using Linux-style
-commands: I2C at 100 k / 400 k, SD card at 20 / 40 MHz, Wi-Fi
-iperf throughput, USB mass storage, display / touch / camera / audio, and the
-expansion-header GPIOs. Any command can be looped in the background with
-`watch` so an oscilloscope can be attached while the bus keeps running.
+## What It Does
 
-The step-by-step procedure, probe points and report template are in the
-[tester's procedure (Chinese)](docs/test-procedure_ZH.md).
+A serial console that validates the board hardware with Linux-style commands, covering I2C, SD card, USB storage, Wi-Fi iperf, display, touch, camera, audio and header GPIOs. `main/camera_preview.c` and `main/camera_convert.*` come from the `esp_board_manager` test application and are covered by the [`LICENSE`](LICENSE) in this directory.
 
-## Prerequisites
+## Hardware Required
 
-- ESP-IDF **v6.0.1** plus the Board Manager CLI helper: `pip install esp-bmgr-assist`
-- Serial terminal at 115200 8N1 on the USB download port (UART0)
-- For Wi-Fi tests the on-board ESP32-C5 must be flashed once with
-  `examples/esp-idf/15_wifi_iperf/cp`
-- **iperf 2.x** on the PC (the firmware implements the iperf 2 protocol; iperf3 is not compatible)
+- ESP32-P4-WIFI6-DB-POE-ETH development board
+- Supported MIPI-DSI panel (5, 7, 8 or 10.1 inch)
+- microSD card, USB storage, OV5647 camera and speaker for the matching tests
+- PC with iPerf 2.x for Wi-Fi tests
 
-## Build and flash
-
-From this directory:
+## How to Run
 
 ```bash
+python -m pip install --upgrade esp-bmgr-assist
 idf.py set-target esp32p4
 idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
-idf.py build
-idf.py -p PORT flash monitor
+idf.py build flash monitor
 ```
 
-- `bmgr` generates `components/gen_bmgr_codes/` (git-ignored). For another panel
-  replace the `-a` amend with `../esp32_p4_dsi_overlay/5_dsi_touch_a` / `../esp32_p4_dsi_overlay/8_dsi_touch_a` /
-  `../esp32_p4_dsi_overlay/10_1_dsi_touch_a`, re-run `bmgr`, then `build`.
-- On boot only the console starts; **no peripheral is initialised** until the
-  first command that needs it.
+Type `help` for every command, and `test all` to run the automatic checks. The full procedure is in the [test procedure (Chinese)](docs/test-procedure_ZH.md).
 
-## Command reference
+## Expected Result
 
-`help` lists every command with a usage line.
+The `waveshare>` prompt appears, and `test report` prints the result table. Peripherals are initialized only when a command needs them.
 
-| Area | Commands |
-|---|---|
-| System | `uname -a`, `free`, `reboot`, `nvs test` |
-| Background loop | `watch [--secs N] <cmd...>`, `jobs`, `kill <id\|all>` |
-| I2C | `i2cconfig --freq 100000\|400000`, `i2cdetect`, `i2cget -c 0x18 -r 0x00`, `i2cset -c 0x18 -r 0x00 0x12`, `i2cdump -c 0x18` |
-| SD card | `mount -t sd [-o freq=20\|40] /sdcard`, `umount /sdcard`, `df`, `ls /sdcard` |
-| USB stick | `lsusb`, `mount -t usb /usb`, `umount /usb` |
-| Throughput / verify | `dd if=/dev/urandom of=/sdcard/t.bin bs=64k count=512`, `dd if=/sdcard/t.bin of=/dev/null bs=64k` |
-| Wi-Fi | `iwconfig wifi0 essid <ssid> key <pwd>`, `ifup wifi0`, `ifdown wifi0`, `iwconfig` |
-| iperf | `iperf -s [-u]`, `iperf -c <ip> [-u] [-t N] [-B <local ip>]`, `iperf -a` |
-| Display | `fbtest colorbar\|red\|green\|blue\|white\|black\|checker`, `backlight 0-100`, `evtest` |
-| Camera | `v4l2-ctl --stream`, `v4l2-ctl --stop` |
-| Audio | `speaker-test [-f 1000]`, `arecord -d 5 /sdcard/rec.wav`, `aplay /sdcard/<file>.wav|.mp3|.aac|.m4a|.flac`, `alsaloop`, `amixer set Master 80`, `amixer set Capture 30` |
-| Header GPIO | sysfs-style files: `echo 1 > /gpio20/value`, `cat /gpio20/value`, `echo in > .../direction`, `ls /`; bulk: `gpioinfo`, `gpioset all=1`, `gpioset --blink all`, `gpioget all` |
-| Files | `cat <path>`, `echo <text> > <path>`, `echo <text> >> <path>`, `ls <path>` (work on /gpio<N>, /sdcard and /usb) |
-| Summary | `test all`, `test report`, `test clear` |
+## Troubleshooting
 
-### Background loops (for the oscilloscope)
-
-```
-waveshare> watch i2cget -c 0x18 -r 0x00       # returns immediately, repeats forever
-[1] started: i2cget -c 0x18 -r 0x00
-[1] i2cget -c 0x18 -r 0x00: iter=812 err=0 0.00 MB/s     # one line every 5 s
-waveshare> jobs
-waveshare> kill 1
-[1] done: ...  iter=1630 err=0  10.0 s
-```
-
-- `watch` runs the command once in the foreground first; bad arguments or a busy
-  resource stop it from starting.
-- Several loops may run at once (e.g. SD reads at 40 MHz plus I2C at 400 k to
-  look for crosstalk).
-- `speaker-test`, `evtest`, `alsaloop`, `gpioset --blink` and `v4l2-ctl --stream`
-  are background jobs themselves; stop them with `kill`.
-
-### Result table
-
-Commands with a clear pass criterion record their result; `test report` prints
-the table at any time. `test all` runs every automatically judged item (system,
-NVS, I2C 100 k / 400 k, SD 20 / 40 MHz write+verify, USB stick
-write+verify) and prints the table. Display, camera, audio and GPIO items are
-recorded as MANUAL; iperf figures are copied from the iperf output.
-
-## Known limitations
-
-- PoE cannot be detected by firmware; the procedure asks for a second run on PoE power.
-- 40 MHz needs an SD card that supports high-speed mode; `mount` prints the negotiated clock.
-- `gpioset` skips GPIO45 (SD power enable) while the card is mounted and GPIO53 (PA
-  enable) while audio is active; writing their sysfs `value` returns `EBUSY`.
-- `/gpio<N>` only contains the header pins and needs no `export`; writing `value`
-  switches the pin to output automatically. `ls /` lists the GPIOs (/sdcard and
-  /usb are separate mount points).
-- `i2cdetect` performs a real 1-byte read per address because IDF's
-  `i2c_master_probe()` is fixed at 100 kHz.
-
-## License
-
-`main/camera_preview.c` and `main/camera_convert.c/.h` are ported from the
-esp-board-manager test_apps (see `examples/esp-idf/13_board_manager`) and keep
-their `LicenseRef-Espressif-Modified-MIT` headers; the full text is in
-[`LICENSE`](LICENSE). Everything else is Apache-2.0 like the rest of the repository.
+For Wi-Fi tests, flash the ESP32-C5 with `examples/esp-idf/15_wifi_iperf/cp` first. PoE cannot be detected by firmware. SD at 40 MHz needs a high-speed card.

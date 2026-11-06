@@ -1,38 +1,28 @@
-[English](README.md)
-
 # sdmmc
 
-## 作用
+[English](README.md) | [简体中文](README_ZH.md)
 
-使用 4-bit SDMMC 接口初始化板载 microSD 卡，打印卡片和文件系统容量，并对测试
-文件进行读写。示例会自动打开卡电源，不需要额外控制 GPIO。
+## 功能
 
-## 使用方法
+通过 SDMMC 在 microSD 卡上读写测试文件。
 
-1. 将 microSD 卡插入开发板。
-2. 在 Arduino IDE 中选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
-3. 打开 `sdmmc.ino`，编译并上传。
-4. 打开串口监视器，波特率设置为 `115200`。
-5. 查看卡片信息以及 `/arduino_test.txt` 的写入和读取结果。
+## 硬件需求
 
-## 板级连接
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- microSD 卡
 
-- SDMMC CLK/CMD：GPIO43/GPIO44。
-- SDMMC D0-D3：GPIO39/GPIO40/GPIO41/GPIO42。
-- 卡电源控制：GPIO45，低电平打开。
+## 怎么运行
 
-## 预期输出
+1. 在开发板管理器中安装 `esp32`（Arduino-ESP32），版本见仓库 README。
+2. 按[板卡定义安装说明](../../libraries/board_config/README.md)添加开发板。
+3. 把项目文件夹位置设为 `examples/arduino/`，或把 `examples/arduino/libraries/` 复制到项目文件夹下的 `libraries` 文件夹。
+4. 选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
+5. 打开 `sdmmc.ino` 并上传，然后以 115200 波特率打开串口监视器。
 
-```text
-Starting SDMMC test
-SD card detected: ...
-Card size: ... MB
-Filesystem total: ... MB
-Writing /arduino_test.txt
-Reading /arduino_test.txt
-ESP32-P4 SDMMC test
-SDMMC test completed successfully
-```
+## 预期现象
 
-如果挂载失败，先确认卡已插入、格式可识别，并检查是否有其他示例占用了 SDMMC
-引脚。测试文件位于卡的根目录，测试完成后可以手动删除。
+串口监视器显示卡信息和从测试文件读回的内容。
+
+## 常见问题
+
+示例会在卡的根目录写入 `/arduino_test.txt`。

@@ -1,23 +1,33 @@
-# 01_i2c_tools
+# I2C 工具
 
-[English](README.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
 ## 功能
 
-通过串口控制台扫描 I2C 总线并读写设备寄存器。
+提供串口控制台，通过 `i2cconfig`、`i2cdetect`、`i2cget`、`i2cset` 和 `i2cdump` 扫描和读取 I2C 设备。
 
 ## 硬件需求
 
-开发板和需要访问的 I2C 设备。
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- USB 数据线
 
-## 运行方法
+## 怎么运行
 
-编译并烧录本工程，打开串口监视器后先用 `i2cconfig` 配置总线，再用 `i2cdetect` 等命令操作。
+```bash
+idf.py set-target esp32p4 build flash monitor
+```
+
+在控制台先配置板载总线，再使用其他命令：
+
+```text
+i2cconfig --scl=8 --sda=7
+i2cdetect
+```
 
 ## 预期现象
 
-串口显示控制台提示符和命令结果。
+出现 `i2c-tools>` 提示符，`i2cdetect` 打印有响应的地址表。
 
 ## 常见问题
 
-I2C 引脚与频率应与连接的设备一致。
+必须先运行 `i2cconfig`，其他命令依赖它。

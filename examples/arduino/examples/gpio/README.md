@@ -1,47 +1,30 @@
-[简体中文](README_ZH.md)
+# gpio
 
-# GPIO Console Example
+[English](README.md) | [简体中文](README_ZH.md)
 
-This example uses the Arduino-ESP32 `Console` library to configure and test GPIOs interactively through the serial monitor. It is based on the Arduino core `ConsoleGPIO` example.
+## What It Does
 
-## Requirements
+Reads, writes and configures GPIOs interactively from the serial monitor with the Arduino-ESP32 `Console` library.
 
-- Select `Waveshare ESP32-P4-WIFI6-DB-POE-ETH` in Arduino IDE.
-- Use the USB serial port and set the serial monitor to `115200` baud.
-- Ensure the Arduino-ESP32 `Console` library is available. It is included with the Arduino core installation.
+## Hardware Required
 
-## Usage
+- ESP32-P4-WIFI6-DB-POE-ETH development board
+- USB cable
 
-After uploading, open the serial monitor, set line ending to `Newline`, and enter `help` to list commands.
+## How to Run
 
-```text
-gpio read <pin>
-gpio write <pin> <0|1>
-gpio mode <pin> <in|out|in_pu|in_pd>
-```
+1. Install `esp32` (Arduino-ESP32) in the Boards Manager; the version is listed in the repository README.
+2. Add the board by following the [board definition guide](../../libraries/board_config/README.md).
+3. Set the sketchbook location to `examples/arduino/`, or copy `examples/arduino/libraries/` to the `libraries` folder of your sketchbook.
+4. Select `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`.
+5. Open `gpio.ino`, upload it and open the serial monitor at 115200 baud.
 
-Examples:
+Set the line ending to `Newline`, then enter commands such as `gpio mode 2 out` and `gpio write 2 1`. Enter `help` to list them.
 
-```text
-gpio mode 2 out
-gpio write 2 0
-gpio write 2 1
-gpio mode 4 in_pu
-gpio read 4
-```
+## Expected Result
 
-## Board Notes
+After `gpio mode 2 out`, the monitor prints `GPIO 2 mode set to out`, and `gpio read 2` prints the current level.
 
-- This board variant does not define an onboard `LED_BUILTIN`; GPIO2 and GPIO3
-  are treated as ordinary header GPIOs by this example.
-- Do not use GPIOs reserved by onboard peripherals while their corresponding examples or features are active. This includes the MIPI display, touch controller, camera, SDMMC, ESP-Hosted SDIO, audio codec, and RS485/RS232 transceivers.
-- Use `gpio mode` before `gpio write`. Writing a pin configured as an input is not a valid output test.
+## Troubleshooting
 
-## Expected Output
-
-```text
-gpio> gpio mode 2 out
-GPIO 2 mode set to out
-gpio> gpio read 2
-GPIO 2 = 0 (LOW)
-```
+Run `gpio mode` before `gpio write`. Do not use GPIOs reserved by on-board peripherals while those peripherals are active.

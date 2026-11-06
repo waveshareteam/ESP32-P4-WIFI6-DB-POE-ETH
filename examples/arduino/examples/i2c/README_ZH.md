@@ -1,31 +1,28 @@
-[English](README.md)
-
 # i2c
 
-## 作用
+[English](README.md) | [简体中文](README_ZH.md)
 
-扫描开发板默认 I2C1 总线上的设备，并打印检测到的 7 位 I2C 地址。本开发板默认
-使用 SDA GPIO7、SCL GPIO8，频率为 400 kHz。扫描程序只把收到 ACK 的地址列为设备，
-没有设备响应不代表程序异常。
+## 功能
 
-## 使用方法
+扫描 I2C1 总线并打印有响应的 7 位地址。
 
-1. 将需要检测的 I2C 设备连接到开发板的 I2C 总线。
-2. 在 Arduino IDE 中选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
-3. 打开 `i2c.ino`，编译并上传。
-4. 打开串口监视器，波特率设置为 `115200`。
-5. 查看扫描结果；程序每 5 秒自动重新扫描一次。
+## 硬件需求
 
-## 注意事项
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- USB 数据线
 
-- 该总线由 ES8311、LCD 背光、GT911 和摄像头 SCCB 等板载设备共享，扫描时不要同时
-  运行其他会初始化 I2C1 的示例。
-- 输出地址是 Arduino `Wire1` 使用的 7 位地址，不是包含读写位的 8 位控制地址。
+## 怎么运行
 
-## 预期输出
+1. 在开发板管理器中安装 `esp32`（Arduino-ESP32），版本见仓库 README。
+2. 按[板卡定义安装说明](../../libraries/board_config/README.md)添加开发板。
+3. 把项目文件夹位置设为 `examples/arduino/`，或把 `examples/arduino/libraries/` 复制到项目文件夹下的 `libraries` 文件夹。
+4. 选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
+5. 打开 `i2c.ino` 并上传，然后以 115200 波特率打开串口监视器。
 
-```text
-Scanning I2C bus...
-Device found at 0x...
-Scan complete: ... device(s) found
-```
+## 预期现象
+
+显示检测到的地址，每五秒重新扫描一次。
+
+## 常见问题
+
+只有设备应答时才会列出地址。

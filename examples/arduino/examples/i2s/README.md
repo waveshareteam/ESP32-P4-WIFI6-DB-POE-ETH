@@ -1,23 +1,28 @@
 # i2s
 
-[简体中文](README_ZH.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
-## Function
+## What It Does
 
-Loop microphone audio back through the ES8311 speaker output.
+Loops microphone audio back to the speaker through the ES8311 codec.
 
-## Hardware requirements
+## Hardware Required
 
-Development board with microphone and speaker.
+- ESP32-P4-WIFI6-DB-POE-ETH development board
+- Speaker
 
-## How to run
+## How to Run
 
-Open `i2s.ino`, select the Waveshare board, upload it and open the serial monitor at 115200 baud.
+1. Install `esp32` (Arduino-ESP32) in the Boards Manager; the version is listed in the repository README.
+2. Add the board by following the [board definition guide](../../libraries/board_config/README.md).
+3. Set the sketchbook location to `examples/arduino/`, or copy `examples/arduino/libraries/` to the `libraries` folder of your sketchbook.
+4. Select `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`.
+5. Open `i2s.ino`, upload it and open the serial monitor at 115200 baud.
 
-## Expected result
+## Expected Result
 
-The speaker plays the microphone input and the serial monitor prints the input peak.
+The speaker plays the microphone input, and the serial monitor prints the input peak.
 
-## FAQ
+## Troubleshooting
 
-Keep the microphone and speaker apart to reduce acoustic feedback.
+Keep the microphone and speaker apart to reduce feedback.

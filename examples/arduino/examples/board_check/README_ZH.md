@@ -1,31 +1,28 @@
-[English](README.md)
-
 # board_check
 
-## 作用
+[English](README.md) | [简体中文](README_ZH.md)
 
-读取并打印开发板的芯片型号、芯片版本、CPU 信息、Flash 容量、PSRAM 容量和剩余
-堆内存。该示例不访问 LCD、摄像头、音频、SDMMC 或 ESP-Hosted，无需连接其他外设。
+## 功能
 
-## 使用方法
+打印芯片、CPU、Flash、PSRAM 和堆内存信息。
 
-1. 在 Arduino IDE 中选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
-2. 打开 `board_check.ino`，编译并上传。
-3. 打开串口监视器，波特率设置为 `115200`。
-4. 查看开发板信息输出。
+## 硬件需求
 
-## 预期输出
+- ESP32-P4-WIFI6-DB-POE-ETH 开发板
+- USB 数据线
 
-启动后会输出一次类似下面的信息；具体 CPU 频率和内存数值以实际板卡和 Arduino
-板卡菜单配置为准：
+## 怎么运行
 
-```text
-Waveshare ESP32-P4-WIFI6-DB-POE-ETH
-Chip model: ESP32-P4
-Chip revision: ...
-CPU cores: ...
-CPU frequency: ... MHz
-Flash size: ... MB
-PSRAM size: ... MB
-Free heap: ... bytes
-```
+1. 在开发板管理器中安装 `esp32`（Arduino-ESP32），版本见仓库 README。
+2. 按[板卡定义安装说明](../../libraries/board_config/README.md)添加开发板。
+3. 把项目文件夹位置设为 `examples/arduino/`，或把 `examples/arduino/libraries/` 复制到项目文件夹下的 `libraries` 文件夹。
+4. 选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
+5. 打开 `board_check.ino` 并上传，然后以 115200 波特率打开串口监视器。
+
+## 预期现象
+
+串口监视器显示板名，然后显示芯片、Flash、PSRAM 和堆内存信息。
+
+## 常见问题
+
+暂无。

@@ -1,28 +1,29 @@
-[简体中文](README_ZH.md)
+# GPIO Monitor
 
-# GPIO Input/Output Monitor
+[English](README.md) | [简体中文](README_ZH.md)
 
-This example uses LVGL to show the live level of selected GPIOs in a responsive grid.
+## What It Does
 
-The BSP initializes the GT911 touch controller on the shared GPIO7/GPIO8 I2C
-bus when `bsp_display_start_with_config()` is called. Touch reset and interrupt
-are not connected; the LVGL adapter polls touch data over I2C.
+Shows the live level of the expansion-header GPIOs in an LVGL grid and lets you switch them between input and output on the touch screen.
 
-The example obtains the expansion-header GPIO list from the active BSP through `bsp_get_header_gpios()`. The top `lv_switch` changes all monitored GPIOs between `GPIO_MODE_INPUT` and `GPIO_MODE_OUTPUT`; output-mode cards can be clicked to toggle their output level.
+## Hardware Required
 
-Call `gpio_monitor_init()` before starting the BSP display, then call `gpio_monitor_start_ui()` after the display is ready. The grid calculates its columns and card sizes from the GPIO count and the active display resolution. If the list is larger than the screen, the grid can be scrolled vertically.
+- ESP32-P4-WIFI6-DB-POE-ETH development board
+- Supported MIPI-DSI panel (5, 7, 8 or 10.1 inch)
 
-The ESP32-P4-WIFI6-DB BSP exposes GPIOs `52, 51, 31, 30, 29, 28, 50, 49,
-5, 4, 3, 2, 24, 25, 20, 21, 22, 23, 26, 27, 32, 33, 46, 47, 48`, in that
-order.
+## How to Run
 
-## Configuration
+Select the connected panel under `Component config > Board Support Package (ESP32-P4-WIFI6-DB-POE-ETH) > Display > Select LCD type`; the default is the 10.1-inch panel. The default GPIO direction and pull mode are under `GPIO Monitor Example`.
 
-Run `idf.py menuconfig` and navigate to **GPIO Monitor Example** to configure the following options:
+```bash
+idf.py set-target esp32p4 menuconfig
+idf.py build flash monitor
+```
 
-| Option | Choices | Default | Description |
-|--------|---------|---------|-------------|
-| Default GPIO mode | Input / Output | Input | Initial direction for all monitored GPIOs. |
-| GPIO pull resistor mode | Pull-down only / Pull-up only / Both pull-up and pull-down / Floating | Pull-down only | Internal pull resistor configuration for all monitored GPIOs. |
+## Expected Result
 
-Confirm that nothing external is connected to the expansion pins before switching them to output mode.
+The LCD shows one card for each header GPIO with its current level, and the top switch changes the mode of all monitored GPIOs.
+
+## Troubleshooting
+
+Disconnect anything attached to the expansion header before switching to output mode.
