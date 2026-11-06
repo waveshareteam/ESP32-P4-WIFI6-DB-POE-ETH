@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/waveshareteam/esp32-repo-template/v1/schema/product.schema.json",
   "product": "ESP32-P4-WIFI6-DB-POE-ETH",
-  "product_url": "https://www.waveshare.com/esp32-p4-wifi6-db-poe-eth.htm",
+  "product_url": "https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm",
   "tier": 0,
   "target": "esp32p4",
   "esp_idf": {

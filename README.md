@@ -5,7 +5,7 @@
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH"></a>
   </p>
   <p>
-    <a href="README_CN.md">简体中文</a> ·
+    <a href="README_ZH.md">简体中文</a> ·
     <a href="docs/en/hw-reference/user-guide.md">📚 Documentation</a> ·
     <a href="firmware/">📦 Firmware</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF Examples</a> ·

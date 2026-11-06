@@ -129,7 +129,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 ## 📦 固件
 
 [`firmware/factory_test/`](firmware/factory_test/) 提供本开发板的整板硬件测试固件，通过串口控制台
-测试 I2C、存储、网络、USB、显示、触摸、摄像头、音频和 GPIO。操作说明见[固件 README](firmware/factory_test/README_CN.md)
+测试 I2C、存储、网络、USB、显示、触摸、摄像头、音频和 GPIO。操作说明见[固件 README](firmware/factory_test/README_ZH.md)
 和[测试手册](firmware/factory_test/docs/test-procedure_CN.md)。
 
 仓库中的 [`firmware/brookesia/`](firmware/brookesia/) 面向 ESP32-P4-WIFI6-DB-POE-ETH，是本开发板的固件工程。
@@ -154,7 +154,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 - [BSP 中文说明](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)与
   [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
 - [Arduino 板卡文件说明](examples/arduino/libraries/board_config/README.md)：本地板卡定义和安装方式。
-- [工厂测试固件说明](firmware/factory_test/README_CN.md)与
+- [工厂测试固件说明](firmware/factory_test/README_ZH.md)与
   [测试操作手册](firmware/factory_test/docs/test-procedure_CN.md)。
 
 ## 🤝 支持与贡献
