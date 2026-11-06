@@ -18,7 +18,7 @@ body:
     id: project
     attributes:
       label: Example or firmware path
-      placeholder: examples/esp-idf/04_mipi_dsi, examples/Arduino/..., firmware/brookesia, ...
+      placeholder: examples/esp-idf/04_mipi_dsi, examples/Arduino/..., examples/factory, ...
     validations:
       required: true
   - type: input

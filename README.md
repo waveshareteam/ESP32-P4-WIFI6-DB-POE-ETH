@@ -33,7 +33,7 @@ The ESP32-P4-WIFI6-DB-POE-ETH combines an ESP32-P4 application processor with an
 
 ## 📦 Quick Start
 
-Install ESP-IDF, connect the board over USB, and follow the [board-check example](examples/esp-idf/00_board_check/). Firmware projects are available in [`firmware/`](firmware/).
+Install ESP-IDF, connect the board over USB, and follow the [board-check example](examples/esp-idf/00_board_check/). Firmware projects are available in [`examples/factory/`](examples/factory/).
 
 ## 🧪 Examples
 
@@ -55,6 +55,7 @@ Install ESP-IDF, connect the board over USB, and follow the [board-check example
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid for viewing and toggling expansion-header GPIO levels |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for starting the board with ESP Board Manager and running LCD, touch, audio, camera, SD card, Ethernet, and GPIO tests |
+| [factory_test](examples/esp-idf/factory_test/) | Interactive hardware validation console |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test over the ESP32-P4 ESP-Hosted SDIO link, with an iPerf 2.x PC peer |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | Minimal NimBLE peripheral that advertises through the ESP32-C5 BLE controller over ESP-Hosted HCI |

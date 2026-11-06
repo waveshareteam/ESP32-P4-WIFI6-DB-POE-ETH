@@ -4,7 +4,7 @@
 [![Target](https://img.shields.io/badge/target-ESP32--P4-1F6FEB)](https://www.espressif.com/en/products/socs/esp32-p4)
 [![LVGL](https://img.shields.io/badge/LVGL-9.4.0-2AA9E0?logo=lvgl)](https://lvgl.io/)
 
-English | [简体中文](README_CN.md)
+English | [简体中文](README_ZH.md)
 
 This directory contains the ESP-Brookesia firmware source for the
 **Waveshare ESP32-P4-WIFI6-DB-POE-ETH**. It drives an external MIPI-DSI touch
@@ -17,7 +17,7 @@ Wi-Fi and IP101 Ethernet.
 | --- | --- |
 | Host MCU | ESP32-P4NRW32X, 32 MB flash, 32 MB PSRAM |
 | Display / touch | Waveshare [5](https://www.waveshare.com/5-dsi-touch-a.htm), [7](https://www.waveshare.com/7-dsi-touch-a.htm), [8](https://www.waveshare.com/8-dsi-touch-a.htm) and [10.1](https://www.waveshare.com/10.1-dsi-touch-a.htm)-inch portrait panels, GT911 touch |
-| Framework | ESP-IDF v6.1 (locked in `dependencies.lock`); `idf_component.yml` requires `>=5.5` |
+| Framework | ESP-IDF v5.5.6 in the factory build configuration; `idf_component.yml` requires `>=5.5` |
 | UI | LVGL 9.4.0 with the local ESP-Brookesia core 0.6.0-beta2 |
 | BSP | Local `esp32_p4_wifi6_db_poe_eth` component in [`components/`](../../components/esp32_p4_wifi6_db_poe_eth/) |
 | LVGL adapter | `espressif/esp_lvgl_adapter` 0.6.3 |
@@ -68,14 +68,14 @@ for interfaces and pin assignments. The ESP32-P4/ESP32-C5 companion project is
 
 ### Requirements
 
-Use ESP-IDF v6.1 (or v5.5 or later) with the `esp32p4` toolchain. Network access
+Use ESP-IDF v5.5.6 (or v5.5 or later) with the `esp32p4` toolchain. Network access
 to the ESP Component Registry is required. Use a data-capable USB cable for
 flashing.
 
 All commands below run from this directory. Starting from the repository root:
 
 ```sh
-cd firmware/brookesia
+cd examples/factory
 idf.py --version
 idf.py set-target esp32p4
 idf.py build

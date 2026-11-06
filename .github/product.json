@@ -5,10 +5,16 @@
   "tier": 0,
   "target": "esp32p4",
   "esp_idf": {
-    "versions": ["v5.5.5", "v6.1"]
+    "versions": [
+      "v5.5.5",
+      "v6.1"
+    ]
   },
   "arduino": {
     "core": "3.3.11",
     "fqbn": "esp32:esp32:waveshare_esp32_p4_wifi6_db_poe_eth"
+  },
+  "factory_firmware": {
+    "esp_idf": "v5.5.6"
   }
 }

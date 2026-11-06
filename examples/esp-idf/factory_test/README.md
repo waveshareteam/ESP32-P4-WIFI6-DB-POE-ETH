@@ -32,8 +32,8 @@ idf.py -p PORT flash monitor
 ```
 
 - `bmgr` generates `components/gen_bmgr_codes/` (git-ignored). For another panel
-  replace the `-a` amend with `lcd_5_dsi_touch_a` / `lcd_8_dsi_touch_a` /
-  `lcd_10_1_dsi_touch_a`, re-run `bmgr`, then `build`.
+  replace the `-a` amend with `../esp32_p4_dsi_overlay/5_dsi_touch_a` / `../esp32_p4_dsi_overlay/8_dsi_touch_a` /
+  `../esp32_p4_dsi_overlay/10_1_dsi_touch_a`, re-run `bmgr`, then `build`.
 - On boot only the console starts; **no peripheral is initialised** until the
   first command that needs it.
 

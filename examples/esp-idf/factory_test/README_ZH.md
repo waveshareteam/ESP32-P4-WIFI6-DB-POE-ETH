@@ -28,7 +28,7 @@ idf.py -p PORT flash monitor
 ```
 
 - `bmgr` 会生成 `components/gen_bmgr_codes/`（已 gitignore）。换屏时把 `-a` 换成
-  `lcd_5_dsi_touch_a` / `lcd_8_dsi_touch_a` / `lcd_10_1_dsi_touch_a`，重新执行 `bmgr` 再 `build`。
+  `../esp32_p4_dsi_overlay/5_dsi_touch_a` / `../esp32_p4_dsi_overlay/8_dsi_touch_a` / `../esp32_p4_dsi_overlay/10_1_dsi_touch_a`，重新执行 `bmgr` 再 `build`。
 - 固件启动后只起控制台，**不初始化任何外设**；每个外设在第一次用到对应命令时才初始化。
 
 ## 命令速查

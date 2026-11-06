@@ -1,6 +1,6 @@
 # ESP32-P4-WIFI6-DB-POE-ETH 硬件验证操作手册
 
-适用固件：`firmware/factory_test`。串口 115200，提示符 `waveshare>`。任何时候输入 `help` 查看命令。
+适用固件：`examples/esp-idf/factory_test`。串口 115200，提示符 `waveshare>`。任何时候输入 `help` 查看命令。
 
 约定：
 - `waveshare>` 后面是要敲的命令，其余为预期输出（数值因板而异）。
