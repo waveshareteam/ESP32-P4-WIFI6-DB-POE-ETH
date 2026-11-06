@@ -67,7 +67,7 @@ The table below lists the key components of the board.
 
 ## 1.4. Factory Firmware
 
-The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [factory test README](../examples/esp-idf/factory_test/README.md).
+The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [factory test README](../examples/esp-idf/13_hardware_test_cli/README.md).
 
 # 2. Start Application Development
 
@@ -297,4 +297,4 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 - [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
 - [Brookesia firmware](../examples/factory/README.md)
-- [Factory test firmware](../examples/esp-idf/factory_test/README.md)
+- [Hardware test console](../examples/esp-idf/13_hardware_test_cli/README.md)

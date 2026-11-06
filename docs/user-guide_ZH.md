@@ -67,7 +67,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 
 ## 1.4. 出厂固件
 
-开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../examples/factory/README_ZH.md)。通过串口控制台测试整板硬件的固件见[整板测试固件 README](../examples/esp-idf/factory_test/README_ZH.md)。
+开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../examples/factory/README_ZH.md)。通过串口控制台测试整板硬件的固件见[整板测试固件 README](../examples/esp-idf/13_hardware_test_cli/README_ZH.md)。
 
 # 2. 开始开发应用
 
@@ -297,4 +297,4 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 - [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
 - [Brookesia 固件](../examples/factory/README_ZH.md)
-- [整板测试固件](../examples/esp-idf/factory_test/README_ZH.md)
+- [硬件测试控制台](../examples/esp-idf/13_hardware_test_cli/README_ZH.md)
