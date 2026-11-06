@@ -1,16 +1,18 @@
 <div align="center">
   <h1>ESP32-P4-WIFI6-DB-POE-ETH</h1>
-  <p><strong>搭载 ESP32-P4NRW32X 和 ESP32-C5 Wi-Fi 6 协处理器，集成 PoE 以太网，提供 MIPI-DSI / MIPI-CSI 接口的开发板</strong></p>
+  <p><strong>搭载 ESP32-P4 和 ESP32-C5 的 Wi-Fi 6 开发板，集成 PoE 以太网</strong></p>
+  <p><a href="README.md">English</a> | <strong>简体中文</strong></p>
   <p>
+    <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/actions/workflows/build.yml"><img alt="Build" src="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/actions/workflows/build.yml/badge.svg"></a>
+    <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH"></a>
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH"></a>
   </p>
   <p>
-    <a href="README.md">English</a> ·
-    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 产品页面</a> ·
-    <a href="https://docs.waveshare.net/ESP32-P4-WIFI6-DB-POE-ETH-DB">📚 文档</a> ·
+    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 产品</a> ·
     <a href="firmware/">📦 固件</a> ·
-    <a href="examples/esp-idf/">🧩 ESP-IDF 示例</a> ·
-    <a href="examples/arduino/examples/">🔧 Arduino 示例</a>
+    <a href="examples/esp-idf/">🧩 ESP-IDF</a> ·
+    <a href="examples/arduino/examples/">🔧 Arduino</a> ·
+    <a href="hardware/schematic/">📚 文档</a>
   </p>
 </div>
 
@@ -18,63 +20,24 @@
 
 ## ✨ 概述
 
-本仓库提供 ESP-IDF 板级支持包（BSP）、ESP Board Manager 板卡定义、ESP-IDF 与 Arduino
-示例，以及面向本开发板的整板工厂测试固件源码。
+ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 6 和 Bluetooth LE。开发板提供 PoE 以太网、MIPI-DSI、MIPI-CSI、音频、microSD、USB Host 和 GPIO 扩展接口。
 
-ESP32-C5 通过 SDIO 连接主处理器，并提供 Wi-Fi 6 和 Bluetooth LE。板上提供
-双 lane MIPI-DSI 显示与触摸接口、MIPI-CSI 摄像头接口、ES8311 音频、microSD、USB Host、
-GPIO 扩展排针和 RMII 以太网。板载已集成 PoE 模块；使用 PoE 供电时，需连接支持
-IEEE 802.3af PoE 标准的路由器或交换机。
-
-完整的引脚映射和 API 说明请参阅 BSP 的
-[README](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) /
-[README (English)](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) 和
-[API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
-
-## 🖥️ 硬件概况
-
-| 项目 | 说明 |
+| 功能 | 器件或接口 |
 | --- | --- |
-| 主处理器 | ESP32-P4NRW32X，双核 RISC-V HP 系统加低功耗核 |
-| Flash | 32 MB（QIO） |
-| PSRAM | 片上 PSRAM，200 MHz |
-| 无线 | ESP32-C5 协处理器，通过 SDIO 上的 ESP-Hosted 提供 Wi-Fi 6 和蓝牙 |
-| 以太网 | RMII MAC/PHY（通用 IEEE 802.3 PHY 驱动）；板载集成 PoE 模块 |
-| 显示 | 双通道 MIPI-DSI；支持外接 Waveshare [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) 英寸面板 |
-| 触摸 | GT911 电容触摸控制器，通过共享 I2C 轮询 |
-| 音频 | ES8311 编解码器，扬声器输出 + 单路模拟麦克风输入 |
-| 存储 | microSD，4-bit SDMMC |
-| 摄像头 | MIPI-CSI，2-lane，通过 `esp_video` |
-| USB | USB Host |
-| 扩展 | 通过 GPIO 排针连接外部模块 |
-| ESP-IDF target | `esp32p4`，要求 ESP-IDF >= 5.5 |
+| 主控 | ESP32-P4NRW32X |
+| 存储器 | 32 MB Flash、32 MB PSRAM |
+| 无线 | ESP32-C5，通过 SDIO 连接 |
+| 以太网 | RMII，集成 PoE 模块 |
+| 显示 / 摄像头 | MIPI-DSI / MIPI-CSI |
+| 音频 | ES8311 编解码器 |
 
-### ESP-IDF LCD 选择
+## 📦 快速开始
 
-| 面板 | 控制器 | 分辨率 |
-| --- | --- | --- |
-| [Waveshare 5-DSI-TOUCH-A](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm) | HX8394，5 英寸 | 720 × 1280 |
-| [Waveshare 7-DSI-TOUCH-A](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm) | ILI9881C，7 英寸 | 720 × 1280 |
-| [Waveshare 8-DSI-TOUCH-A](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm) | JD9365，8 英寸 | 800 × 1280 |
-| [Waveshare 10.1-DSI-TOUCH-A](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) | JD9365，10.1 英寸 | 800 × 1280 |
+安装 ESP-IDF，通过 USB 连接开发板，然后按[开发板检查示例](examples/esp-idf/00_board_check/README_ZH.md)操作。固件工程位于 [`firmware/`](firmware/)。
 
-构建前请确认所选面板与实际连接的面板匹配。
+## 🧪 示例
 
-## 🚀 快速开始
-
-安装 ESP-IDF（>= 5.5）后，按以下步骤运行开发板检查示例：
-
-```bash
-cd examples/esp-idf/00_board_check
-idf.py set-target esp32p4
-idf.py build
-idf.py -p PORT flash monitor
-```
-
-将 `PORT` 替换为实际串口号，例如 Windows 上的 `COMx` 或 Linux 上的 `/dev/ttyACM0`。
-开发板检查通过后，可从下表选择要运行的示例。
-
-## 🧪 ESP-IDF 示例
+### ESP-IDF
 
 | 示例 | 说明 |
 | --- | --- |
@@ -96,10 +59,9 @@ idf.py -p PORT flash monitor
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | 最小 NimBLE 外设示例，通过 ESP-Hosted HCI 使用 ESP32-C5 的 BLE 控制器进行广播 |
 
-## 🧪 Arduino 示例
+### Arduino
 
-Arduino 示例位于 `examples/arduino/examples/`。请先按[本地板卡文件说明](examples/arduino/libraries/board_config/README.md)
-安装板卡定义，再在 Arduino IDE 中选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
+按[板卡定义安装说明](examples/arduino/libraries/board_config/README.md)配置 Arduino IDE，再打开示例。
 
 | 示例 | 说明 |
 | --- | --- |
@@ -111,58 +73,24 @@ Arduino 示例位于 `examples/arduino/examples/`。请先按[本地板卡文件
 | [mipi_dsi](examples/arduino/examples/mipi_dsi/) | MIPI-DSI 屏幕色条和背光测试 |
 | [mipi_csi](examples/arduino/examples/mipi_csi/) | 将 OV5647 摄像头画面显示到 LCD |
 
-## 📡 ESP32-P4NRW32X 与 ESP32-C5 无线通信
+## 🛠️ 开发环境
 
-ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
-Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
-应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
-[03_wifistation](examples/esp-idf/03_wifistation/)、
-[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) 和
-[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/)；后两者包含 P4 Host 和 C5 协处理器工程。
-
-## 🌐 以太网
-
-- 以太网由内部 EMAC 和通用 IEEE 802.3 PHY 驱动提供，MDC、MDIO 和 PHY 复位信号分别连接 GPIO31、GPIO52 和 GPIO51。
-  BSP 负责安装驱动；netif、事件循环以及 DHCP 或静态地址由应用管理。详见
-  [以太网生命周期](components/esp32_p4_wifi6_db_poe_eth/README_zh.md#接入应用)。
-
-## 📦 固件
-
-[`firmware/factory_test/`](firmware/factory_test/) 提供本开发板的整板硬件测试固件，通过串口控制台
-测试 I2C、存储、网络、USB、显示、触摸、摄像头、音频和 GPIO。操作说明见[固件 README](firmware/factory_test/README_ZH.md)
-和[测试手册](firmware/factory_test/docs/test-procedure_CN.md)。
-
-仓库中的 [`firmware/brookesia/`](firmware/brookesia/) 面向 ESP32-P4-WIFI6-DB-POE-ETH，是本开发板的固件工程。
-
-## 🗂️ 仓库结构
-
-| 路径 | 用途 |
+| 开发框架 | 产品配置中的版本 |
 | --- | --- |
-| `examples/esp-idf/` | 本开发板的 ESP-IDF 外设示例 |
-| `examples/arduino/examples/` | Arduino-ESP32 示例及本地板卡定义（`examples/arduino/libraries/board_config/`） |
-| `components/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
-| `waveshare/waveshare_boards` | 同一板卡的 ESP Board Manager 板卡定义 |
-| `firmware/factory_test/` | 本开发板的整板硬件测试固件 |
-| `firmware/brookesia/` | ESP32-P4-WIFI6-DB-POE-ETH 固件工程 |
-| `docs/` | 中英文硬件参考指南 |
-| `hardware/` | 开发板原理图（PDF） |
+| ESP-IDF | `v5.5.5`、`v6.1` |
+| Arduino-ESP32 | `3.3.11` |
 
-## 📚 文档
+## 📚 资料
 
-- [硬件参考指南](docs/zh_CN/hw-reference/user-guide.md)：板载资源、GPIO 功能和接口信息。
-- [开发板原理图](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）。
-- [BSP 中文说明](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)与
-  [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
-- [Arduino 板卡文件说明](examples/arduino/libraries/board_config/README.md)：本地板卡定义和安装方式。
-- [工厂测试固件说明](firmware/factory_test/README_ZH.md)与
-  [测试操作手册](firmware/factory_test/docs/test-procedure_CN.md)。
+- [原理图](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)
+- [硬件参考指南](docs/zh_CN/hw-reference/user-guide.md)
+- [产品页面](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
-## 🤝 支持与贡献
+## 🤝 支持
 
-欢迎通过 [GitHub Issues](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/issues) 反馈问题或提交改进建议。
-请附上板卡版本、连接的屏幕或摄像头、ESP-IDF 或 Arduino-ESP32 版本、复现步骤、预期与实际现象，
-以及相关日志。
+- [反馈示例或仓库问题](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/issues)
+- [微雪技术支持](https://docs.waveshare.net/support)
 
 ## 📄 许可证
 
-本仓库基于 Apache License 2.0 授权，详情请见 [LICENSE](LICENSE)。
+Apache License 2.0，详见 [LICENSE](LICENSE)。
