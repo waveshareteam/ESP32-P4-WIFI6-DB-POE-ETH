@@ -145,11 +145,12 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | `firmware/factory_test/` | 本开发板的整板硬件测试固件 |
 | `firmware/brookesia/` | ESP32-P4-WIFI6-DB-POE-ETH 固件工程 |
 | `docs/` | 中英文硬件参考指南 |
-| `hardware/` | 硬件文档与资料 |
+| `hardware/` | 开发板原理图（PDF） |
 
 ## 📚 文档
 
 - [硬件参考指南](docs/zh_CN/hw-reference/user-guide.md)：板载资源、GPIO 功能和接口信息。
+- [开发板原理图](hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）。
 - [BSP 中文说明](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)与
   [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
 - [Arduino 板卡文件说明](examples/Arduino/esp32/README.md)：本地板卡定义和安装方式。

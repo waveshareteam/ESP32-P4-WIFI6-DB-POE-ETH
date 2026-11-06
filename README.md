@@ -151,11 +151,12 @@ and the [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.
 | `firmware/factory_test/` | Whole-board hardware test firmware |
 | `firmware/brookesia/` | Firmware project for the ESP32-P4-WIFI6-DB-POE-ETH |
 | `docs/` | Chinese and English hardware reference guides |
-| `hardware/` | Hardware documentation and resources |
+| `hardware/` | Board schematic (PDF) |
 
 ## 📚 Documentation
 
 - [Hardware reference guide](docs/en/hw-reference/user-guide.md): onboard resources, GPIO functions, and interfaces.
+- [Board schematic](hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF).
 - [BSP README](components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
 - [Arduino board definition and installation guide (Chinese)](examples/Arduino/esp32/README.md).
 - [Factory-test firmware README](firmware/factory_test/README.md) and [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.md).
