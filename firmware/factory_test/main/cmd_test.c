@@ -44,7 +44,6 @@ static void test_all(void)
         report_set("sd.mount.20M", REPORT_SKIP, NULL, "no card");
     }
 
-    run("ifup eth0");
 
     if (!usb_msc_is_mounted()) {
         run("mount -t usb /usb");

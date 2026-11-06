@@ -9,8 +9,8 @@
 An interactive console for bringing up the ESP32-P4-WIFI6-DB-POE-ETH board
 through [ESP Board Manager](https://github.com/espressif/esp-board-manager)
 and running functional test cases (LCD, touch, audio, camera, SD card,
-Ethernet, GPIO, ...) on real hardware. The board definition lives in
-[`components/waveshare_boards`](../../../components/waveshare_boards).
+GPIO, ...) on real hardware. The board definition lives in
+[`waveshare/waveshare_boards`](https://components.espressif.com/components/waveshare/waveshare_boards/versions/0.2.0).
 
 This project is adapted from the official `test_apps` project shipped with
 Espressif's [esp-board-manager](https://github.com/espressif/esp-board-manager)
@@ -36,7 +36,7 @@ pip install esp-bmgr-assist
 Check that it works:
 
 ```bash
-idf.py bmgr -l -c ../../../components/waveshare_boards
+idf.py bmgr -l
 ```
 
 `esp32_p4_wifi6_db_poe_eth` should appear in the list.
@@ -49,21 +49,19 @@ Run all commands from this directory.
 idf.py set-target esp32p4
 ```
 
-Generate the board configuration. `-c` points at the boards package in this
-repository (it is not on the component registry, so it is not discovered
-automatically):
+Generate the board configuration after dependencies are resolved:
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 ```
 
 The default display is the 10.1" DSI panel. For another Waveshare DSI touch
 display add `-a` with the matching amend directory
-(`lcd_5_dsi_touch_a`, `lcd_7_dsi_touch_a`, `lcd_8_dsi_touch_a`,
-`lcd_10_1_dsi_touch_a`):
+(`5_dsi_touch_a`, `7_dsi_touch_c`, `8_dsi_touch_a`,
+`10_1_dsi_touch_a`, `10_1_dsi_touch_b`):
 
 ```bash
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../../components/waveshare_boards -a ../../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
 ```
 
 Then build, flash and open the monitor:
@@ -125,6 +123,6 @@ Add `--summary` (human readable) or `--json` (machine readable) to a `case`
 command to print pass/fail metrics at the end of the run.
 
 The test cases look devices up by their conventional Board Manager names.
-This board's two `custom` devices are `lcd_brightness` and `ethernet`; to
+This board's `custom` device is `lcd_brightness`; to
 point `custom.basic` at one of them set *Board Manager Test App →
 Device/Peripheral name overrides → Custom device name* in `idf.py menuconfig`.

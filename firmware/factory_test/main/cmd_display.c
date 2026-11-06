@@ -126,7 +126,7 @@ static int cmd_backlight(int argc, char **argv)
         printf("usage: backlight <0-100>\n");
         return 1;
     }
-    esp_err_t err = custom_lcd_brightness_set(s_brightness, pct);
+    esp_err_t err = esp_custom_lcd_brightness_set(s_brightness, pct);
     if (err != ESP_OK) {
         printf("failed: %s\n", esp_err_to_name(err));
         return 1;

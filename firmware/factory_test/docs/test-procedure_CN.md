@@ -113,28 +113,7 @@ waveshare> watch dd if=/sdcard/t.bin of=/dev/null bs=64k
 
 ## 4. 以太网
 
-引脚：RMII REF_CLK=GPIO50（PHY 输出 50 MHz），TX_EN=GPIO49，MDC/MDIO=GPIO31/52。
-
-PC 端先起服务端：`iperf -s`（TCP）或 `iperf -s -u`（UDP）。
-
-```
-waveshare> ifup eth0
-eth0: link up, 100 Mbps full duplex
-eth0: ip 192.168.1.50 mask 255.255.255.0 gw 192.168.1.1
-waveshare> ifconfig
-waveshare> ping 192.168.1.1
-waveshare> iperf -c <PC_IP> -t 30            # TCP 上行（板→PC）
-waveshare> iperf -c <PC_IP> -u -b 100M -t 30 # UDP 上行
-waveshare> iperf -s                          # 板做服务端，PC 端 iperf -c <板IP> -t 30（下行）
-waveshare> iperf -a                          # 停止服务端
-```
-
-波形：`ifup eth0` 后探 GPIO50 应有 50 MHz 参考时钟；iperf 期间探 GPIO49 TX_EN。
-
-PoE：切换到 PoE 供电（拔掉 USB 供电或按板卡说明），重新上电后重复本节 `ifup eth0` + TCP iperf。
-
-合格：链路 100 Mbps 全双工、拿到 IP、ping 通；TCP 上下行均 ≥ 80 Mbps（参考值，以项目要求为准）；PoE 供电下结果一致。
-记录：TCP 上/下行、UDP 上/下行 Mbps 与丢包率；PoE 供电下的 TCP 数值。
+当前工厂测试固件不包含以太网测试。
 
 ## 5. Wi-Fi（ESP32-C5 协处理器）
 
@@ -156,7 +135,6 @@ waveshare> ifdown wifi0
 ```
 
 如果 `ifup wifi0` 报 `esp_hosted_init failed` / `connect_to_slave failed`，先确认 C5 已烧固件。
-以太网和 Wi-Fi 同时 up 时，用 `iperf -c <PC_IP> -B <wifi0 的 IP>` 指定走 Wi-Fi。
 
 波形：iperf 期间探 GPIO18（SDIO CLK，40 MHz）。
 
@@ -274,7 +252,7 @@ waveshare> gpioget all          # 全部设为上拉输入读取
 ## 11. 汇总
 
 ```
-waveshare> test all             # 自动跑：系统、NVS、I2C 100k/400k、SD 20/40 读写校验、以太网链路、U 盘读写校验
+waveshare> test all             # 自动跑：系统、NVS、I2C 100k/400k、SD 20/40 读写校验、U 盘读写校验
 waveshare> test report
 ITEM                           RESULT  VALUE                  NOTE
 sys.uname                      PASS
@@ -307,10 +285,6 @@ pass=12 fail=0 skip=0 manual=0
 | I2C 400 kHz 扫描 | | 实测 SCL: kHz | |
 | SD 20 MHz 写 / 读 | | / MB/s | 实测 CLK: |
 | SD 40 MHz 写 / 读 | | / MB/s | 实测 CLK: |
-| 以太网链路 / DHCP | | Mbps | |
-| 以太网 TCP 上行 / 下行 | | / Mbps | |
-| 以太网 UDP 上行 / 下行 | | / Mbps，丢包 % | |
-| PoE 供电下以太网 TCP | | Mbps | |
 | Wi-Fi 连接（协处理器版本 / RSSI / 信道） | | | |
 | Wi-Fi TCP 上行 / 下行 | | / Mbps | |
 | USB 枚举 / 挂载 | | VID:PID | HS / FS |

@@ -141,7 +141,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | `examples/esp-idf/` | 本开发板的 ESP-IDF 外设示例 |
 | `examples/arduino/examples/` | Arduino-ESP32 示例及本地板卡定义（`examples/arduino/libraries/board_config/`） |
 | `components/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
-| `components/waveshare_boards/esp32_p4_wifi6_db_poe_eth/` | 同一板卡的 ESP Board Manager 板卡定义 |
+| `waveshare/waveshare_boards` | 同一板卡的 ESP Board Manager 板卡定义 |
 | `firmware/factory_test/` | 本开发板的整板硬件测试固件 |
 | `firmware/brookesia/` | ESP32-P4-WIFI6-DB-POE-ETH 固件工程 |
 | `docs/` | 中英文硬件参考指南 |

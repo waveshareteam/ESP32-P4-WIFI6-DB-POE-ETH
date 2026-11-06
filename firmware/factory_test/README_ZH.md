@@ -4,7 +4,7 @@
 
 给测试人员用的 ESP32-P4-WIFI6-DB-POE-ETH 整板验证固件。一个固件覆盖板上全部硬件，
 通过串口控制台用 Linux 风格命令逐项测试：切换 I2C 100k/400k、SD 卡 20/40 MHz、
-以太网 / Wi-Fi iperf 吞吐、U 盘读写、屏幕 / 触摸 / 摄像头 / 音频、扩展排针 GPIO；
+Wi-Fi iperf 吞吐、U 盘读写、屏幕 / 触摸 / 摄像头 / 音频、扩展排针 GPIO；
 任何命令都可以用 `watch` 放到后台无限循环，方便示波器抓波形。
 
 逐项操作步骤、示波器探测点和报告表见 [测试操作手册](docs/test-procedure_CN.md)。
@@ -22,7 +22,7 @@
 
 ```bash
 idf.py set-target esp32p4
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../components/waveshare_boards -a ../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py build
 idf.py -p PORT flash monitor
 ```
@@ -43,7 +43,6 @@ idf.py -p PORT flash monitor
 | SD 卡 | `mount -t sd [-o freq=20\|40] /sdcard`、`umount /sdcard`、`df`、`ls /sdcard` |
 | U 盘 | `lsusb`、`mount -t usb /usb`、`umount /usb` |
 | 读写测速 | `dd if=/dev/urandom of=/sdcard/t.bin bs=64k count=512`、`dd if=/sdcard/t.bin of=/dev/null bs=64k` |
-| 以太网 | `ifup eth0`、`ifdown eth0`、`ifconfig`、`ping <ip>` |
 | Wi-Fi | `iwconfig wifi0 essid <ssid> key <pwd>`、`ifup wifi0`、`ifdown wifi0`、`iwconfig` |
 | 吞吐 | `iperf -s [-u]`、`iperf -c <ip> [-u] [-t N] [-B <本机IP>]`、`iperf -a` |
 | 屏幕 | `fbtest colorbar\|red\|green\|blue\|white\|black\|checker`、`backlight 0-100`、`evtest` |
@@ -71,14 +70,13 @@ waveshare> kill 1
 ### 结果汇总
 
 有明确判定的命令会把结果登记到一张表，`test report` 随时打印；`test all` 顺序跑完全部可自动判定的项
-（系统、NVS、I2C 100k/400k、SD 20/40 MHz 读写校验、以太网链路、U 盘读写校验）后打印该表。
+（系统、NVS、I2C 100k/400k、SD 20/40 MHz 读写校验、U 盘读写校验）后打印该表。
 屏幕 / 摄像头 / 音频 / GPIO 记为 MANUAL，由测试人员目视判断；iperf 数值从输出抄录。
 
 ## 已知限制
 
 - PoE 供电固件测不到，手册里作为人工检查项（PoE 供电下重跑一遍）。
 - SD 卡 40 MHz 需要卡本身支持高速模式；`mount` 输出里的 `negotiated` 是实际协商到的频率。
-- 以太网和 Wi-Fi 同时 up 时默认路由是最后一次 `ifup` 的网口，`iperf -B <本机IP>` 可指定网口。
 - GPIO45（SD 电源使能）在 SD 卡挂载期间、GPIO53（功放使能）在音频播放期间会被 `gpioset` 自动跳过，写其 sysfs `value` 返回 `EBUSY`。
 - `/gpio<N>` 只包含排针引脚，无需 `export`；写 `value` 会自动把引脚切成输出。`ls /` 列出的是 GPIO（/sdcard、/usb 是独立挂载点，不在其中）。
 - `i2cdetect` 对每个地址做真实 1 字节读（IDF 的 `i2c_master_probe` 固定 100 kHz，无法体现 400k）。

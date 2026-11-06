@@ -9,6 +9,4 @@ dependencies:
   espressif/esp_wifi_remote: ">=0.10,<2.0"
   usb_host_msc: ^1.1.4
   espressif/esp_audio_codec: "^2.4.0"
-  # Board package (not on the registry); `idf.py bmgr -c` must point at the same directory.
-  waveshare_boards:
-    override_path: "../../../components/waveshare_boards"
+  waveshare/waveshare_boards: "0.2.0"

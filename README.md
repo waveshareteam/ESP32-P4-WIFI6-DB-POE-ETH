@@ -147,7 +147,7 @@ and the [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.
 | `examples/esp-idf/` | ESP-IDF peripheral examples for this board |
 | `examples/arduino/examples/` | Arduino-ESP32 examples and the local board definition in `examples/arduino/libraries/board_config/` |
 | `components/esp32_p4_wifi6_db_poe_eth/` | BSP component source, README, and API reference |
-| `components/waveshare_boards/esp32_p4_wifi6_db_poe_eth/` | ESP Board Manager board definition |
+| `waveshare/waveshare_boards` | ESP Board Manager board definition |
 | `firmware/factory_test/` | Whole-board hardware test firmware |
 | `firmware/brookesia/` | Firmware project for the ESP32-P4-WIFI6-DB-POE-ETH |
 | `docs/` | Chinese and English hardware reference guides |

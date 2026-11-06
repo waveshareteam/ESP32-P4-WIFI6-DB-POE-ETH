@@ -4,7 +4,7 @@
 
 A single ESP32-P4 firmware for validating every piece of hardware on the
 ESP32-P4-WIFI6-DB-POE-ETH board from a serial console, using Linux-style
-commands: I2C at 100 k / 400 k, SD card at 20 / 40 MHz, Ethernet and Wi-Fi
+commands: I2C at 100 k / 400 k, SD card at 20 / 40 MHz, Wi-Fi
 iperf throughput, USB mass storage, display / touch / camera / audio, and the
 expansion-header GPIOs. Any command can be looped in the background with
 `watch` so an oscilloscope can be attached while the bus keeps running.
@@ -26,7 +26,7 @@ From this directory:
 
 ```bash
 idf.py set-target esp32p4
-idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -c ../../components/waveshare_boards -a ../../components/waveshare_boards/esp32_p4_sub_dev/lcd_7_dsi_touch_a
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py build
 idf.py -p PORT flash monitor
 ```
@@ -49,7 +49,6 @@ idf.py -p PORT flash monitor
 | SD card | `mount -t sd [-o freq=20\|40] /sdcard`, `umount /sdcard`, `df`, `ls /sdcard` |
 | USB stick | `lsusb`, `mount -t usb /usb`, `umount /usb` |
 | Throughput / verify | `dd if=/dev/urandom of=/sdcard/t.bin bs=64k count=512`, `dd if=/sdcard/t.bin of=/dev/null bs=64k` |
-| Ethernet | `ifup eth0`, `ifdown eth0`, `ifconfig`, `ping <ip>` |
 | Wi-Fi | `iwconfig wifi0 essid <ssid> key <pwd>`, `ifup wifi0`, `ifdown wifi0`, `iwconfig` |
 | iperf | `iperf -s [-u]`, `iperf -c <ip> [-u] [-t N] [-B <local ip>]`, `iperf -a` |
 | Display | `fbtest colorbar\|red\|green\|blue\|white\|black\|checker`, `backlight 0-100`, `evtest` |
@@ -81,7 +80,7 @@ waveshare> kill 1
 
 Commands with a clear pass criterion record their result; `test report` prints
 the table at any time. `test all` runs every automatically judged item (system,
-NVS, I2C 100 k / 400 k, SD 20 / 40 MHz write+verify, Ethernet link, USB stick
+NVS, I2C 100 k / 400 k, SD 20 / 40 MHz write+verify, USB stick
 write+verify) and prints the table. Display, camera, audio and GPIO items are
 recorded as MANUAL; iperf figures are copied from the iperf output.
 
@@ -89,8 +88,6 @@ recorded as MANUAL; iperf figures are copied from the iperf output.
 
 - PoE cannot be detected by firmware; the procedure asks for a second run on PoE power.
 - 40 MHz needs an SD card that supports high-speed mode; `mount` prints the negotiated clock.
-- With Ethernet and Wi-Fi both up, the default route is the interface brought up last;
-  use `iperf -B <local ip>` to pick one explicitly.
 - `gpioset` skips GPIO45 (SD power enable) while the card is mounted and GPIO53 (PA
   enable) while audio is active; writing their sysfs `value` returns `EBUSY`.
 - `/gpio<N>` only contains the header pins and needs no `export`; writing `value`
