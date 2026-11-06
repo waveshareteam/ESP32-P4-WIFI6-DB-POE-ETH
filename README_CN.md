@@ -10,7 +10,7 @@
     <a href="https://docs.waveshare.net/ESP32-P4-WIFI6-DB-POE-ETH-DB">📚 文档</a> ·
     <a href="firmware/">📦 固件</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF 示例</a> ·
-    <a href="examples/Arduino/">🔧 Arduino 示例</a>
+    <a href="examples/arduino/examples/">🔧 Arduino 示例</a>
   </p>
 </div>
 
@@ -98,18 +98,18 @@ idf.py -p PORT flash monitor
 
 ## 🧪 Arduino 示例
 
-Arduino 示例位于 `examples/Arduino/`。请先按[本地板卡文件说明](examples/Arduino/esp32/README.md)
+Arduino 示例位于 `examples/arduino/examples/`。请先按[本地板卡文件说明](examples/arduino/libraries/board_config/README.md)
 安装板卡定义，再在 Arduino IDE 中选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
 
 | 示例 | 说明 |
 | --- | --- |
-| [board_check](examples/Arduino/board_check/) | 查看芯片、Flash、PSRAM 和内存信息 |
-| [gpio](examples/Arduino/gpio/) | 通过串口交互测试 GPIO |
-| [i2c](examples/Arduino/i2c/) | 扫描开发板 I2C1 总线 |
-| [i2s](examples/Arduino/i2s/) | ES8311 麦克风到扬声器的音频回环 |
-| [sdmmc](examples/Arduino/sdmmc/) | microSD 卡读写 |
-| [mipi_dsi](examples/Arduino/mipi_dsi/) | MIPI-DSI 屏幕色条和背光测试 |
-| [mipi_csi](examples/Arduino/mipi_csi/) | 将 OV5647 摄像头画面显示到 LCD |
+| [board_check](examples/arduino/examples/board_check/) | 查看芯片、Flash、PSRAM 和内存信息 |
+| [gpio](examples/arduino/examples/gpio/) | 通过串口交互测试 GPIO |
+| [i2c](examples/arduino/examples/i2c/) | 扫描开发板 I2C1 总线 |
+| [i2s](examples/arduino/examples/i2s/) | ES8311 麦克风到扬声器的音频回环 |
+| [sdmmc](examples/arduino/examples/sdmmc/) | microSD 卡读写 |
+| [mipi_dsi](examples/arduino/examples/mipi_dsi/) | MIPI-DSI 屏幕色条和背光测试 |
+| [mipi_csi](examples/arduino/examples/mipi_csi/) | 将 OV5647 摄像头画面显示到 LCD |
 
 ## 📡 ESP32-P4NRW32X 与 ESP32-C5 无线通信
 
@@ -139,7 +139,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | 路径 | 用途 |
 | --- | --- |
 | `examples/esp-idf/` | 本开发板的 ESP-IDF 外设示例 |
-| `examples/Arduino/` | Arduino-ESP32 示例及本地板卡定义（`examples/Arduino/esp32/`） |
+| `examples/arduino/examples/` | Arduino-ESP32 示例及本地板卡定义（`examples/arduino/libraries/board_config/`） |
 | `components/esp32_p4_wifi6_db_poe_eth/` | 板级支持包（BSP）组件源码、README 和 API 参考 |
 | `components/waveshare_boards/esp32_p4_wifi6_db_poe_eth/` | 同一板卡的 ESP Board Manager 板卡定义 |
 | `firmware/factory_test/` | 本开发板的整板硬件测试固件 |
@@ -153,7 +153,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 - [开发板原理图](hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）。
 - [BSP 中文说明](components/esp32_p4_wifi6_db_poe_eth/README_zh.md)与
   [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
-- [Arduino 板卡文件说明](examples/Arduino/esp32/README.md)：本地板卡定义和安装方式。
+- [Arduino 板卡文件说明](examples/arduino/libraries/board_config/README.md)：本地板卡定义和安装方式。
 - [工厂测试固件说明](firmware/factory_test/README_CN.md)与
   [测试操作手册](firmware/factory_test/docs/test-procedure_CN.md)。
 

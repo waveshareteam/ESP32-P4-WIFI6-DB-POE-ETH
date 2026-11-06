@@ -9,7 +9,7 @@
     <a href="docs/en/hw-reference/user-guide.md">📚 Documentation</a> ·
     <a href="firmware/">📦 Firmware</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF Examples</a> ·
-    <a href="examples/Arduino/">🔧 Arduino Examples</a>
+    <a href="examples/arduino/examples/">🔧 Arduino Examples</a>
   </p>
 </div>
 
@@ -97,19 +97,19 @@ Replace `PORT` with your serial port, such as `COM7` on Windows or `/dev/ttyACM0
 
 ## 🧪 Arduino Examples
 
-Arduino examples are in `examples/Arduino/`. Follow the
-[local board definition and installation guide (Chinese)](examples/Arduino/esp32/README.md),
+Arduino examples are in `examples/arduino/examples/`. Follow the
+[local board definition and installation guide (Chinese)](examples/arduino/libraries/board_config/README.md),
 then select `Waveshare ESP32-P4-WIFI6-DB-POE-ETH` in the Arduino IDE.
 
 | Example | Description |
 | --- | --- |
-| [board_check](examples/Arduino/board_check/) | Displays chip, flash, PSRAM, and memory information |
-| [gpio](examples/Arduino/gpio/) | Interactive GPIO test over serial |
-| [i2c](examples/Arduino/i2c/) | Scans the board's I2C1 bus |
-| [i2s](examples/Arduino/i2s/) | ES8311 microphone-to-speaker audio loopback |
-| [sdmmc](examples/Arduino/sdmmc/) | microSD card read/write test |
-| [mipi_dsi](examples/Arduino/mipi_dsi/) | MIPI-DSI color-bar and backlight test |
-| [mipi_csi](examples/Arduino/mipi_csi/) | Displays video from an OV5647 camera on the LCD |
+| [board_check](examples/arduino/examples/board_check/) | Displays chip, flash, PSRAM, and memory information |
+| [gpio](examples/arduino/examples/gpio/) | Interactive GPIO test over serial |
+| [i2c](examples/arduino/examples/i2c/) | Scans the board's I2C1 bus |
+| [i2s](examples/arduino/examples/i2s/) | ES8311 microphone-to-speaker audio loopback |
+| [sdmmc](examples/arduino/examples/sdmmc/) | microSD card read/write test |
+| [mipi_dsi](examples/arduino/examples/mipi_dsi/) | MIPI-DSI color-bar and backlight test |
+| [mipi_csi](examples/arduino/examples/mipi_csi/) | Displays video from an OV5647 camera on the LCD |
 
 ## 📡 ESP32-P4 and ESP32-C5 Wireless
 
@@ -145,7 +145,7 @@ and the [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.
 | Path | Purpose |
 | --- | --- |
 | `examples/esp-idf/` | ESP-IDF peripheral examples for this board |
-| `examples/Arduino/` | Arduino-ESP32 examples and the local board definition in `examples/Arduino/esp32/` |
+| `examples/arduino/examples/` | Arduino-ESP32 examples and the local board definition in `examples/arduino/libraries/board_config/` |
 | `components/esp32_p4_wifi6_db_poe_eth/` | BSP component source, README, and API reference |
 | `components/waveshare_boards/esp32_p4_wifi6_db_poe_eth/` | ESP Board Manager board definition |
 | `firmware/factory_test/` | Whole-board hardware test firmware |
@@ -158,7 +158,7 @@ and the [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.
 - [Hardware reference guide](docs/en/hw-reference/user-guide.md): onboard resources, GPIO functions, and interfaces.
 - [Board schematic](hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF).
 - [BSP README](components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](components/esp32_p4_wifi6_db_poe_eth/API.md).
-- [Arduino board definition and installation guide (Chinese)](examples/Arduino/esp32/README.md).
+- [Arduino board definition and installation guide (Chinese)](examples/arduino/libraries/board_config/README.md).
 - [Factory-test firmware README](firmware/factory_test/README.md) and [test procedure (Chinese)](firmware/factory_test/docs/test-procedure_CN.md).
 
 ## 🤝 Support and Contributions
