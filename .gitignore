@@ -26,6 +26,7 @@ docs/superpowers/
 
 # Runtime media and binary assets kept outside source control
 *.bin
+!firmware/*.bin
 
 # Compiled C/C++ outputs
 *.d
