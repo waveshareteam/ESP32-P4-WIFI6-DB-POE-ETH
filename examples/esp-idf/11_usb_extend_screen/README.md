@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 ## USB Extended Display Example
 
 Use [LaunchPad](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://dl.espressif.com/AE/esp-iot-solution/config.toml) to flash this example.

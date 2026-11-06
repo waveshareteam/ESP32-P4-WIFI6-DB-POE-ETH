@@ -1,3 +1,5 @@
+[English](README.md)
+
 # GPIO 输入输出监控
 
 这个示例使用 LVGL 在屏幕上以自适应网格显示选定 GPIO 的实时电平。

@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 # GPIO Input/Output Monitor
 
 This example uses LVGL to show the live level of selected GPIOs in a responsive grid.

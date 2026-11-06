@@ -1,3 +1,5 @@
+[English](README.md)
+
 # Wi-Fi iperf
 
 本示例用于测试 ESP32-P4-WIFI6-DB-POE-ETH 开发板的 Wi-Fi 吞吐。

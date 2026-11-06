@@ -1,6 +1,6 @@
 # Ethernet iPerf Example
 
-[中文版](./README_CN.md)
+[中文版](./README_ZH.md)
 
 Measure the Ethernet TCP and UDP throughput of the ESP32-P4-WIFI6-DB-POE-ETH board.
 Unlike `07_ethernet_basic`, which only verifies Ethernet bring-up and IP connectivity, this example

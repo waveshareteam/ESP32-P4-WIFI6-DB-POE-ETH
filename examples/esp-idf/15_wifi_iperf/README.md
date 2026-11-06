@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 # Wi-Fi iperf
 
 This example measures Wi-Fi throughput on the ESP32-P4-WIFI6-DB-POE-ETH board.
