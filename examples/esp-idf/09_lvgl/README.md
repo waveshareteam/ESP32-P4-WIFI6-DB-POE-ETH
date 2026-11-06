@@ -1,6 +1,6 @@
 # LVGL Benchmark
 
-[中文版本](./README_CN.md)
+[中文版本](./README_ZH.md)
 
 Run the built-in LVGL `benchmark` demo on the board's MIPI-DSI panel through
 the BSP's LVGL adapter. This example does not use touch input; it only
