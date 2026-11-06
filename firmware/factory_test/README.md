@@ -1,6 +1,6 @@
 # Hardware Validation Firmware (factory_test)
 
-[中文版本](README_CN.md)
+[中文版本](README_ZH.md)
 
 A single ESP32-P4 firmware for validating every piece of hardware on the
 ESP32-P4-WIFI6-DB-POE-ETH board from a serial console, using Linux-style
