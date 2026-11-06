@@ -1,3 +1,5 @@
+[English](README.md) | [简体中文](README_ZH.md)
+
 ## Windows IDD 驱动程序
 
 Windows 间接显示驱动程序 (IDD) 模型提供简单的用户模式驱动程序模型，以支持未连接到传统 GPU 显示输出的监视器。[参考](https://learn.microsoft.com/zh-cn/windows-hardware/drivers/display/indirect-display-driver-model-overview)
