@@ -63,7 +63,6 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | 通过 `esp_video` 和 PPA 将 MIPI-CSI 摄像头画面显示到 LCD |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB 扩展屏示例 |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
-| [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | 最小 NimBLE 外设示例，通过 ESP-Hosted HCI 使用 ESP32-C5 的 BLE 控制器进行广播 |
@@ -87,7 +86,7 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 
 | 开发框架 | 版本 | 示例数 |
 | --- | --- | ---: |
-| ESP-IDF | `v5.5.6`、`v6.1` | 18 |
+| ESP-IDF | `v5.5.6`、`v6.1` | 17 |
 | Arduino-ESP32 | `3.3.11` | 7 |
 
 ## 📚 资料
