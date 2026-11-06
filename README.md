@@ -71,7 +71,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-Replace `PORT` with your serial port, such as `COM7` on Windows or `/dev/ttyACM0` on Linux. After the board check succeeds, choose an example from the table below.
+Replace `PORT` with your serial port, such as `COMx` on Windows or `/dev/ttyACM0` on Linux. After the board check succeeds, choose an example from the table below.
 
 ## 🧪 ESP-IDF Examples
 
