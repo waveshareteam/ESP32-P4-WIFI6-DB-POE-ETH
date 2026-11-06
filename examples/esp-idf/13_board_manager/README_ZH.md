@@ -1,11 +1,10 @@
 | Supported Targets | ESP32-P4 |
 | ----------------- | -------- |
 
-# Board Manager �\x8b试应用
+# Board Manager 测试应用
 
 [English](README.md) | [简体中文](README_ZH.md)
 
-[English](README.md)
 
 一个交互式串口控制台，通过 [ESP Board Manager](https://github.com/espressif/esp-board-manager)
 初始化 ESP32-P4-WIFI6-DB-POE-ETH 开发板，并在真实硬件上运行功能测试用例
