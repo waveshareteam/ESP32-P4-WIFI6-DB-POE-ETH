@@ -24,9 +24,12 @@ dependencies:
   esp_video:
     public: true
     version: ^2.3.0
+  # LVGL 9.6 needs adapter 0.7.1 or later on ESP-IDF v6, where deprecated-header
+  # warnings are errors. examples/factory stays on its tested ^0.6.2 release, so
+  # keep 0.6.x here until the factory firmware moves to 0.7.
   espressif/esp_lvgl_adapter:
     public: true
-    version: ^0.6.2
+    version: ">=0.6.2,<0.8"
   idf: '>=5.5'
   lvgl/lvgl:
     public: true
