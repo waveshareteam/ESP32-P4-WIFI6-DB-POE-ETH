@@ -8,7 +8,7 @@ dependencies:
 
   # Board support
   esp32_p4_wifi6_db_poe_eth:
-    override_path: "../../../../components/esp32_p4_wifi6_db_poe_eth"
+    override_path: "../../../components/esp32_p4_wifi6_db_poe_eth"
     public: true
   espressif/esp_lvgl_adapter:
     version: "0.6.3"

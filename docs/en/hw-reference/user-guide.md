@@ -295,6 +295,6 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 ## 4.2. Software Resources
 
-- [BSP README](../../../components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../../../components/esp32_p4_wifi6_db_poe_eth/API.md)
+- [BSP README](../../../examples/components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../../../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
 - [Brookesia firmware](../../../examples/factory/README.md)
 - [Factory test firmware](../../../examples/esp-idf/factory_test/README.md)

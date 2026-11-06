@@ -1,6 +1,6 @@
 # BSP: ESP32-P4-WIFI6-DB-POE-ETH
 
-[中文说明](README_zh.md)
+[中文说明](README_ZH.md)
 
 ## Overview
 

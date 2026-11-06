@@ -18,7 +18,7 @@ ESP32-C5 Hosted Wi-Fi 和 IP101 以太网。
 | 显示 / 触摸 | 微雪 [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) 英寸竖屏，GT911 触摸 |
 | 框架 | 出厂构建配置使用 ESP-IDF v5.5.6；`idf_component.yml` 要求 `>=5.5` |
 | UI | LVGL 9.4.0，本地 ESP-Brookesia core 0.6.0-beta2 |
-| BSP | [`components/`](../../components/esp32_p4_wifi6_db_poe_eth/) 下的本地 `esp32_p4_wifi6_db_poe_eth` 组件 |
+| BSP | [`examples/components/`](../components/esp32_p4_wifi6_db_poe_eth/) 下的本地 `esp32_p4_wifi6_db_poe_eth` 组件 |
 | LVGL 适配 | `espressif/esp_lvgl_adapter` 0.6.3 |
 | 无线 | ESP32-C5 经 SDIO 连接，使用 ESP-Hosted 3.0.10 / `esp_wifi_remote` 1.6.5 |
 | 以太网 | IP101 RMII PHY，使用 `espressif/ethernet_init` 1.4.1 |
