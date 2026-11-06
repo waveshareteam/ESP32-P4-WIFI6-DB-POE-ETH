@@ -32,7 +32,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-将 `PORT` 替换为你的串口，例如 Windows 上的 `COM7` 或 Linux 上的 `/dev/ttyACM0`。
+将 `PORT` 替换为你的串口，例如 Windows 上的 `COMx` 或 Linux 上的 `/dev/ttyACM0`。
 
 ## 预期输出
 

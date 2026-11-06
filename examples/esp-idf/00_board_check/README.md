@@ -37,7 +37,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-Replace `PORT` with your serial port, for example `COM7` on Windows or
+Replace `PORT` with your serial port, for example `COMx` on Windows or
 `/dev/ttyACM0` on Linux.
 
 ## Expected Output

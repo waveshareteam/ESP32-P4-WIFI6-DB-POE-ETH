@@ -28,7 +28,7 @@ IEEE 802.3af PoE 标准的路由器或交换机。
 
 完整的引脚映射和 API 说明请参阅 BSP 的
 [README](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) /
-[README (English)](components/esp32_p4_wifi6_db_poe_eth/README.md) 和
+[README (English)](components/esp32_p4_wifi6_db_poe_eth/README_zh.md) 和
 [API 参考](components/esp32_p4_wifi6_db_poe_eth/API.md)。
 
 ## 🖥️ 硬件概况
@@ -71,7 +71,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-将 `PORT` 替换为实际串口号，例如 Windows 上的 `COM7` 或 Linux 上的 `/dev/ttyACM0`。
+将 `PORT` 替换为实际串口号，例如 Windows 上的 `COMx` 或 Linux 上的 `/dev/ttyACM0`。
 开发板检查通过后，可从下表选择要运行的示例。
 
 ## 🧪 ESP-IDF 示例

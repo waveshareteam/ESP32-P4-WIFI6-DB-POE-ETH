@@ -85,7 +85,7 @@ I (4518) example: Ethernet Link Up
 
 ```bash
 I (4618) phy: phy_version: 4100, 2a5dd04, Jan 23 2019, 21:00:07, 0, 0
-I (4618) wifi: mode : softAP (30:ae:a4:c6:87:5b)
+I (4618) wifi: mode : softAP (<MAC address>)
 I (4628) wifi: Total power save buffer number: 16
 I (4628) wifi: Init max length of beacon: 752/752
 I (4628) wifi: Init max length of beacon: 752/752
@@ -95,7 +95,7 @@ I (4628) wifi: Init max length of beacon: 752/752
 
 ```bash
 I (10168) wifi: new:<1,0>, old:<1,0>, ap:<1,1>, sta:<255,255>, prof:1
-I (10168) wifi: station: c4:0b:cb:ec:9a:84 join, AID=1, bgn, 20
+I (10168) wifi: station: <MAC address> join, AID=1, bgn, 20
 I (10258) example: AP got a station connected
 ```
 

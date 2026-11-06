@@ -3,6 +3,8 @@
 
 # Board Manager Test Application
 
+[English](README.md) | [简体中文](README_ZH.md)
+
 [中文](README_zh.md)
 
 An interactive console for bringing up the ESP32-P4-WIFI6-DB-POE-ETH board

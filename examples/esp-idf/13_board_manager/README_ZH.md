@@ -1,7 +1,9 @@
 | Supported Targets | ESP32-P4 |
 | ----------------- | -------- |
 
-# Board Manager 测试应用
+# Board Manager �\x8b试应用
+
+[English](README.md) | [简体中文](README_ZH.md)
 
 [English](README.md)
 
