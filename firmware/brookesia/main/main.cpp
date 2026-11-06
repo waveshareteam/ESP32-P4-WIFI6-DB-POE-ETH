@@ -29,6 +29,7 @@
 #include "nvs_flash.h"
 
 #include "bsp_board_extra.h"
+#include "bsp_board_wifi.h"
 #include "SettingsStorage.hpp"
 
 using namespace esp_brookesia;
