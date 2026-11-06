@@ -119,7 +119,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 
    将 `PORT` 替换为实际串口，例如 Windows 下的 `COM7` 或 Linux 下的 `/dev/ttyACM0`。
 
-3. 板级检查通过后，可继续运行 [ESP-IDF 示例](../../../examples/esp-idf/)或 [Arduino 示例](../../../examples/Arduino/)。
+3. 板级检查通过后，可继续运行 [ESP-IDF 示例](../../../examples/esp-idf/)或 [Arduino 示例](../../../examples/arduino/examples/)。
 
 # 3. 硬件参考
 

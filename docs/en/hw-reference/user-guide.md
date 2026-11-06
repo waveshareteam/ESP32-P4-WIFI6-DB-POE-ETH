@@ -119,7 +119,7 @@ The board can be powered in either of the following ways:
 
    Replace `PORT` with the actual serial port, for example `COM7` on Windows or `/dev/ttyACM0` on Linux.
 
-3. Once the board check passes, continue with the [ESP-IDF examples](../../../examples/esp-idf/) or [Arduino examples](../../../examples/Arduino/).
+3. Once the board check passes, continue with the [ESP-IDF examples](../../../examples/esp-idf/) or [Arduino examples](../../../examples/arduino/examples/).
 
 # 3. Hardware Reference
 
