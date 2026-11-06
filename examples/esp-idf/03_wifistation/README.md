@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 # Wi-Fi sta (`wifi/sta`)
 
 <!-- common-start -->

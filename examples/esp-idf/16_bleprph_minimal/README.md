@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 # BLE Peripheral Minimal — NimBLE over Hosted HCI (`bluetooth/esp_hosted_nimble/bleprph_minimal`)
 
 <!-- tags: bluetooth, ble, advertising, nimble, hosted-hci -->

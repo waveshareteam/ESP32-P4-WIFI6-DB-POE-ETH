@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 | Supported Targets | ESP32 | ESP32-P4 |
 | ----------------- | ----- | -------- |
 
