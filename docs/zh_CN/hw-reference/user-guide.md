@@ -201,7 +201,7 @@ P6 是 40 针排针，引出 28 个 ESP32-P4 GPIO 以及 3.3 V、5 V 和 GND。5
 
 <table>
   <tr>
-    <td valign="middle"><img src="../../../assert/P6.webp" alt="P6 排针" width="350"></td>
+    <td valign="middle"><img src="../../images/P6.webp" alt="P6 排针" width="350"></td>
     <td valign="middle">
       <table>
         <tr><th>信号</th><th>引脚</th><th>引脚</th><th>信号</th></tr>
@@ -260,7 +260,7 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 <center>
 
-| ![microSD 电源控制电路](../../../assert/GPIO45.webp) |
+| ![microSD 电源控制电路](../../images/GPIO45.webp) |
 |:--:|
 | microSD 电源控制电路 |
 
@@ -288,7 +288,7 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 ## 4.1. 数据手册与原理图
 
-- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../../hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
+- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
 
 - [ESP32-P4 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_cn.pdf)（PDF）
 - [ESP32-C5 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_cn.pdf)（PDF）

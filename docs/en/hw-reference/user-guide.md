@@ -201,7 +201,7 @@ P6 is a 40-pin header that exposes 28 ESP32-P4 GPIOs plus 3.3 V, 5 V and ground.
 
 <table>
   <tr>
-    <td valign="middle"><img src="../../../assert/P6.webp" alt="P6 Header" width="350"></td>
+    <td valign="middle"><img src="../../images/P6.webp" alt="P6 Header" width="350"></td>
     <td valign="middle">
       <table>
         <tr><th>Signal</th><th>Pin</th><th>Pin</th><th>Signal</th></tr>
@@ -260,7 +260,7 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 <center>
 
-| ![microSD power control circuit](../../../assert/GPIO45.webp) |
+| ![microSD power control circuit](../../images/GPIO45.webp) |
 |:--:|
 | microSD power control circuit |
 
@@ -288,7 +288,7 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 ## 4.1. Datasheets and Schematic
 
-- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../../hardware/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
+- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
 
 - [ESP32-P4 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf) (PDF)
 - [ESP32-C5 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_en.pdf) (PDF)
