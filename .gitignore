@@ -21,11 +21,9 @@ gen_bmgr_codes/
 .vscode/
 .clangd
 
-# Local planning notes
-docs/superpowers/
-
 # Runtime media and binary assets kept outside source control
 *.bin
+!firmware/*.bin
 
 # Compiled C/C++ outputs
 *.d
@@ -67,3 +65,19 @@ ehthumbs.db
 *.swp
 *.swo
 *~
+
+# Local AI coding agent state
+.claude/
+.cursor/
+.codex/
+.gemini/
+.windsurf/
+.continue/
+.roo/
+.cline/
+.aider*
+
+# Local release output
+release-artifacts/
+release-downloads/
+release-dist/

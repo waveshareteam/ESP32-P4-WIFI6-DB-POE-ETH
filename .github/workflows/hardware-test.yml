@@ -1,0 +1,54 @@
+# The template runs `idf.py bmgr` for a whole product only. Only this project uses
+# Board Manager, so it is built here. Remove this workflow and move the project
+# back to examples/esp-idf/ when the template supports Board Manager per example.
+name: Hardware Test Build
+on:
+  push:
+    branches: [main]
+    paths:
+      - examples/hardware_test_cli/**
+      - .github/product.json
+      - .github/workflows/hardware-test.yml
+  pull_request:
+    paths:
+      - examples/hardware_test_cli/**
+      - .github/product.json
+      - .github/workflows/hardware-test.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    outputs:
+      idf: ${{ steps.product.outputs.idf }}
+      target: ${{ steps.product.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: product
+        run: |
+          echo "idf=$(jq -c .esp_idf.versions .github/product.json)" >> "$GITHUB_OUTPUT"
+          echo "target=$(jq -r .target .github/product.json)" >> "$GITHUB_OUTPUT"
+  build:
+    needs: versions
+    runs-on: ubuntu-latest
+    container: espressif/idf:${{ matrix.idf }}
+    strategy:
+      fail-fast: false
+      matrix:
+        idf: ${{ fromJSON(needs.versions.outputs.idf) }}
+    env:
+      PROJECT: examples/hardware_test_cli
+      BOARD: esp32_p4_wifi6_db_poe_eth
+      TARGET: ${{ needs.versions.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with ESP-IDF ${{ matrix.idf }}
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          python -m pip install --upgrade esp-bmgr-assist
+          # set-target resolves the dependencies, which downloads the board definition bmgr needs.
+          idf.py -C "$PROJECT" -B build/hardware_test_cli set-target "$TARGET"
+          idf.py -C "$PROJECT" -B build/hardware_test_cli bmgr -b "$BOARD"
+          idf.py -C "$PROJECT" -B build/hardware_test_cli reconfigure build
