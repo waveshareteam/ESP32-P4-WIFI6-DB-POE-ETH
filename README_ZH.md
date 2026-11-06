@@ -32,6 +32,15 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 | 音频 | ES8311 编解码器 |
 | 板级支持 | 本地 BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/)，Board Manager 板卡定义 `waveshare/waveshare_boards` |
 
+## 📡 ESP32-P4NRW32X 与 ESP32-C5 无线通信
+
+ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
+Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
+应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
+[03_wifistation](examples/esp-idf/03_wifistation/)、
+[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) 和
+[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/)；它们的 C5 协处理器工程都在 `cp` 目录下。
+
 ## 📦 快速开始
 
 体验示例最快的方法是使用[最新版本](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest)中打包好的可烧录固件。

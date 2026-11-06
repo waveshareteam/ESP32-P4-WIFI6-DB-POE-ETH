@@ -32,6 +32,18 @@ The ESP32-P4-WIFI6-DB-POE-ETH combines an ESP32-P4 application processor with an
 | Audio | ES8311 codec |
 | Board support | Local BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/), Board Manager definition `waveshare/waveshare_boards` |
 
+## 📡 ESP32-P4 and ESP32-C5 Wireless
+
+The ESP32-P4 does not have built-in Wi-Fi or Bluetooth. The on-board ESP32-C5
+connects to it over 4-bit SDIO and provides Wi-Fi 6 and Bluetooth LE. Wireless
+operation requires a P4 host application and compatible firmware on the C5
+coprocessor; flashing the P4 application does not update the C5 firmware. Keep the
+ESP-Hosted configurations on both sides compatible. See
+[03_wifistation](examples/esp-idf/03_wifistation/),
+[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) and
+[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/); each keeps its C5
+coprocessor project in a `cp` directory.
+
 ## 📦 Quick Start
 
 The fastest way to try an example is to flash a packaged firmware from the [latest release](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest).
