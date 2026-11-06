@@ -1,6 +1,6 @@
 # ESP32-P4-WIFI6-DB-POE-ETH <!-- omit in toc -->
 
-[English](../../en/hw-reference/user-guide.md)
+[English](user-guide.md)
 
 本指南将帮助你快速上手 ESP32-P4-WIFI6-DB-POE-ETH，并提供更深入的硬件信息。
 
@@ -67,7 +67,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 
 ## 1.4. 出厂固件
 
-开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../../../examples/factory/README_ZH.md)。通过串口控制台测试整板硬件的固件见[整板测试固件 README](../../../examples/esp-idf/factory_test/README_ZH.md)。
+开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../examples/factory/README_ZH.md)。通过串口控制台测试整板硬件的固件见[整板测试固件 README](../examples/esp-idf/factory_test/README_ZH.md)。
 
 # 2. 开始开发应用
 
@@ -108,7 +108,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 ## 2.5. 软件准备
 
 1. 安装 ESP-IDF。本地 BSP 要求 ESP-IDF >= 5.5。
-2. 编译并烧录板级检查示例 [00_board_check](../../../examples/esp-idf/00_board_check/)：
+2. 编译并烧录板级检查示例 [00_board_check](../examples/esp-idf/00_board_check/)：
 
    ```bash
    cd examples/esp-idf/00_board_check
@@ -119,7 +119,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 
    将 `PORT` 替换为实际串口，例如 Windows 下的 `COMx` 或 Linux 下的 `/dev/ttyACM0`。
 
-3. 板级检查通过后，可继续运行 [ESP-IDF 示例](../../../examples/esp-idf/)或 [Arduino 示例](../../../examples/arduino/examples/)。
+3. 板级检查通过后，可继续运行 [ESP-IDF 示例](../examples/esp-idf/)或 [Arduino 示例](../examples/arduino/examples/)。
 
 # 3. 硬件参考
 
@@ -201,7 +201,7 @@ P6 是 40 针排针，引出 28 个 ESP32-P4 GPIO 以及 3.3 V、5 V 和 GND。5
 
 <table>
   <tr>
-    <td valign="middle"><img src="../../images/P6.webp" alt="P6 排针" width="350"></td>
+    <td valign="middle"><img src="images/P6.webp" alt="P6 排针" width="350"></td>
     <td valign="middle">
       <table>
         <tr><th>信号</th><th>引脚</th><th>引脚</th><th>信号</th></tr>
@@ -260,7 +260,7 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 <center>
 
-| ![microSD 电源控制电路](../../images/GPIO45.webp) |
+| ![microSD 电源控制电路](images/GPIO45.webp) |
 |:--:|
 | microSD 电源控制电路 |
 
@@ -288,13 +288,13 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 ## 4.1. 数据手册与原理图
 
-- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
+- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
 
 - [ESP32-P4 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_cn.pdf)（PDF）
 - [ESP32-C5 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_cn.pdf)（PDF）
 
 ## 4.2. 软件资源
 
-- [BSP README](../../../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../../../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
-- [Brookesia 固件](../../../examples/factory/README_ZH.md)
-- [整板测试固件](../../../examples/esp-idf/factory_test/README_ZH.md)
+- [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
+- [Brookesia 固件](../examples/factory/README_ZH.md)
+- [整板测试固件](../examples/esp-idf/factory_test/README_ZH.md)

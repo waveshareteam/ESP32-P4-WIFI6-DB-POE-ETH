@@ -84,7 +84,7 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 ## 📚 资料
 
 - [原理图](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)
-- [硬件参考指南](docs/zh_CN/hw-reference/user-guide.md)
+- [硬件参考指南](docs/user-guide_ZH.md)
 - [产品页面](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
 ## 🤝 支持

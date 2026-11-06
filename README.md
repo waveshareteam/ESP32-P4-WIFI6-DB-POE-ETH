@@ -84,7 +84,7 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 ## 📚 Resources
 
 - [Schematic](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)
-- [Hardware guide](docs/en/hw-reference/user-guide.md)
+- [Hardware guide](docs/user-guide.md)
 - [Product page](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
 ## 🤝 Support

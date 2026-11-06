@@ -54,7 +54,7 @@ Refer to the **Getting Started Guide** for full instructions on configuring and 
 
 ### PC Side
 
-For preparation, refer to [windows_driver](./windows_driver/README_cn.md).
+For preparation, refer to [windows_driver](./windows_driver/README_ZH.md).
 
 ![Demo](https://dl.espressif.com/AE/esp-iot-solution/p4_usb_extern_screen.gif)
 

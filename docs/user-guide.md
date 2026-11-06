@@ -1,6 +1,6 @@
 # ESP32-P4-WIFI6-DB-POE-ETH <!-- omit in toc -->
 
-[Simplified Chinese](../../zh_CN/hw-reference/user-guide.md)
+[Simplified Chinese](user-guide_ZH.md)
 
 This user guide will help you get started with ESP32-P4-WIFI6-DB-POE-ETH and will also provide more in-depth information.
 
@@ -67,7 +67,7 @@ The table below lists the key components of the board.
 
 ## 1.4. Factory Firmware
 
-The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../../../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [factory test README](../../../examples/esp-idf/factory_test/README.md).
+The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [factory test README](../examples/esp-idf/factory_test/README.md).
 
 # 2. Start Application Development
 
@@ -108,7 +108,7 @@ The board can be powered in either of the following ways:
 ## 2.5. Software Setup
 
 1. Install ESP-IDF. The local BSP requires ESP-IDF >= 5.5.
-2. Build and flash the board check example [00_board_check](../../../examples/esp-idf/00_board_check/):
+2. Build and flash the board check example [00_board_check](../examples/esp-idf/00_board_check/):
 
    ```bash
    cd examples/esp-idf/00_board_check
@@ -119,7 +119,7 @@ The board can be powered in either of the following ways:
 
    Replace `PORT` with the actual serial port, for example `COMx` on Windows or `/dev/ttyACM0` on Linux.
 
-3. Once the board check passes, continue with the [ESP-IDF examples](../../../examples/esp-idf/) or [Arduino examples](../../../examples/arduino/examples/).
+3. Once the board check passes, continue with the [ESP-IDF examples](../examples/esp-idf/) or [Arduino examples](../examples/arduino/examples/).
 
 # 3. Hardware Reference
 
@@ -201,7 +201,7 @@ P6 is a 40-pin header that exposes 28 ESP32-P4 GPIOs plus 3.3 V, 5 V and ground.
 
 <table>
   <tr>
-    <td valign="middle"><img src="../../images/P6.webp" alt="P6 Header" width="350"></td>
+    <td valign="middle"><img src="images/P6.webp" alt="P6 Header" width="350"></td>
     <td valign="middle">
       <table>
         <tr><th>Signal</th><th>Pin</th><th>Pin</th><th>Signal</th></tr>
@@ -260,7 +260,7 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 <center>
 
-| ![microSD power control circuit](../../images/GPIO45.webp) |
+| ![microSD power control circuit](images/GPIO45.webp) |
 |:--:|
 | microSD power control circuit |
 
@@ -288,13 +288,13 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 ## 4.1. Datasheets and Schematic
 
-- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
+- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
 
 - [ESP32-P4 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf) (PDF)
 - [ESP32-C5 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_en.pdf) (PDF)
 
 ## 4.2. Software Resources
 
-- [BSP README](../../../examples/components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../../../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
-- [Brookesia firmware](../../../examples/factory/README.md)
-- [Factory test firmware](../../../examples/esp-idf/factory_test/README.md)
+- [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
+- [Brookesia firmware](../examples/factory/README.md)
+- [Factory test firmware](../examples/esp-idf/factory_test/README.md)

@@ -7,7 +7,7 @@
 Wi-Fi iperf 吞吐、U 盘读写、屏幕 / 触摸 / 摄像头 / 音频、扩展排针 GPIO；
 任何命令都可以用 `watch` 放到后台无限循环，方便示波器抓波形。
 
-逐项操作步骤、示波器探测点和报告表见 [测试操作手册](docs/test-procedure_CN.md)。
+逐项操作步骤、示波器探测点和报告表见 [测试操作手册](docs/test-procedure_ZH.md)。
 
 ## 前置条件
 

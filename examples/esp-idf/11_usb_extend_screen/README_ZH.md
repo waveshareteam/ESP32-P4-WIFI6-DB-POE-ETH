@@ -62,7 +62,7 @@ USB 扩展屏示例可以将 [ESP32_S3_LCD_EV_BOARD](https://docs.espressif.com/
 
 ### PC 端
 
-准备工作，请参考 [windows_driver](./windows_driver/README_cn.md)
+准备工作，请参考 [windows_driver](./windows_driver/README_ZH.md)
 
 ![Demo](https://dl.espressif.com/AE/esp-iot-solution/p4_usb_extern_screen.gif)
 

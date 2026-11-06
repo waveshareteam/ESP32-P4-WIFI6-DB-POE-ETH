@@ -10,7 +10,7 @@ expansion-header GPIOs. Any command can be looped in the background with
 `watch` so an oscilloscope can be attached while the bus keeps running.
 
 The step-by-step procedure, probe points and report template are in the
-[tester's procedure (Chinese)](docs/test-procedure_CN.md).
+[tester's procedure (Chinese)](docs/test-procedure_ZH.md).
 
 ## Prerequisites
 
