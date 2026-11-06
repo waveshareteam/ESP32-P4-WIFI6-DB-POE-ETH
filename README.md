@@ -75,10 +75,13 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | Displays the MIPI-CSI camera feed on the LCD via `esp_video` and PPA |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid for viewing and toggling expansion-header GPIO levels |
-| [13_hardware_test_cli](examples/esp-idf/13_hardware_test_cli/) | Interactive hardware validation console |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test over the ESP32-P4 ESP-Hosted SDIO link, with an iPerf 2.x PC peer |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | Minimal NimBLE peripheral that advertises through the ESP32-C5 BLE controller over ESP-Hosted HCI |
+
+### Hardware Test
+
+[hardware_test_cli](examples/hardware_test_cli/) is an interactive hardware validation console. It needs `idf.py bmgr` before the build.
 
 ### Arduino
 
@@ -98,7 +101,7 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 
 | Framework | Version | Examples |
 | --- | --- | ---: |
-| ESP-IDF | `v5.5.6`, `v6.1` | 17 |
+| ESP-IDF | `v5.5.6`, `v6.1` | 16 |
 | Arduino-ESP32 | `3.3.11` | 7 |
 
 ## 📚 Resources

@@ -1,6 +1,6 @@
 # ESP32-P4-WIFI6-DB-POE-ETH 硬件验证操作手册
 
-适用固件：`examples/esp-idf/13_hardware_test_cli`。串口 115200，提示符 `waveshare>`。任何时候输入 `help` 查看命令。
+适用固件：`examples/hardware_test_cli`。串口 115200，提示符 `waveshare>`。任何时候输入 `help` 查看命令。
 
 约定：
 - `waveshare>` 后面是要敲的命令，其余为预期输出（数值因板而异）。
@@ -11,7 +11,7 @@
 
 | 物料 | 要求 |
 |---|---|
-| 被测板 | 已烧录 13_hardware_test_cli；Wi-Fi 测试要求 ESP32-C5 已烧 `examples/esp-idf/15_wifi_iperf/cp` |
+| 被测板 | 已烧录 hardware_test_cli；Wi-Fi 测试要求 ESP32-C5 已烧 `examples/esp-idf/15_wifi_iperf/cp` |
 | microSD 卡 | 支持 High Speed（Class 10 / UHS-I 均可），FAT32 格式，卡上数据可丢弃 |
 | U 盘 | FAT32，容量不限，工作电流 ≤ 500 mA |
 | 网线 + 交换机/路由器 | 提供 DHCP；PC 在同一网段 |

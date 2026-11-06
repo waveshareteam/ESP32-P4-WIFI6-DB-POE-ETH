@@ -4,7 +4,7 @@
 
 ## What It Does
 
-ESP-Hosted coprocessor firmware for the on-board ESP32-C5, used by [15_wifi_iperf](../) and `13_hardware_test_cli`.
+ESP-Hosted coprocessor firmware for the on-board ESP32-C5, used by [15_wifi_iperf](../) and `examples/hardware_test_cli`.
 
 ## Hardware Required
 
