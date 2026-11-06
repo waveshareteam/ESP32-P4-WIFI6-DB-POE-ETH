@@ -9,10 +9,10 @@
   </p>
   <p>
     <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 产品</a> ·
-    <a href="firmware/">📦 固件</a> ·
+    <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest">📦 固件</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF</a> ·
     <a href="examples/arduino/examples/">🔧 Arduino</a> ·
-    <a href="hardware/schematic/">📚 文档</a>
+    <a href="hardware/">📚 文档</a>
   </p>
 </div>
 
@@ -30,10 +30,19 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 | 以太网 | RMII，集成 PoE 模块 |
 | 显示 / 摄像头 | MIPI-DSI / MIPI-CSI |
 | 音频 | ES8311 编解码器 |
+| 板级支持 | 本地 BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/)，Board Manager 板卡定义 `waveshare/waveshare_boards` |
 
 ## 📦 快速开始
 
-安装 ESP-IDF，通过 USB 连接开发板，然后按[开发板检查示例](examples/esp-idf/00_board_check/README_ZH.md)操作。固件工程位于 [`examples/factory/`](examples/factory/)。
+体验示例最快的方法是使用[最新版本](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest)中打包好的可烧录固件。
+
+1. 下载所需示例和框架版本对应的 `*-combined.zip`。
+2. 解压后通过 `python -m pip install esptool` 安装 esptool。
+3. 通过 USB 连接开发板。
+4. Windows 运行 `flash_combined.bat COMx`，Linux 运行 `./flash_combined.sh /dev/ttyACM0`。
+5. 如果开发板未自动重启，请手动复位。
+
+出厂固件（恢复开箱演示）：在 [`firmware`](firmware/) 目录下载文件名带 `FactoryOnly` 的文件。
 
 ## 🧪 示例
 
@@ -55,10 +64,10 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB 扩展屏示例 |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | 通过 ESP Board Manager 启动开发板的交互式控制台，可在真实硬件上运行 LCD、触摸、音频、摄像头、SD 卡、以太网、GPIO 等功能测试用例 |
-| [factory_test](examples/esp-idf/factory_test/README_ZH.md) | 交互式硬件验证控制台 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | 最小 NimBLE 外设示例，通过 ESP-Hosted HCI 使用 ESP32-C5 的 BLE 控制器进行广播 |
+| [factory_test](examples/esp-idf/factory_test/README_ZH.md) | 交互式硬件验证控制台 |
 
 ### Arduino
 
@@ -76,20 +85,20 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 
 ## 🛠️ 开发环境
 
-| 开发框架 | 产品配置中的版本 |
-| --- | --- |
-| ESP-IDF | `v5.5.5`、`v6.1` |
-| Arduino-ESP32 | `3.3.11` |
+| 开发框架 | 版本 | 示例数 |
+| --- | --- | ---: |
+| ESP-IDF | `v5.5.6`、`v6.1` | 18 |
+| Arduino-ESP32 | `3.3.11` | 7 |
 
 ## 📚 资料
 
-- [原理图](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)
+- [原理图](hardware/schematic/)
 - [硬件参考指南](docs/user-guide_ZH.md)
 - [产品页面](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
 ## 🤝 支持
 
-- [反馈示例或仓库问题](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/issues)
+- [反馈示例或仓库问题](https://gitee.com/waveshare/ESP32-P4-WIFI6-DB-POE-ETH/issues)
 - [微雪技术支持](https://docs.waveshare.net/support)
 
 ## 📄 许可证

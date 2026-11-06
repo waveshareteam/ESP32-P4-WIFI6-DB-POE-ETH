@@ -9,10 +9,10 @@
   </p>
   <p>
     <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 Product</a> ·
-    <a href="firmware/">📦 Firmware</a> ·
+    <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest">📦 Firmware</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF</a> ·
     <a href="examples/arduino/examples/">🔧 Arduino</a> ·
-    <a href="hardware/schematic/">📚 Documentation</a>
+    <a href="hardware/">📚 Documentation</a>
   </p>
 </div>
 
@@ -30,10 +30,19 @@ The ESP32-P4-WIFI6-DB-POE-ETH combines an ESP32-P4 application processor with an
 | Ethernet | RMII with integrated PoE module |
 | Display / camera | MIPI-DSI / MIPI-CSI |
 | Audio | ES8311 codec |
+| Board support | Local BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/), Board Manager definition `waveshare/waveshare_boards` |
 
 ## 📦 Quick Start
 
-Install ESP-IDF, connect the board over USB, and follow the [board-check example](examples/esp-idf/00_board_check/). Firmware projects are available in [`examples/factory/`](examples/factory/).
+The fastest way to try an example is to flash a packaged firmware from the [latest release](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest).
+
+1. Download the `*-combined.zip` for the example and framework version you want.
+2. Extract the archive and install esptool with `python -m pip install esptool`.
+3. Connect the board over USB.
+4. Run `flash_combined.bat COMx` on Windows or `./flash_combined.sh /dev/ttyACM0` on Linux.
+5. Reset the board if it does not restart automatically.
+
+Factory firmware (restores the out-of-box demo): download the file whose name contains `FactoryOnly` from the [`firmware`](firmware/) folder.
 
 ## 🧪 Examples
 
@@ -55,10 +64,10 @@ Install ESP-IDF, connect the board over USB, and follow the [board-check example
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid for viewing and toggling expansion-header GPIO levels |
 | [13_board_manager](examples/esp-idf/13_board_manager/) | Interactive console for starting the board with ESP Board Manager and running LCD, touch, audio, camera, SD card, Ethernet, and GPIO tests |
-| [factory_test](examples/esp-idf/factory_test/) | Interactive hardware validation console |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
 | [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test over the ESP32-P4 ESP-Hosted SDIO link, with an iPerf 2.x PC peer |
 | [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | Minimal NimBLE peripheral that advertises through the ESP32-C5 BLE controller over ESP-Hosted HCI |
+| [factory_test](examples/esp-idf/factory_test/) | Interactive hardware validation console |
 
 ### Arduino
 
@@ -76,14 +85,14 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 
 ## 🛠️ Development Environment
 
-| Framework | Version in product configuration |
-| --- | --- |
-| ESP-IDF | `v5.5.5`, `v6.1` |
-| Arduino-ESP32 | `3.3.11` |
+| Framework | Version | Examples |
+| --- | --- | ---: |
+| ESP-IDF | `v5.5.6`, `v6.1` | 18 |
+| Arduino-ESP32 | `3.3.11` | 7 |
 
 ## 📚 Resources
 
-- [Schematic](hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)
+- [Schematic](hardware/schematic/)
 - [Hardware guide](docs/user-guide.md)
 - [Product page](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
