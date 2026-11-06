@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/waveshareteam/esp32-repo-template/v1/schema/product.schema.json",
+  "product": "ESP32-P4-WIFI6-DB-POE-ETH",
+  "product_url": "https://www.waveshare.com/esp32-p4-wifi6-db-poe-eth.htm",
+  "tier": 0,
+  "target": "esp32p4",
+  "esp_idf": {
+    "versions": ["v5.5.5", "v6.1"]
+  },
+  "arduino": {
+    "core": "3.3.11",
+    "fqbn": "esp32:esp32:waveshare_esp32_p4_wifi6_db_poe_eth"
+  }
+}
