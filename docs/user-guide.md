@@ -67,7 +67,7 @@ The table below lists the key components of the board.
 
 ## 1.4. Factory Firmware
 
-The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [factory test README](../examples/esp-idf/13_hardware_test_cli/README.md).
+The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../examples/factory/README.md). A serial-console firmware that tests all board hardware is described in the [hardware test console README](../examples/esp-idf/13_hardware_test_cli/README.md).
 
 # 2. Start Application Development
 
