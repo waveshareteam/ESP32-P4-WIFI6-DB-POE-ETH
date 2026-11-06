@@ -48,5 +48,7 @@ jobs:
         run: |
           . "$IDF_PATH/export.sh"
           python -m pip install --upgrade esp-bmgr-assist
-          IDF_TARGET="$TARGET" idf.py -C "$PROJECT" -B build/hardware_test_cli bmgr -b "$BOARD"
-          idf.py -C "$PROJECT" -B build/hardware_test_cli set-target "$TARGET" build
+          # set-target resolves the dependencies, which downloads the board definition bmgr needs.
+          idf.py -C "$PROJECT" -B build/hardware_test_cli set-target "$TARGET"
+          idf.py -C "$PROJECT" -B build/hardware_test_cli bmgr -b "$BOARD"
+          idf.py -C "$PROJECT" -B build/hardware_test_cli reconfigure build
