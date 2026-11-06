@@ -1,3 +1,5 @@
+[简体中文](README_ZH.md)
+
 # GPIO Console Example
 
 This example uses the Arduino-ESP32 `Console` library to configure and test GPIOs interactively through the serial monitor. It is based on the Arduino core `ConsoleGPIO` example.
