@@ -14,7 +14,9 @@ Mounts a microSD card over 4-bit SDMMC, prints the card information, then writes
 ## How to Run
 
 ```bash
-idf.py set-target esp32p4 build flash monitor
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py build flash monitor
 ```
 
 ## Expected Result

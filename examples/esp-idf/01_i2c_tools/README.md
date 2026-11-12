@@ -14,12 +14,14 @@ Provides a serial console with `i2cconfig`, `i2cdetect`, `i2cget`, `i2cset` and 
 ## How to Run
 
 ```bash
-idf.py set-target esp32p4 build flash monitor
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py build flash monitor
 ```
 
 The on-board I2C bus is initialized automatically with SDA on GPIO7, SCL on GPIO8, and a 100 kHz clock. You can override the pins when needed:
 
-```text
+```bash
 i2cdetect
 
 i2cconfig --scl=8 --sda=7 --freq=100000

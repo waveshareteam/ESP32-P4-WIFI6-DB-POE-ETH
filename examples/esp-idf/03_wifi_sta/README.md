@@ -16,6 +16,7 @@ Connects the ESP32-P4 host to a Wi-Fi access point through the on-board ESP32-C5
 Flash compatible ESP-Hosted firmware to the ESP32-C5, then set the SSID and password under `Example Configuration` and build the host application.
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 menuconfig
 idf.py build flash monitor
 ```

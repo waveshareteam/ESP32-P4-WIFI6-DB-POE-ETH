@@ -14,7 +14,9 @@
 ## 怎么运行
 
 ```bash
-idf.py set-target esp32p4 build flash monitor
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py build flash monitor
 ```
 
 如需回声模式，在 menuconfig 的 `Example Configuration` 中修改 `Example mode`。

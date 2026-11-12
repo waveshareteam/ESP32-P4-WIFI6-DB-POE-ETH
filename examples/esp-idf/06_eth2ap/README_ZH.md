@@ -17,6 +17,7 @@
 ESP32-C5 需要先烧录兼容的 ESP-Hosted 协处理器固件，见 [`firmware`](../../../firmware/) 目录。
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 

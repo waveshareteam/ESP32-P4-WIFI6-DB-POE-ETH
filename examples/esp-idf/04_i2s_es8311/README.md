@@ -14,7 +14,9 @@ Plays the built-in music clip through the ES8311 codec. Echo mode instead loops 
 ## How to Run
 
 ```bash
-idf.py set-target esp32p4 build flash monitor
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py build flash monitor
 ```
 
 To switch to echo mode, change `Example mode` under `Example Configuration` in menuconfig.

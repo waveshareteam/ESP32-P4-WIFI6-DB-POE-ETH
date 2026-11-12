@@ -23,7 +23,8 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "esp_private/wifi.h"
-#include "ethernet_init.h"
+#include "esp_board_device.h"
+#include "dev_ethernet.h"
 
 static const char *TAG = "eth2ap_example";
 static esp_eth_handle_t s_eth_handle = NULL;
@@ -154,14 +155,13 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
 static void initialize_ethernet(void)
 {
-    uint8_t eth_port_cnt = 0;
-    esp_eth_handle_t *eth_handles;
-    ESP_ERROR_CHECK(ethernet_init_all(&eth_handles, &eth_port_cnt));
-    if (eth_port_cnt > 1) {
-        ESP_LOGW(TAG, "multiple Ethernet devices detected, the first initialized is to be used!");
+    ESP_ERROR_CHECK(esp_board_device_init("ethernet"));
+    dev_ethernet_handles_t *eth_handles = NULL;
+    ESP_ERROR_CHECK(esp_board_device_get_handle("ethernet", (void **)&eth_handles));
+    if (eth_handles == NULL) {
+        ESP_ERROR_CHECK(ESP_ERR_INVALID_STATE);
     }
-    s_eth_handle = eth_handles[0];
-    free(eth_handles);
+    s_eth_handle = eth_handles->eth_handle;
     ESP_ERROR_CHECK(esp_eth_update_input_path(s_eth_handle, pkt_eth2wifi, NULL));
     bool eth_promiscuous = true;
     ESP_ERROR_CHECK(esp_eth_ioctl(s_eth_handle, ETH_CMD_S_PROMISCUOUS, &eth_promiscuous));

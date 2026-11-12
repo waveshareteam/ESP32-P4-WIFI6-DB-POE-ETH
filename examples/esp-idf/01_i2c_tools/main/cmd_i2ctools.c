@@ -8,6 +8,7 @@
 #include "argtable3/argtable3.h"
 #include "driver/i2c_master.h"
 #include "esp_console.h"
+#include "esp_board_periph.h"
 #include "esp_log.h"
 
 static const char *TAG = "i2ctools";
@@ -19,6 +20,7 @@ static const char *TAG = "i2ctools";
 
 static int s_i2c_bus_frequency;
 static i2c_master_bus_handle_t s_i2c_bus;
+static bool s_board_i2c_bus;
 
 static struct {
     struct arg_int *scl;
@@ -47,12 +49,21 @@ static int do_i2cconfig_cmd(int argc, char **argv)
 
     // if the I2C bus is already initialized, delete it first
     if (s_i2c_bus) {
-        err = i2c_del_master_bus(s_i2c_bus);
+        err = s_board_i2c_bus ? esp_board_periph_unref_handle("i2c_master") : i2c_del_master_bus(s_i2c_bus);
         if (err != ESP_OK) {
             // propagate the error
             return err;
         }
         s_i2c_bus = NULL;
+        s_board_i2c_bus = false;
+    }
+
+    if (!i2cconfig_args.sda->count && !i2cconfig_args.scl->count) {
+        err = esp_board_periph_ref_handle("i2c_master", (void **)&s_i2c_bus);
+        if (err == ESP_OK) {
+            s_board_i2c_bus = true;
+        }
+        return err;
     }
 
     i2c_master_bus_config_t i2c_bus_config = {

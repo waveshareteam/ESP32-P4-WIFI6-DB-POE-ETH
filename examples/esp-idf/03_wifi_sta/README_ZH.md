@@ -16,6 +16,7 @@
 先向 ESP32-C5 烧录兼容的 ESP-Hosted 固件，再在 `Example Configuration` 中设置 SSID 和密码，随后编译 Host 应用。
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 menuconfig
 idf.py build flash monitor
 ```

@@ -14,6 +14,7 @@ Brings up the RMII Ethernet port with `esp_netif` and requests an address over D
 ## How to Run
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 

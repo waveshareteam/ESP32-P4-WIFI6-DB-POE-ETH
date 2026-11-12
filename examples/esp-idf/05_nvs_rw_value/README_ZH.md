@@ -14,6 +14,7 @@
 ## 怎么运行
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 
@@ -23,4 +24,8 @@ idf.py set-target esp32p4 build flash monitor
 
 ## 常见问题
 
-运行 `idf.py erase-flash` 可以清零计数器。
+运行以下命令可以清零计数器：
+
+```bash
+idf.py erase-flash
+```
