@@ -9,14 +9,24 @@
 ## 硬件需求
 
 - ESP32-P4-WIFI6-DB-POE-ETH 开发板
-- 支持的 MIPI-DSI 屏幕（5、7、8 或 10.1 英寸）
+- 与 Board Manager 板卡定义匹配的 MIPI-DSI 屏幕
 
 ## 怎么运行
 
-在 `Component config > Board Support Package (ESP32-P4-WIFI6-DB-POE-ETH) > Display > Select LCD type` 中选择实际连接的屏幕，默认是 10.1 英寸屏。默认 GPIO 方向和上下拉模式在 `GPIO Monitor Example` 菜单中设置。
+屏幕配置来自 Board Manager 板卡定义。默认 GPIO 方向和上下拉模式在 `GPIO Monitor Example` 菜单中设置。
+
+连接其他屏幕时，将下方的 `idf.py bmgr` 命令替换为匹配的显示 amendment，例如：
 
 ```bash
-idf.py set-target esp32p4 menuconfig
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
+```
+
+可选项有 `5_dsi_touch_a`、`7_dsi_touch_c`、`8_dsi_touch_a`、`10_1_dsi_touch_a`。
+
+```bash
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py menuconfig
 idf.py build flash monitor
 ```
 

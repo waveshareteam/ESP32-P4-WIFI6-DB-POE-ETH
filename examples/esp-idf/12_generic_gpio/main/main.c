@@ -7,9 +7,13 @@
 #include <stdio.h>
 
 #include "esp_err.h"
+#include "esp_log.h"
 #include "lvgl.h"
-#include "bsp/display.h"
-#include "bsp/esp-bsp.h"
+#include "esp_board_device.h"
+#include "dev_display_lcd.h"
+#include "dev_lcd_touch.h"
+#include "lcd_brightness.h"
+#include "esp_lv_adapter.h"
 
 #include "gpio_monitor.h"
 
@@ -35,13 +39,20 @@
 #define GPIO_MONITOR_PULL_DOWN GPIO_PULLDOWN_ENABLE
 #endif
 
+static const gpio_num_t s_header_gpios[] = {
+    GPIO_NUM_2, GPIO_NUM_3, GPIO_NUM_4, GPIO_NUM_5, GPIO_NUM_20,
+    GPIO_NUM_21, GPIO_NUM_22, GPIO_NUM_23, GPIO_NUM_24, GPIO_NUM_25,
+    GPIO_NUM_26, GPIO_NUM_27, GPIO_NUM_32, GPIO_NUM_33, GPIO_NUM_36,
+    GPIO_NUM_45, GPIO_NUM_46, GPIO_NUM_47, GPIO_NUM_48, GPIO_NUM_53,
+};
+
 static gpio_monitor_pin_config_t s_gpio_pins[GPIO_NUM_MAX];
 static char s_gpio_pin_names[GPIO_NUM_MAX][GPIO_MONITOR_NAME_LEN];
 
-static esp_err_t gpio_monitor_init_from_bsp(void)
+static esp_err_t gpio_monitor_init_from_board(void)
 {
-    size_t gpio_count = 0;
-    const gpio_num_t *gpios = bsp_get_header_gpios(&gpio_count);
+    size_t gpio_count = sizeof(s_header_gpios) / sizeof(s_header_gpios[0]);
+    const gpio_num_t *gpios = s_header_gpios;
     if (gpios == NULL || gpio_count == 0 || gpio_count > GPIO_NUM_MAX) {
         return ESP_ERR_INVALID_SIZE;
     }
@@ -66,33 +77,111 @@ static esp_err_t gpio_monitor_init_from_bsp(void)
     return gpio_monitor_init(&config);
 }
 
+static const char *TAG = "gpio_monitor";
+
 void app_main(void)
 {
-    bsp_display_cfg_t display_cfg = {
-        .lv_adapter_cfg = ESP_LV_ADAPTER_DEFAULT_CONFIG(),
-        .rotation = ESP_LV_ADAPTER_ROTATE_0,
-        .tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_TRIPLE_PARTIAL,
-        .touch_flags = {
-            .swap_xy = 0,
-            .mirror_x = 0,
-            .mirror_y = 0,
-        },
-    };
+    ESP_ERROR_CHECK(gpio_monitor_init_from_board());
+    dev_display_lcd_config_t *display_config = NULL;
+    dev_display_lcd_handles_t *display_handles = NULL;
+    dev_lcd_touch_handles_t *touch_handles = NULL;
+    void *brightness = NULL;
+    lv_display_t *display = NULL;
+    lv_indev_t *touch = NULL;
+    bool adapter_initialized = false;
+    bool display_initialized = false;
+    bool touch_initialized = false;
+    bool brightness_initialized = false;
 
-    /* Configure GPIOs first; the BSP may reclaim the pins used by the display. */
-    ESP_ERROR_CHECK(gpio_monitor_init_from_bsp());
-    lv_display_t *display = bsp_display_start_with_config(&display_cfg);
-    ESP_ERROR_CHECK(display != NULL ? ESP_OK : ESP_FAIL);
-    ESP_ERROR_CHECK(bsp_display_backlight_on());
-
-    if (!bsp_display_lock(-1)) {
-        bsp_display_stop(display);
-        ESP_ERROR_CHECK(ESP_ERR_TIMEOUT);
+    esp_err_t ret = esp_board_device_get_config("display_lcd", (void **)&display_config);
+    if (ret != ESP_OK || display_config == NULL) {
+        goto cleanup;
     }
-    esp_err_t ret = gpio_monitor_start_ui();
-    bsp_display_unlock();
+    ret = esp_board_device_init("display_lcd");
     if (ret != ESP_OK) {
-        bsp_display_stop(display);
-        ESP_ERROR_CHECK(ret);
+        goto cleanup;
+    }
+    display_initialized = true;
+    ret = esp_board_device_get_handle("display_lcd", (void **)&display_handles);
+    if (ret != ESP_OK || display_handles == NULL) {
+        goto cleanup;
+    }
+    ret = esp_board_device_init("lcd_touch");
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    touch_initialized = true;
+    ret = esp_board_device_get_handle("lcd_touch", (void **)&touch_handles);
+    if (ret != ESP_OK || touch_handles == NULL) {
+        goto cleanup;
+    }
+    ret = esp_board_device_init("lcd_brightness");
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    brightness_initialized = true;
+    ret = esp_board_device_get_handle("lcd_brightness", &brightness);
+    if (ret != ESP_OK || brightness == NULL) {
+        goto cleanup;
+    }
+    esp_lv_adapter_config_t adapter_config = ESP_LV_ADAPTER_DEFAULT_CONFIG();
+    ret = esp_lv_adapter_init(&adapter_config);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    adapter_initialized = true;
+    esp_lv_adapter_display_config_t adapter_display = ESP_LV_ADAPTER_DISPLAY_MIPI_DEFAULT_CONFIG(
+        display_handles->panel_handle, display_handles->io_handle, display_config->lcd_width,
+        display_config->lcd_height, ESP_LV_ADAPTER_ROTATE_0);
+    adapter_display.tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_TRIPLE_PARTIAL;
+    display = esp_lv_adapter_register_display(&adapter_display);
+    if (display == NULL) {
+        ret = ESP_FAIL;
+        goto cleanup;
+    }
+    esp_lv_adapter_touch_config_t adapter_touch = ESP_LV_ADAPTER_TOUCH_DEFAULT_CONFIG(display, touch_handles->touch_handle);
+    touch = esp_lv_adapter_register_touch(&adapter_touch);
+    if (touch == NULL) {
+        ret = ESP_FAIL;
+        goto cleanup;
+    }
+    ret = esp_lv_adapter_start();
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    ret = esp_custom_lcd_brightness_set(brightness, 100);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    ret = esp_lv_adapter_lock(-1);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    ret = gpio_monitor_start_ui();
+    esp_lv_adapter_unlock();
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    return;
+
+cleanup:
+    ESP_LOGE(TAG, "Failed to initialize display: %s", esp_err_to_name(ret != ESP_OK ? ret : ESP_FAIL));
+    if (touch != NULL) {
+        esp_lv_adapter_unregister_touch(touch);
+    }
+    if (display != NULL) {
+        esp_lv_adapter_unregister_display(display);
+    }
+    if (adapter_initialized) {
+        esp_lv_adapter_deinit();
+    }
+    if (brightness_initialized) {
+        esp_board_device_deinit("lcd_brightness");
+    }
+    if (touch_initialized) {
+        esp_board_device_deinit("lcd_touch");
+    }
+    if (display_initialized) {
+        esp_board_device_deinit("display_lcd");
     }
 }
