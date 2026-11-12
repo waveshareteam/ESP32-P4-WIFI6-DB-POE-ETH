@@ -15,12 +15,17 @@ Measures Ethernet TCP and UDP throughput from an `iperf>` console, with iPerf 2.
 ## How to Run
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 
-Start `iperf -u -s -i 3` on the PC, then run this at the `iperf>` prompt:
+Start the server on the PC, then run the client command at the `iperf>` prompt:
 
-```text
+```bash
+iperf -u -s -i 3
+```
+
+```bash
 iperf -u -c PC_IP -i 3 -t 30
 ```
 

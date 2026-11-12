@@ -17,11 +17,12 @@
 #include "cmd_ethernet.h"
 
 #include "iperf_cmd.h"
+#include "esp_board_device.h"
+#include "dev_ethernet.h"
 
 static const char *TAG = "eth_example";
 
-static esp_eth_handle_t *s_eth_handles = NULL;
-static uint8_t s_eth_port_cnt = 0;
+static esp_eth_handle_t s_eth_handle;
 
 static SemaphoreHandle_t ip_got_sem;
 
@@ -61,35 +62,25 @@ void init_ethernet_and_netif(void)
 
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    ESP_ERROR_CHECK(ethernet_init_all(&s_eth_handles, &s_eth_port_cnt));
+    ESP_ERROR_CHECK(esp_board_device_init("ethernet"));
+    dev_ethernet_handles_t *ethernet_handles = NULL;
+    ESP_ERROR_CHECK(esp_board_device_get_handle("ethernet", (void **)&ethernet_handles));
+    if (ethernet_handles == NULL) {
+        ESP_ERROR_CHECK(ESP_ERR_INVALID_STATE);
+    }
+    s_eth_handle = ethernet_handles->eth_handle;
 
     ESP_ERROR_CHECK(esp_netif_init());
-    esp_netif_inherent_config_t esp_netif_config = ESP_NETIF_INHERENT_DEFAULT_ETH();
-    esp_netif_config_t cfg_spi = {
-        .base = &esp_netif_config,
-        .stack = ESP_NETIF_NETSTACK_DEFAULT_ETH
-    };
-    char if_key_str[10];
-    char if_desc_str[10];
-    char num_str[3];
-    for (int i = 0; i < s_eth_port_cnt; i++) {
-        itoa(i, num_str, 10);
-        strcat(strcpy(if_key_str, "ETH_"), num_str);
-        strcat(strcpy(if_desc_str, "eth"), num_str);
-        esp_netif_config.if_key = if_key_str;
-        esp_netif_config.if_desc = if_desc_str;
-        esp_netif_config.route_prio -= i*5;
-        esp_netif_t *eth_netif = esp_netif_new(&cfg_spi);
-
-        // attach Ethernet driver to TCP/IP stack
-        ESP_ERROR_CHECK(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(s_eth_handles[i])));
-    }
+    esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH();
+    esp_netif_t *eth_netif = esp_netif_new(&cfg);
+    ESP_ERROR_CHECK(eth_netif != NULL ? ESP_OK : ESP_ERR_NO_MEM);
+    esp_eth_netif_glue_handle_t eth_glue = esp_eth_new_netif_glue(s_eth_handle);
+    ESP_ERROR_CHECK(eth_glue != NULL ? ESP_OK : ESP_ERR_NO_MEM);
+    ESP_ERROR_CHECK(esp_netif_attach(eth_netif, eth_glue));
 
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &got_ip_event_handler, NULL));
 
-    for (int i = 0; i < s_eth_port_cnt; i++) {
-        ESP_ERROR_CHECK(esp_eth_start(s_eth_handles[i]));
-    }
+    ESP_ERROR_CHECK(esp_eth_start(s_eth_handle));
 
     if (xSemaphoreTake(ip_got_sem, portMAX_DELAY) != pdTRUE) {
         ESP_LOGE(TAG, "Timeout waiting for ETH IP");

@@ -15,12 +15,17 @@
 ## 怎么运行
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 
-在电脑上运行 `iperf -u -s -i 3`，然后在 `iperf>` 提示符下运行：
+先在电脑上启动服务端，再在 `iperf>` 提示符下运行客户端命令：
 
-```text
+```bash
+iperf -u -s -i 3
+```
+
+```bash
 iperf -u -c PC_IP -i 3 -t 30
 ```
 

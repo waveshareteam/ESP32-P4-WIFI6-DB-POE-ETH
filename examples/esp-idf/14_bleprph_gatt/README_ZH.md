@@ -16,6 +16,7 @@ ESP32-P4 Host 通过 ESP-Hosted HCI 使用 ESP32-C5 蓝牙控制器运行 NimBLE
 先向 ESP32-C5 烧录兼容的 ESP-Hosted 蓝牙固件；可在 `BLE Peripheral GATT config` 中设置通知间隔，再编译并烧录 Host 应用。
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 menuconfig
 idf.py build flash monitor
 ```

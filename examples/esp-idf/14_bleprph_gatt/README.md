@@ -16,6 +16,7 @@ Runs a NimBLE peripheral on the ESP32-P4 host using the ESP32-C5 Bluetooth contr
 Flash compatible ESP-Hosted Bluetooth firmware to the ESP32-C5, optionally set the notification interval under `BLE Peripheral GATT config`, then build and flash the host application.
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 menuconfig
 idf.py build flash monitor
 ```
