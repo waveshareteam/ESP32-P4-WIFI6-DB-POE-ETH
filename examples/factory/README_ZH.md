@@ -27,7 +27,7 @@ ESP32-C5 Hosted Wi-Fi 和 IP101 以太网。
 
 在 `menuconfig` 中通过 BSP 的 LCD 类型选项（`CONFIG_BSP_LCD_TYPE_*`）选择屏幕，
 默认是 10.1 英寸 800 x 1280。接口与引脚分配见
-[硬件参考指南](../../docs/user-guide_ZH.md)。
+[硬件参考指南](../../docs/hw-reference/user-guide_ZH.md)。
 ESP32-P4 / ESP32-C5 无线 Host 示例见 [`03_wifi_sta`](../../examples/esp-idf/03_wifi_sta/)。
 
 ## 应用

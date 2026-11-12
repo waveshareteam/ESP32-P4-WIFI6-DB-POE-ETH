@@ -103,7 +103,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 ## 📚 资料
 
 - [原理图](hardware/schematic/)
-- [硬件参考指南](docs/user-guide_ZH.md)
+- [硬件参考指南](docs/hw-reference/user-guide_ZH.md)
 - [产品页面](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
 
 ## 🤝 支持

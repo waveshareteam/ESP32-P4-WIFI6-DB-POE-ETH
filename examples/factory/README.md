@@ -28,7 +28,7 @@ Wi-Fi and IP101 Ethernet.
 
 Select the panel under `menuconfig` → the BSP's LCD type option
 (`CONFIG_BSP_LCD_TYPE_*`); the default is the 10.1-inch 800 x 1280 panel. See
-the [hardware reference guide](../../docs/user-guide.md)
+the [hardware reference guide](../../docs/hw-reference/user-guide.md)
 for interfaces and pin assignments. The ESP32-P4/ESP32-C5 wireless host example is
 [`03_wifi_sta`](../../examples/esp-idf/03_wifi_sta/).
 
