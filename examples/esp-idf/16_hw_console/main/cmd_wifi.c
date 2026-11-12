@@ -39,7 +39,7 @@ static esp_err_t hosted_ready(void)
     }
     printf("wifi0: starting ESP-Hosted link to ESP32-C5 (SDIO slot 1)...\n");
     if (esp_hosted_init() != 0) {
-        printf("esp_hosted_init failed (is the C5 flashed with examples/esp-idf/15_wifi_iperf/cp?)\n");
+        printf("esp_hosted_init failed (check that compatible ESP32-C5 coprocessor firmware is installed)\n");
         return ESP_FAIL;
     }
     if (esp_hosted_connect_to_slave() != 0) {

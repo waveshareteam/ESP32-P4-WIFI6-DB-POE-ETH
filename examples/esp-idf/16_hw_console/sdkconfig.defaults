@@ -68,7 +68,7 @@ CONFIG_WIFI_RMT_TX_BA_WIN=16
 CONFIG_WIFI_RMT_AMPDU_RX_ENABLED=y
 CONFIG_WIFI_RMT_RX_BA_WIN=16
 
-# lwip / iperf throughput tuning (from examples/esp-idf/15_wifi_iperf)
+# lwip / iperf throughput tuning
 CONFIG_LWIP_IRAM_OPTIMIZATION=y
 CONFIG_LWIP_TCPIP_TASK_PRIO=23
 CONFIG_LWIP_TCP_SND_BUF_DEFAULT=41760
