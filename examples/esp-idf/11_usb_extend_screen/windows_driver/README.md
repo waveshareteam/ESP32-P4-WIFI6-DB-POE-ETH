@@ -1,6 +1,6 @@
-[English](README.md) | [简体中文](README_ZH.md)
-
 ## Windows IDD Driver
+
+[简体中文](README_ZH.md)
 
 The Windows Indirect Display Driver (IDD) model provides a simple user-mode driver model to support monitors that are not connected to a traditional GPU display output. [Reference](https://learn.microsoft.com/en-us/windows-hardware/drivers/display/indirect-display-driver-model-overview)
 
