@@ -17,14 +17,6 @@
 static const char *TAG = "jd9365_test";
 static void *s_brightness;
 
-static esp_err_t prepare_display(esp_lcd_panel_handle_t panel)
-{
-    ESP_LOGI(TAG, "Show color bar pattern drawn by hardware");
-    ESP_RETURN_ON_ERROR(esp_lcd_dpi_panel_set_pattern(panel, MIPI_DSI_PATTERN_BAR_VERTICAL),
-                        TAG, "Failed to show color bar pattern");
-    return esp_custom_lcd_brightness_set(s_brightness, 100);
-}
-
 void app_main(void)
 {
     dev_display_lcd_config_t *display_config = NULL;
@@ -41,11 +33,14 @@ void app_main(void)
     esp_lcd_panel_handle_t panel = display_handles->panel_handle;
     esp_err_t ret;
 
-    ret = prepare_display(panel);
+    ESP_LOGI(TAG, "Show color bar pattern drawn by hardware");
+    ret = esp_lcd_dpi_panel_set_pattern(panel, MIPI_DSI_PATTERN_BAR_VERTICAL);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to prepare display: %s", esp_err_to_name(ret));
+        ESP_LOGE(TAG, "Failed to show color bar pattern: %s", esp_err_to_name(ret));
         return;
     }
-
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    ret = esp_custom_lcd_brightness_set(s_brightness, 100);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set display brightness: %s", esp_err_to_name(ret));
+    }
 }
