@@ -14,6 +14,7 @@ Prints the chip, Flash, PSRAM and heap information over serial. Run this example
 ## How to Run
 
 ```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py set-target esp32p4 build flash monitor
 ```
 
