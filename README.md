@@ -40,10 +40,9 @@ connects to it over 4-bit SDIO and provides Wi-Fi 6 and Bluetooth LE. Wireless
 operation requires a P4 host application and compatible firmware on the C5
 coprocessor; flashing the P4 application does not update the C5 firmware. Keep the
 ESP-Hosted configurations on both sides compatible. See
-[03_wifistation](examples/esp-idf/03_wifistation/),
-[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) and
-[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/); each keeps its C5
-coprocessor project in a `cp` directory.
+[03_wifi_sta](examples/esp-idf/03_wifi_sta/) and
+[15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/). Flash compatible C5
+coprocessor firmware before running either host example.
 
 ## 📦 Quick Start
 
@@ -66,7 +65,7 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 | [00_board_check](examples/esp-idf/00_board_check/) | Recommended first example; prints chip, flash, and PSRAM information over serial |
 | [01_i2c_tools](examples/esp-idf/01_i2c_tools/) | I2C bus scan and diagnostic console |
 | [02_sdmmc](examples/esp-idf/02_sdmmc/) | microSD card access over 4-bit SDMMC |
-| [03_wifistation](examples/esp-idf/03_wifistation/) | Connects to a Wi-Fi station through the ESP32-C5 `esp_hosted` link |
+| [03_wifi_sta](examples/esp-idf/03_wifi_sta/) | Connects to a Wi-Fi station through the ESP32-C5 `esp_hosted` link |
 | [04_i2s_es8311](examples/esp-idf/04_i2s_es8311/) | ES8311 audio playback, I2S loopback, and recording |
 | [05_nvs_rw_value](examples/esp-idf/05_nvs_rw_value/) | NVS read/write example with a persistent boot counter |
 | [06_eth2ap](examples/esp-idf/06_eth2ap/) | Ethernet-to-Wi-Fi access point bridge |
@@ -77,8 +76,7 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid for viewing and toggling expansion-header GPIO levels |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
-| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | ESP32-C5 Wi-Fi TCP/UDP throughput test over the ESP32-P4 ESP-Hosted SDIO link, with an iPerf 2.x PC peer |
-| [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | Minimal NimBLE peripheral that advertises through the ESP32-C5 BLE controller over ESP-Hosted HCI |
+| [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | NimBLE peripheral with a custom read/write and notification GATT service through the ESP32-C5 BLE controller over ESP-Hosted HCI |
 
 ### Hardware Test
 

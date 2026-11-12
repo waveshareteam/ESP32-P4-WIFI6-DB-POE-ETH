@@ -38,9 +38,8 @@ ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 
 ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
 Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
 应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
-[03_wifistation](examples/esp-idf/03_wifistation/)、
-[15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) 和
-[16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/)；它们的 C5 协处理器工程都在 `cp` 目录下。
+[03_wifi_sta](examples/esp-idf/03_wifi_sta/) 和
+[15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/)；运行前需要烧录兼容的 C5 协处理器固件。
 
 ## 📦 快速开始
 
@@ -63,7 +62,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | [00_board_check](examples/esp-idf/00_board_check/) | 首个建议运行的示例，串口打印芯片、Flash、PSRAM 信息 |
 | [01_i2c_tools](examples/esp-idf/01_i2c_tools/) | I2C 总线扫描与诊断控制台工具 |
 | [02_sdmmc](examples/esp-idf/02_sdmmc/) | microSD 卡的 4-bit SDMMC 读写访问 |
-| [03_wifistation](examples/esp-idf/03_wifistation/) | 通过 ESP32-C5 `esp_hosted` 链路连接 Wi-Fi station |
+| [03_wifi_sta](examples/esp-idf/03_wifi_sta/) | 通过 ESP32-C5 `esp_hosted` 链路连接 Wi-Fi station |
 | [04_i2s_es8311](examples/esp-idf/04_i2s_es8311/) | ES8311 音频播放，以及 I2S 回声/录音 |
 | [05_nvs_rw_value](examples/esp-idf/05_nvs_rw_value/) | NVS 读写示例，持久化开机计数器 |
 | [06_eth2ap](examples/esp-idf/06_eth2ap/) | 以太网转 Wi-Fi AP 桥接 |
@@ -74,8 +73,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB 扩展屏示例 |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
-| [15_wifi_iperf](examples/esp-idf/15_wifi_iperf/) | 通过 ESP32-P4NRW32X ESP-Hosted SDIO 链路测量 ESP32-C5 Wi-Fi TCP/UDP 吞吐，需要 PC 端 iPerf 2.x |
-| [16_bleprph_minimal](examples/esp-idf/16_bleprph_minimal/) | 最小 NimBLE 外设示例，通过 ESP-Hosted HCI 使用 ESP32-C5 的 BLE 控制器进行广播 |
+| [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | 通过 ESP-Hosted HCI 使用 ESP32-C5 BLE 控制器的 NimBLE 外设，提供自定义读写及通知 GATT 服务 |
 
 ### 硬件测试
 

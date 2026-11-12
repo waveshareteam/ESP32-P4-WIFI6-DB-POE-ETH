@@ -14,7 +14,7 @@
 
 ## 怎么运行
 
-ESP32-C5 需要先烧录 [03_wifistation/cp](../03_wifistation/cp/README_ZH.md) 的协处理器固件。
+ESP32-C5 需要先烧录兼容的 ESP-Hosted 协处理器固件，见 [`firmware`](../../../firmware/) 目录。
 
 ```bash
 idf.py set-target esp32p4 build flash monitor

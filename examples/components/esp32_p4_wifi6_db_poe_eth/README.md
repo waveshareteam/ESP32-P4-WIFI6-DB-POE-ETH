@@ -220,11 +220,11 @@ functions return `ESP_ERR_NOT_SUPPORTED` for valid arguments.
 ### Wi-Fi configuration
 
 Wi-Fi uses the application's `esp_hosted` and `esp_wifi_remote` components,
-as in `03_wifistation` / `06_eth2ap`; the BSP does not create a second transport.
+as in `03_wifi_sta` / `06_eth2ap`; the BSP does not create a second transport.
 The existing bridge lockfile resolves Hosted 3.0.7 and Wi-Fi Remote 1.6.4.
 No component packages or dependency versions were changed by this adaptation.
 
-Configure Hosted in the application, referring to `03_wifistation` / `06_eth2ap`.
+Configure Hosted in the application, referring to `03_wifi_sta` / `06_eth2ap`.
 Verify the generated configuration
 selects ESP32-C5, SDIO slot 1, and the pins above. The reset polarity choice
 derives `CONFIG_ESP_HOSTED_HOST_RESET_ACTIVE_LOW=y` in the referenced Hosted version.

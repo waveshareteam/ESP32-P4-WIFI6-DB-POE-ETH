@@ -14,7 +14,7 @@ Bridges Ethernet and a Wi-Fi access point at the MAC layer, using the ESP32-C5 a
 
 ## How to Run
 
-The ESP32-C5 must already run the coprocessor firmware from [03_wifistation/cp](../03_wifistation/cp/).
+The ESP32-C5 must already run compatible ESP-Hosted coprocessor firmware; see the [firmware directory](../../../firmware/).
 
 ```bash
 idf.py set-target esp32p4 build flash monitor

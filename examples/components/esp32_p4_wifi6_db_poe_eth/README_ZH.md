@@ -67,9 +67,9 @@ I2C/I2S 控制器仍可配置；I2C 支持 100/400 kHz，SD 卡和 SPIFFS 挂载
 
 Wi-Fi 沿用应用的 `esp_hosted` 和 `esp_wifi_remote`，不在 BSP 内建立第二套传输实例。
 现有 `06_eth2ap` 锁文件解析到 Hosted 3.0.7、Wi-Fi Remote 1.6.4；本次没有安装包或修改依赖版本。
-Hosted 配置由应用管理，参考 `03_wifistation` 和 `06_eth2ap`，需核对最终生成配置确实选中 C5、slot 1 和上表引脚。
+Hosted 配置由应用管理，参考 `03_wifi_sta` 和 `06_eth2ap`，需核对最终生成配置确实选中 C5、slot 1 和上表引脚。
 参考 Hosted 版本中，低有效复位选项会生成 `CONFIG_ESP_HOSTED_HOST_RESET_ACTIVE_LOW=y`。
-C5 需要匹配的 Hosted 固件；STA/AP、凭据和桥接策略由应用配置，参考 `03_wifistation` 和 `06_eth2ap`。
+C5 需要匹配的 Hosted 固件；STA/AP、凭据和桥接策略由应用配置，参考 `03_wifi_sta` 和 `06_eth2ap`。
 
 ## 扩展排针
 

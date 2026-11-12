@@ -33,7 +33,7 @@ The board-specific header is `bsp/esp32_p4_wifi6_db_poe_eth.h`.
 - `bsp/ethernet.h` exposes Ethernet APIs and wiring without display includes.
 - The application owns Ethernet netif, event loop, DHCP and bridge policy.
 - `BSP_WIFI_*` describes ESP32-C5 SDIO wiring; Hosted configuration is managed
-  by the application, referring to `03_wifistation` / `06_eth2ap`.
+  by the application, referring to `03_wifi_sta` / `06_eth2ap`.
 - Wi-Fi initialization uses the existing ESP Wi-Fi Remote API; no new BSP
   transport or network-policy wrapper is introduced.
 
