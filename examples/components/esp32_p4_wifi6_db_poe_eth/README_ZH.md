@@ -1,6 +1,6 @@
 # ESP32-P4-WIFI6-DB-POE-ETH BSP
 
-[English](README.md) · [API](API.md)
+[English](README.md) · [API](API_ZH.md)
 
 本组件由原 BSP 适配而来，组件版本为 `0.0.1`，清单要求 ESP-IDF >= 5.5、目标 ESP32-P4。
 I2C、SDMMC、ES8311 和网络配置以本仓库 `examples/esp-idf` 的源码及已有生成配置为依据。

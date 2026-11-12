@@ -1,5 +1,7 @@
 # ChangeLog
 
+[English](CHANGELOG.md) | [简体中文](CHANGELOG_ZH.md)
+
 ## v0.2.0 2026-5-25
 
 ### Enhancements:

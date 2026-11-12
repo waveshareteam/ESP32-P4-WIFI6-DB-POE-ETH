@@ -14,6 +14,7 @@
     <a href="examples/arduino/examples/">🔧 Arduino</a> ·
     <a href="hardware/">📚 文档</a>
   </p>
+  <p><img src="docs/images/esp32-p4-wifi6-db-poe-eth.jpg" alt="ESP32-P4-WIFI6-DB-POE-ETH 开发板" width="500"></p>
 </div>
 
 ---

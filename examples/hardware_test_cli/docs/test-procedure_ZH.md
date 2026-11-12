@@ -1,5 +1,7 @@
 # ESP32-P4-WIFI6-DB-POE-ETH 硬件验证操作手册
 
+[English](test-procedure.md) | 简体中文
+
 适用固件：`examples/hardware_test_cli`。串口 115200，提示符 `waveshare>`。任何时候输入 `help` 查看命令。
 
 约定：

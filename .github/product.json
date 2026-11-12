@@ -12,5 +12,19 @@
   },
   "factory_firmware": {
     "esp_idf": "v5.5.6"
+  },
+  "overrides": {
+    "markdown_audit": {
+      "classification_rules": [
+        {
+          "category": "first_party_customer",
+          "patterns": [
+            "examples/components/**",
+            "examples/factory/components/Camera/config/**",
+            "examples/hardware_test_cli/components/**"
+          ]
+        }
+      ]
+    }
   }
 }

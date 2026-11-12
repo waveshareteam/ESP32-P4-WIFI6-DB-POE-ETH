@@ -295,6 +295,6 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 ## 4.2. 软件资源
 
-- [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
+- [BSP README](../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../examples/components/esp32_p4_wifi6_db_poe_eth/API_ZH.md)
 - [Brookesia 固件](../examples/factory/README_ZH.md)
 - [硬件测试控制台](../examples/hardware_test_cli/README_ZH.md)

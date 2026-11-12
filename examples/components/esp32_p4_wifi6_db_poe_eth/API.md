@@ -1,5 +1,7 @@
 # ESP32-P4-WIFI6-DB-POE-ETH BSP API
 
+[English](API.md) | [简体中文](API_ZH.md)
+
 Include the complete board API with:
 
 ```c

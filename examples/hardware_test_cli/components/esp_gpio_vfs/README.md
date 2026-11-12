@@ -1,5 +1,7 @@
 # esp_gpio_vfs
 
+[English](README.md) | [简体中文](README_ZH.md)
+
 Exposes a list of GPIOs as a Linux-sysfs-like tree on the ESP-IDF VFS so the
 standard C file API (and console commands built on it such as `cat`, `echo ... >`
 and `ls`) can drive and read pins:

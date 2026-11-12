@@ -22,7 +22,7 @@ idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py build flash monitor
 ```
 
-Type `help` for every command, and `test all` to run the automatic checks. The full procedure is in the [test procedure (Chinese)](docs/test-procedure_ZH.md).
+Type `help` for every command, and `test all` to run the automatic checks. The full procedure is in the [test procedure](docs/test-procedure.md).
 
 ## Expected Result
 
