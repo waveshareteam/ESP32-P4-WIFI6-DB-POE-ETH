@@ -23,3 +23,11 @@ idf.py build flash monitor
 ```
 
 在串口控制台输入 `help` 查看可用命令。命令格式和使用示例见[命令使用说明](docs/command-usage_ZH.md)。
+
+使用其他屏幕时，使用屏幕对应的 amendment 重新运行 Board Manager，例如：
+
+```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
+```
+
+可选项有 `5_dsi_touch_a`、`7_dsi_touch_c`、`8_dsi_touch_a`、`10_1_dsi_touch_a`。
