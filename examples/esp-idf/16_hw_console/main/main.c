@@ -56,7 +56,7 @@ void app_main(void)
 
     register_all_commands();
 
-    printf("\nESP32-P4-WIFI6-DB-POE-ETH factory test console\n");
+    printf("\nESP32-P4-WIFI6-DB-POE-ETH hardware command console\n");
     printf("Type 'help' for the command list. Nothing is initialised until you use it.\n\n");
     ESP_LOGI(TAG, "console ready");
     ESP_ERROR_CHECK(esp_console_start_repl(repl));

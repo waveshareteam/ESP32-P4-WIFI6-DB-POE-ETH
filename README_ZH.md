@@ -75,9 +75,9 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
 | [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | 通过 ESP-Hosted HCI 使用 ESP32-C5 BLE 控制器的 NimBLE 外设，提供自定义读写及通知 GATT 服务 |
 
-### 硬件测试
+### 硬件控制台
 
-[17_hw_console](examples/esp-idf/17_hw_console/README_ZH.md) 是交互式硬件验证控制台，需要先运行 `idf.py bmgr`。
+[16_hw_console](examples/esp-idf/16_hw_console/README_ZH.md) 是通过串口命令操作开发板外设的交互式控制台，编译前需要先运行 `idf.py bmgr`。
 
 ### Arduino
 

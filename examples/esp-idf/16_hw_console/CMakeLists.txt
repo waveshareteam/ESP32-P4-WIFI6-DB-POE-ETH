@@ -10,4 +10,4 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/components/gen_bmgr_codes/CMakeLists.tx
         "  idf.py bmgr -b esp32_p4_wifi6_db_poe_eth")
 endif()
 
-project(17_hw_console)
+project(16_hw_console)

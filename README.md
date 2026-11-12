@@ -78,9 +78,9 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 | [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
 | [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | NimBLE peripheral with a custom read/write and notification GATT service through the ESP32-C5 BLE controller over ESP-Hosted HCI |
 
-### Hardware Test
+### Hardware Console
 
-[17_hw_console](examples/esp-idf/17_hw_console/) is an interactive hardware validation console. It needs `idf.py bmgr` before the build.
+[16_hw_console](examples/esp-idf/16_hw_console/README.md) is an interactive serial console for operating the board's peripherals. Run `idf.py bmgr` before building it.
 
 ### Arduino
 
