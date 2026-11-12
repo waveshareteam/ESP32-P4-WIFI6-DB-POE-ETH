@@ -4,7 +4,7 @@
 
 ## 功能
 
-板载 ESP32-C5 的 ESP-Hosted 协处理器固件，供 [15_wifi_iperf](../README_ZH.md) 和 `examples/esp-idf/hw_console` 使用。
+板载 ESP32-C5 的 ESP-Hosted 协处理器固件，供 [15_wifi_iperf](../README_ZH.md) 和 `examples/esp-idf/17_hw_console` 使用。
 
 ## 硬件需求
 

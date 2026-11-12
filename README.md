@@ -82,7 +82,7 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 
 ### Hardware Test
 
-[hw_console](examples/esp-idf/hw_console/) is an interactive hardware validation console. It needs `idf.py bmgr` before the build.
+[17_hw_console](examples/esp-idf/17_hw_console/) is an interactive hardware validation console. It needs `idf.py bmgr` before the build.
 
 ### Arduino
 
