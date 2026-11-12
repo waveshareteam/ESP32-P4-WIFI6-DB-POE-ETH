@@ -1,10 +1,16 @@
-version: 0.2.0
+version: 0.3.0
 targets:
-- esp32p4
+  - esp32p4
+  - esp32s3
+  - esp32s31
 dependencies:
-  idf: '>=5.3'
-  espressif/tinyusb: '*'
-  esp32_p4_wifi6_db_poe_eth:
-    override_path: "../../../components/esp32_p4_wifi6_db_poe_eth"
-    rules:
-    - if: target in [esp32p4]
+  idf: ">=5.4.4,!=5.5.0,!=5.5.1,!=5.5.2"
+  espressif/esp_board_manager:
+    version: "^0.7.5"
+    public: true
+  waveshare/waveshare_boards:
+    version: ">=0.2.0,<1"
+    public: true
+  espressif/tinyusb: "*"
+  espressif/usb_device_uac:
+    version: "*"
