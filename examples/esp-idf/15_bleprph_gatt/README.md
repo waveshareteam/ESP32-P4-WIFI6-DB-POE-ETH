@@ -13,7 +13,7 @@ Runs a NimBLE peripheral on the ESP32-P4 host using the ESP32-C5 Bluetooth contr
 
 ## How to Run
 
-Flash compatible ESP-Hosted Bluetooth firmware to the ESP32-C5, optionally set the advertised device name and notification interval under `BLE Peripheral GATT config`, then build and flash the host application.
+Flash compatible ESP-Hosted Bluetooth firmware to the ESP32-C5, optionally set the notification interval under `BLE Peripheral GATT config`, then build and flash the host application.
 
 ```bash
 idf.py set-target esp32p4 menuconfig
@@ -22,8 +22,8 @@ idf.py build flash monitor
 
 ## Expected Result
 
-The log prints `advertising as` with the configured device name. A BLE client can read and write the custom value, subscribe to notifications, and receive the counter value periodically.
+The log prints `advertising as` with a device name formed from `esp-hosted-nim-` and the final two bytes of the standard MAC address as four lowercase hexadecimal characters. A BLE client can read and write the custom value, subscribe to notifications, and receive the counter value periodically.
 
 ## Troubleshooting
 
-Confirm that NimBLE is enabled and the ESP32-C5 runs compatible Hosted Bluetooth firmware. The default advertised name is `esp-hosted-nim-gatt`.
+Confirm that NimBLE is enabled and the ESP32-C5 runs compatible Hosted Bluetooth firmware. The name is generated at runtime after the NimBLE host synchronizes with the C5 controller, using the C5 BLE identity address.

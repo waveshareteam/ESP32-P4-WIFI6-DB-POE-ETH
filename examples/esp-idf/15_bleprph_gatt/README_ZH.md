@@ -13,7 +13,7 @@ ESP32-P4 Host 通过 ESP-Hosted HCI 使用 ESP32-C5 蓝牙控制器运行 NimBLE
 
 ## 怎么运行
 
-先向 ESP32-C5 烧录兼容的 ESP-Hosted 蓝牙固件；可在 `BLE Peripheral GATT config` 中设置广播名称和通知间隔，再编译并烧录 Host 应用。
+先向 ESP32-C5 烧录兼容的 ESP-Hosted 蓝牙固件；可在 `BLE Peripheral GATT config` 中设置通知间隔，再编译并烧录 Host 应用。
 
 ```bash
 idf.py set-target esp32p4 menuconfig
@@ -22,8 +22,8 @@ idf.py build flash monitor
 
 ## 预期现象
 
-日志输出包含配置名称的 `advertising as`。BLE 客户端可读写自定义值、订阅通知，并周期性收到计数器值。
+日志输出包含动态设备名的 `advertising as`。设备名格式为 `esp-hosted-nim-` 加标准 MAC 地址最后两字节对应的 4 个小写十六进制字符。BLE 客户端可读写自定义值、订阅通知，并周期性收到计数器值。
 
 ## 常见问题
 
-确认 NimBLE 已启用，且 ESP32-C5 运行与 Host 兼容的 Hosted 蓝牙固件。默认广播名称为 `esp-hosted-nim-gatt`。
+确认 NimBLE 已启用，且 ESP32-C5 运行与 Host 兼容的 Hosted 蓝牙固件。广播名称在 NimBLE Host 与 C5 控制器同步后，根据 C5 的 BLE identity MAC 地址动态生成。

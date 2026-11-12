@@ -11,6 +11,7 @@
  */
 
 #include <inttypes.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "esp_log.h"
@@ -32,17 +33,17 @@
 
 #define TAG "bleprph_gatt"
 
-#ifndef CONFIG_EXAMPLE_DEVICE_NAME
-#  define CONFIG_EXAMPLE_DEVICE_NAME "esp-hosted-nim-gatt"
-#endif
 #ifndef CONFIG_EXAMPLE_NOTIFY_INTERVAL_MS
 #  define CONFIG_EXAMPLE_NOTIFY_INTERVAL_MS 1000
 #endif
+
+#define BLE_DEVICE_NAME_PREFIX "esp-hosted-nim-"
 
 static uint8_t        s_own_addr_type;
 static uint16_t       s_conn_handle = 0xFFFF;
 static uint16_t       s_notify_attr_handle;
 static bool           s_notify_subscribed = false;
+static char            s_device_name[sizeof(BLE_DEVICE_NAME_PREFIX) + 4];
 
 /* Custom 128-bit service + char UUIDs */
 static const ble_uuid128_t SVC_UUID = BLE_UUID128_INIT(
@@ -102,6 +103,39 @@ static int gatt_access_rw(uint16_t conn_handle, uint16_t attr_handle,
 }
 
 static int bleprph_gap_event(struct ble_gap_event *event, void *arg);
+
+static int set_device_name_from_addr(void)
+{
+    uint8_t addr[6];
+    uint8_t id_addr_type;
+    int rc;
+
+    switch (s_own_addr_type) {
+    case BLE_OWN_ADDR_RANDOM:
+    case BLE_OWN_ADDR_RPA_RANDOM_DEFAULT:
+        id_addr_type = BLE_ADDR_RANDOM;
+        break;
+    case BLE_OWN_ADDR_PUBLIC:
+    case BLE_OWN_ADDR_RPA_PUBLIC_DEFAULT:
+        id_addr_type = BLE_ADDR_PUBLIC;
+        break;
+    default:
+        ESP_LOGE(TAG, "unsupported own address type: %u", s_own_addr_type);
+        return BLE_HS_EINVAL;
+    }
+
+    rc = ble_hs_id_copy_addr(id_addr_type, addr, NULL);
+    if (rc) {
+        ESP_LOGE(TAG, "copy BLE identity address failed: %d", rc);
+        return rc;
+    }
+
+    /* NimBLE stores MAC bytes little-endian: addr[1]:addr[0] are the
+     * final two octets in the conventional MAC representation. */
+    snprintf(s_device_name, sizeof(s_device_name), "%s%02x%02x",
+             BLE_DEVICE_NAME_PREFIX, addr[1], addr[0]);
+    return ble_svc_gap_device_name_set(s_device_name);
+}
 
 static void bleprph_advertise(void)
 {
@@ -187,6 +221,8 @@ static void on_sync(void)
     if (rc) { ESP_LOGE(TAG, "ensure_addr: %d", rc); return; }
     rc = ble_hs_id_infer_auto(0, &s_own_addr_type);
     if (rc) { ESP_LOGE(TAG, "id_infer_auto: %d", rc); return; }
+    rc = set_device_name_from_addr();
+    if (rc) { ESP_LOGE(TAG, "set device name failed: %d", rc); return; }
     bleprph_advertise();
 }
 
@@ -221,8 +257,6 @@ void app_main(void)
     if (rc) { ESP_LOGE(TAG, "gatts_count_cfg: %d", rc); return; }
     rc = ble_gatts_add_svcs(s_gatt_svcs);
     if (rc) { ESP_LOGE(TAG, "gatts_add_svcs: %d", rc); return; }
-
-    ble_svc_gap_device_name_set(CONFIG_EXAMPLE_DEVICE_NAME);
 
     nimble_port_freertos_init(host_task);
     xTaskCreate(notify_task, "notify", 3072, NULL, 5, NULL);
