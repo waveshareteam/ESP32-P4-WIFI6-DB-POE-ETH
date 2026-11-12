@@ -17,10 +17,12 @@
 idf.py set-target esp32p4 build flash monitor
 ```
 
-在控制台先配置板载总线，再使用其他命令：
+程序启动时会自动初始化板载 I2C：SDA 使用 GPIO7，SCL 使用 GPIO8，频率为 100 kHz。需要时仍可使用 `i2cconfig` 修改配置：
 
 ```text
-i2cconfig --scl=8 --sda=7
+i2cdetect
+
+i2cconfig --scl=8 --sda=7 --freq=100000
 i2cdetect
 ```
 
@@ -30,4 +32,4 @@ i2cdetect
 
 ## 常见问题
 
-必须先运行 `i2cconfig`，其他命令依赖它。
+默认总线使用 SDA GPIO7、SCL GPIO8。只有需要修改引脚或频率时才需要运行 `i2cconfig`。
