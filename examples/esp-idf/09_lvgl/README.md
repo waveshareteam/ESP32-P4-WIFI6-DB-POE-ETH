@@ -9,14 +9,24 @@ Runs the LVGL benchmark demo on the MIPI-DSI panel to test display bring-up and 
 ## Hardware Required
 
 - ESP32-P4-WIFI6-DB-POE-ETH development board
-- Supported MIPI-DSI panel (5, 7, 8 or 10.1 inch)
+- MIPI-DSI panel matching the Board Manager board definition
 
 ## How to Run
 
-Select the connected panel under `Component config > Board Support Package (ESP32-P4-WIFI6-DB-POE-ETH) > Display > Select LCD type`; the default is the 10.1-inch panel.
+The panel and touch settings come from the Board Manager board definition. Generate the board code before building.
+
+For a different panel, replace the `idf.py bmgr` command below with the matching display amendment, for example:
 
 ```bash
-idf.py set-target esp32p4 menuconfig
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
+```
+
+Available amendments are `5_dsi_touch_a`, `7_dsi_touch_c`, `8_dsi_touch_a`, `10_1_dsi_touch_a`.
+
+```bash
+idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+idf.py menuconfig
 idf.py build flash monitor
 ```
 
@@ -26,4 +36,4 @@ The backlight turns on, the demo runs through its scenes, and FPS and render-tim
 
 ## Troubleshooting
 
-This example does not initialize touch; use [12_generic_gpio](../12_generic_gpio/) for touch input.
+The example initializes the board-managed touch device.
