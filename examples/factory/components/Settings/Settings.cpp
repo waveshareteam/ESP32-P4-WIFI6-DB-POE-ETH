@@ -10,6 +10,7 @@
 #include "esp_sntp.h"
 #include <atomic>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <time.h>
 #ifdef ESP_UTILS_LOG_TAG
@@ -64,7 +65,7 @@ namespace esp_brookesia::apps
     {
         (void)ctx;
 
-        if (event->event_id == BSP_EXTRA_WIFI_EVENT_STA_GOT_IP) {
+        if (event->event_id == BOARD_WIFI_EVENT_STA_GOT_IP) {
             start_time_sync_once();
         }
     }
@@ -346,8 +347,8 @@ namespace esp_brookesia::apps
             return ESP_OK;
         }
 
-        esp_err_t ret = bsp_extra_wifi_service_subscribe(
-            BSP_EXTRA_WIFI_EVENT_STA_GOT_IP, wifi_time_event_handler, nullptr);
+        esp_err_t ret = board_wifi_service_subscribe(
+            BOARD_WIFI_EVENT_STA_GOT_IP, wifi_time_event_handler, nullptr);
         if (ret != ESP_OK) {
             ESP_UTILS_LOGE("Subscribe Wi-Fi service events failed: %s", esp_err_to_name(ret));
             return ret;
@@ -355,7 +356,7 @@ namespace esp_brookesia::apps
         subscribed = true;
 
         // Covers Settings being subscribed after the station already obtained an address.
-        if (bsp_extra_wifi_service_is_connected()) {
+        if (board_wifi_service_is_connected()) {
             start_time_sync_once();
         }
         return ESP_OK;

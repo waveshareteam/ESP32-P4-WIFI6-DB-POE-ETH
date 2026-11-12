@@ -120,6 +120,7 @@ private:
         uint16_t sample_rate;
         uint16_t frame_duration_ms;
         uint16_t size;
+        int64_t arrival_us;
         uint8_t data[1500];
     };
 
@@ -181,6 +182,9 @@ private:
     std::atomic<uint32_t> _pcm_frames_captured{0};
     std::atomic<uint32_t> _pcm_frames_dropped{0};
     std::atomic<uint32_t> _opus_packets_sent{0};
+    // Per-TTS-turn playback health: server packets lost on a full queue and I2S output gaps.
+    std::atomic<uint32_t> _playback_packets_dropped{0};
+    std::atomic<uint32_t> _playback_gaps{0};
     std::atomic<uint32_t> _pcm_peak{0};
     std::atomic<uint32_t> _pcm_mean_abs{0};
     std::atomic<uint32_t> _input_pcm_peak{0};

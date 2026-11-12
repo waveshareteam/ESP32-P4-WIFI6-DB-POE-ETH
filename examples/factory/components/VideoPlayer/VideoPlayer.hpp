@@ -3,9 +3,7 @@
 #include <atomic>
 
 #include "systems/phone/esp_brookesia_phone_app.hpp"
-#include "bsp/esp-bsp.h"
-#include "bsp/display.h"
-#include "bsp_board_extra.h"
+#include "board.h"
 #include "esp_lcd_mipi_dsi.h"
 #include "driver/ppa.h"
 #include "esp_lcd_touch.h"
@@ -46,7 +44,13 @@ namespace esp_brookesia::apps
         esp_lcd_panel_handle_t display_panel = nullptr;
         ppa_client_handle_t ppa_srm_handle = nullptr;
         esp_lcd_touch_handle_t touch_handle = nullptr;
-        void *lcd_buffers[CONFIG_BSP_LCD_DPI_BUFFER_NUMS] = {};
+        /* Panel geometry and the pixel formats matching it, loaded by initDisplayBypass(). */
+        board_display_info_t display_info = {};
+        uint32_t bytes_per_pixel = 2;
+        ppa_srm_color_mode_t ppa_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        jpeg_pixel_format_t jpeg_sw_format = JPEG_PIXEL_FORMAT_RGB565_LE;
+        jpeg_dec_output_format_t jpeg_hw_format = JPEG_DECODE_OUT_FORMAT_RGB565;
+        void *lcd_buffers[BOARD_DISPLAY_MAX_FRAME_BUFFERS] = {};
         int current_buf_idx = 0;
         uint8_t *jpeg_output_buffer = nullptr;
         int jpeg_output_buffer_size = 0;

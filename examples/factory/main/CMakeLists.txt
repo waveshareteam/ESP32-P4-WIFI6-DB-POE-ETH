@@ -11,7 +11,7 @@ foreach(component_dir IN LISTS PROJECT_COMPONENT_DIRS)
 endforeach()
 
 idf_component_register(
-    SRCS "main.cpp"
+    SRCS "main.cpp" "BootLoading.cpp"
     INCLUDE_DIRS "."
     PRIV_REQUIRES
         ${PROJECT_COMPONENTS}
@@ -20,6 +20,7 @@ idf_component_register(
         esp_netif
         esp_wifi
         nvs_flash
+        board
 )
 
 # Copy the Xiaozhi UI font into the SPIFFS image source directory.

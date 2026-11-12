@@ -13,12 +13,11 @@
 #define ESP_UTILS_LOG_TAG "BS:MusicPlayer"
 #include "esp_lib_utils.h"
 #include "sdkconfig.h"
-#include "bsp/esp-bsp.h"
-#include "bsp_board_extra.h"
+#include "board.h"
 #include "gui_music/lv_demo_music.h"
 #include "gui_music/lv_demo_music_main.h"
 
-#define MUSIC_DIR BSP_SPIFFS_MOUNT_POINT "/music"
+#define MUSIC_DIR BOARD_SPIFFS_MOUNT_POINT "/music"
 
 LV_IMG_DECLARE(img_app_musicplayer);
 
@@ -73,7 +72,7 @@ namespace esp_brookesia::apps
             (void)close();
         }
 
-        esp_err_t ret = bsp_extra_player_init();
+        esp_err_t ret = board_player_init();
         if (ret != ESP_OK)
         {
             ESP_LOGE(TAG, "Audio player initialization failed: %s", esp_err_to_name(ret));
@@ -81,11 +80,11 @@ namespace esp_brookesia::apps
         }
         _player_active = true;
 
-        ret = bsp_extra_file_instance_init(MUSIC_DIR, &_file_iterator);
+        ret = board_file_instance_init(MUSIC_DIR, &_file_iterator);
         if (ret != ESP_OK || !_file_iterator)
         {
             ESP_LOGE(TAG, "Scan music directory failed: %s", esp_err_to_name(ret));
-            (void)bsp_extra_player_del();
+            (void)board_player_del();
             _player_active = false;
             _file_iterator = nullptr;
             return false;
@@ -126,7 +125,7 @@ namespace esp_brookesia::apps
                 ESP_LOGW(TAG, "Pause audio player failed: %s", esp_err_to_name(pause_ret));
                 ok = false;
             }
-            esp_err_t delete_ret = bsp_extra_player_del();
+            esp_err_t delete_ret = board_player_del();
             if (delete_ret != ESP_OK) {
                 ESP_LOGE(TAG, "Delete audio player failed: %s", esp_err_to_name(delete_ret));
                 ok = false;
@@ -137,7 +136,7 @@ namespace esp_brookesia::apps
 
         /* Deleting the player only stops its own output path, so release the
          * shared codec devices as well. */
-        esp_err_t stop_ret = bsp_extra_codec_dev_stop();
+        esp_err_t stop_ret = board_codec_dev_stop();
         if (stop_ret != ESP_OK) {
             ESP_LOGW(TAG, "Release codec devices failed: %s", esp_err_to_name(stop_ret));
             ok = false;
@@ -178,7 +177,7 @@ namespace esp_brookesia::apps
 
             // Close the ES8311 playback and record devices so the next app that needs audio
             // (SpecAnalyzer, Xiaozhi, ...) gets the shared I2S path immediately.
-            esp_err_t stop_ret = bsp_extra_codec_dev_stop();
+            esp_err_t stop_ret = board_codec_dev_stop();
             if (stop_ret != ESP_OK) {
                 ESP_LOGW(TAG, "Release codec devices failed: %s", esp_err_to_name(stop_ret));
             }
@@ -195,12 +194,12 @@ namespace esp_brookesia::apps
             return true;
         }
 
-        // Reopen what pause() released. bsp_extra_codec_init() only creates the
+        // Reopen what pause() released. board_codec_init() only creates the
         // codec objects, so the output stream closed by dev_stop() has to be
         // reopened explicitly before the player writes again.
-        esp_err_t ret = bsp_extra_codec_init();
+        esp_err_t ret = board_codec_init();
         if (ret == ESP_OK) {
-            ret = bsp_extra_codec_dev_resume();
+            ret = board_codec_dev_resume();
         }
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "Reopen audio codec failed: %s", esp_err_to_name(ret));

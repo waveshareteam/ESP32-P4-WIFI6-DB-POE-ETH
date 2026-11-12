@@ -9,8 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bsp/esp-bsp.h"
-#include "bsp_board_extra.h"
+#include "board.h"
 #include "cbin_font.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -26,7 +25,7 @@ namespace {
 
 constexpr char TAG[] = "XiaozhiUi";
 constexpr char COMMON_FONT_PATH[] =
-    BSP_SPIFFS_MOUNT_POINT "/xiaozhi/font.bin";
+    BOARD_SPIFFS_MOUNT_POINT "/xiaozhi/font.bin";
 constexpr size_t MAX_COMMON_FONT_SIZE = 4 * 1024 * 1024;
 constexpr int TOP_BAR_HEIGHT = 54;
 constexpr int SUBTITLE_SINGLE_HEIGHT = 62;
@@ -34,6 +33,8 @@ constexpr int SUBTITLE_MULTILINE_HEIGHT = 132;
 constexpr int EMOJI_BOX_SIZE = 96;
 constexpr int EMOJI_CENTER_OFFSET_Y = -18;
 constexpr int SUBTITLE_EMOJI_GAP = 12;
+constexpr int ACTIVATION_BOX_HEIGHT = 250;
+constexpr int ACTIVATION_BOX_OFFSET_Y = -18;
 
 struct EmotionGlyph {
     const char *name;
@@ -119,9 +120,9 @@ bool XiaozhiUi::preload()
         (void)loadTextFont();
     }
     if (!_emoji_font) {
-        if (bsp_extra_display_lock(-1)) {
+        if (board_display_lock(-1)) {
             _emoji_font = font_emoji_64_init();
-            bsp_extra_display_unlock();
+            board_display_unlock();
         } else {
             ESP_LOGW(TAG, "Unable to lock LVGL while loading the emoji font");
         }
@@ -184,7 +185,7 @@ bool XiaozhiUi::create(
 
     _activation_box = lv_obj_create(_root);
     prepareTransparentObject(_activation_box);
-    lv_obj_set_size(_activation_box, lv_pct(88), 250);
+    lv_obj_set_size(_activation_box, lv_pct(88), ACTIVATION_BOX_HEIGHT);
     lv_obj_set_flex_flow(_activation_box, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(
         _activation_box,
@@ -193,7 +194,7 @@ bool XiaozhiUi::create(
         LV_FLEX_ALIGN_CENTER
     );
     lv_obj_set_style_pad_row(_activation_box, 18, LV_PART_MAIN);
-    lv_obj_align(_activation_box, LV_ALIGN_CENTER, 0, -18);
+    lv_obj_align(_activation_box, LV_ALIGN_CENTER, 0, ACTIVATION_BOX_OFFSET_Y);
     lv_obj_add_flag(_activation_box, LV_OBJ_FLAG_HIDDEN);
 
     _activation_code_label = lv_label_create(_activation_box);
@@ -415,13 +416,13 @@ bool XiaozhiUi::loadTextFont()
         return false;
     }
 
-    if (!bsp_extra_display_lock(-1)) {
+    if (!board_display_lock(-1)) {
         ESP_LOGW(TAG, "Unable to lock LVGL while decoding the common font");
         heap_caps_free(data);
         return false;
     }
     lv_font_t *font = cbin_font_create(data);
-    bsp_extra_display_unlock();
+    board_display_unlock();
 
     if (!font) {
         ESP_LOGW(TAG, "Common font could not be decoded");
@@ -438,14 +439,14 @@ bool XiaozhiUi::loadTextFont()
 
 void XiaozhiUi::releaseTextFont()
 {
-    if (_cbin_font && !bsp_extra_display_lock(-1)) {
+    if (_cbin_font && !board_display_lock(-1)) {
         ESP_LOGE(TAG, "Unable to lock LVGL while releasing the common font");
         return;
     }
     if (_cbin_font) {
         cbin_font_delete(_cbin_font);
         _cbin_font = nullptr;
-        bsp_extra_display_unlock();
+        board_display_unlock();
     }
     if (_font_data) {
         heap_caps_free(_font_data);

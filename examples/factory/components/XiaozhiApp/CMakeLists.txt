@@ -10,6 +10,7 @@ set(SRCS_CPP
     "XiaozhiDeveloperTools.cpp"
     "XiaozhiLocalization.cpp"
     "XiaozhiUi.cpp"
+    "XiaozhiWebsocketStack.cpp"
     "third_party/xiaozhi_esp32/ogg_demuxer.cc"
 )
 
@@ -19,7 +20,7 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES
         brookesia_core
-        bsp_extra
+        board
         esp-sr
         esp_audio_codec
         esp_audio_effects
@@ -37,6 +38,11 @@ idf_component_register(
         esp_hw_support
         esp_partition
         esp_timer
+        esp_websocket_client
+        esp_wifi
+        esp_wifi_remote
+        Camera
+        Settings
         mbedtls
         mcp-c-sdk
         spi_flash
@@ -54,3 +60,7 @@ if(TARGET __idf_espressif__mcp-c-sdk AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
         -Wno-error=stringop-truncation
     )
 endif()
+
+# esp_xiaozhi leaves the WebSocket task at the client's 4 KB default, which MCP
+# tools/list overflows; XiaozhiWebsocketStack.cpp raises it through this wrap.
+target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--wrap=esp_websocket_client_init")

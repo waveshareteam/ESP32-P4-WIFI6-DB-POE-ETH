@@ -13,7 +13,7 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES
         brookesia_core
-        bsp_extra
+        board
         driver
         esp_hosted
         esp_wifi

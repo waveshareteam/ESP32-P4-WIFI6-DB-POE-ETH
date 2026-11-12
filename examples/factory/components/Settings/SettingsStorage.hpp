@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bsp_board_extra.h"
+#include "board_audio.h"
 
 /*
  * Persisted user settings, stored through the Brookesia StorageNVS service.

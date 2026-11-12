@@ -6,10 +6,10 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES
         brookesia_core
+        board
         esp_eth
         esp_event
         esp_netif
-        ethernet_init
         freertos
     WHOLE_ARCHIVE
 )

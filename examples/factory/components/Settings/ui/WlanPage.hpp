@@ -6,7 +6,7 @@
 #include "esp_brookesia.hpp"
 #include "lvgl.h"
 #include "esp_wifi_types.h"
-#include "bsp_board_extra.h"
+#include "board_wifi.h"
 
 namespace esp_brookesia::apps {
     class Settings;
@@ -17,7 +17,7 @@ namespace esp_brookesia::apps {
 /**
  * WLAN settings page.
  *
- * Wi-Fi is owned by the board Wi-Fi service (bsp_extra). The page only subscribes to the service
+ * Wi-Fi is owned by the board Wi-Fi service (board component). The page only subscribes to the service
  * events, requests scans from the shared scan agent and asks the service to connect. Service
  * callbacks run outside the LVGL task, so they only record what happened; an LVGL timer applies
  * the changes to the UI.
@@ -94,7 +94,7 @@ private:
     char wifi_pwd[65] = {};
     char connecting_ssid[33] = {};
     // Link state the list was last built with, to rebuild only when it changes.
-    bsp_extra_wifi_link_t rendered_link = {};
+    board_wifi_link_t rendered_link = {};
     bool ignore_next_disconnect = false;
     bool restore_profile_on_fail = false;
     esp_wifi_service_profile_t previous_profile = {};

@@ -13,9 +13,10 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES
         brookesia_core
-        bsp_extra
+        board
         driver
         esp_driver_ppa
+        esp_driver_jpeg
         esp_hw_support
         esp_lcd
         esp_lcd_touch

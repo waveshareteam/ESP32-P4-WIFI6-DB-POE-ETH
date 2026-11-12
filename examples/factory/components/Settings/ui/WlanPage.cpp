@@ -63,9 +63,9 @@ namespace esp_brookesia::apps
         // Scanning while the station joins an AP makes the association fail.
         bool link_is_joining()
         {
-            bsp_extra_wifi_link_t link = {};
-            bsp_extra_wifi_service_get_link(&link);
-            return link.state == BSP_EXTRA_WIFI_LINK_CONNECTING || link.state == BSP_EXTRA_WIFI_LINK_ASSOCIATED;
+            board_wifi_link_t link = {};
+            board_wifi_service_get_link(&link);
+            return link.state == BOARD_WIFI_LINK_CONNECTING || link.state == BOARD_WIFI_LINK_ASSOCIATED;
         }
 
         void copy_ssid(char *dst, size_t dst_size, const uint8_t *src, size_t src_len)
@@ -98,7 +98,7 @@ namespace esp_brookesia::apps
     {
         ESP_UTILS_LOGI("WlanPage Run");
 
-        if (!bsp_extra_wifi_service_is_ready()) {
+        if (!board_wifi_service_is_ready()) {
             ESP_UTILS_LOGE("Wi-Fi service is not available");
         }
 
@@ -110,7 +110,7 @@ namespace esp_brookesia::apps
             ESP_UTILS_LOGE("Create WLAN UI timer failed");
         }
 
-        if (bsp_extra_wifi_service_is_enabled()) {
+        if (board_wifi_service_is_enabled()) {
             setUiState(UiState::Scanning);
             requestScan();
         } else {
@@ -136,7 +136,7 @@ namespace esp_brookesia::apps
             ui_timer = nullptr;
         }
 
-        esp_wifi_service_scan_handle_t scan_handle = bsp_extra_wifi_service_get_scan_handle();
+        esp_wifi_service_scan_handle_t scan_handle = board_wifi_service_get_scan_handle();
         if (scan_handle != nullptr) {
             esp_wifi_service_scan_remove_cb(scan_handle, wifi_scan_done_cb);
         }
@@ -157,7 +157,7 @@ namespace esp_brookesia::apps
 
         // Subscribed for the lifetime of the page object: unsubscribing by event id would also drop
         // the subscriptions of other apps.
-        esp_err_t ret = bsp_extra_wifi_service_subscribe(BSP_EXTRA_WIFI_EVENT_ANY, wifi_service_event_cb, this);
+        esp_err_t ret = board_wifi_service_subscribe(BOARD_WIFI_EVENT_ANY, wifi_service_event_cb, this);
         if (ret != ESP_OK) {
             ESP_UTILS_LOGE("Subscribe Wi-Fi service events failed: %s", esp_err_to_name(ret));
             return;
@@ -182,8 +182,8 @@ namespace esp_brookesia::apps
         lv_obj_t *header = (back_btn != nullptr) ? lv_obj_get_parent(back_btn) : nullptr;
         if (header != nullptr) {
             refresh_btn = lv_button_create(header);
-            lv_obj_set_size(refresh_btn, 48, 48);
-            lv_obj_align(refresh_btn, LV_ALIGN_RIGHT_MID, -20, 0);
+            lv_obj_set_size(refresh_btn, settings_ui::HEADER_BUTTON_SIZE, settings_ui::HEADER_BUTTON_SIZE);
+            lv_obj_align(refresh_btn, LV_ALIGN_RIGHT_MID, -settings_ui::HEADER_BUTTON_EDGE_MARGIN, 0);
             lv_obj_set_style_radius(refresh_btn, 8, LV_PART_MAIN);
             lv_obj_set_style_border_width(refresh_btn, 0, LV_PART_MAIN);
             lv_obj_set_style_shadow_width(refresh_btn, 0, LV_PART_MAIN);
@@ -398,8 +398,8 @@ namespace esp_brookesia::apps
 
         const int32_t scroll_y = lv_obj_get_scroll_y(list1);
         clearListRows();
-        bsp_extra_wifi_link_t link = {};
-        bsp_extra_wifi_service_get_link(&link);
+        board_wifi_link_t link = {};
+        board_wifi_service_get_link(&link);
         rendered_link = link;
         if (ui_state == UiState::Off) {
             return;
@@ -411,15 +411,15 @@ namespace esp_brookesia::apps
         // The board tracks the link from boot, so an automatic connection that started before the
         // page opened is listed too.
         const char *link_ssid = connecting ? connecting_ssid : link.ssid;
-        if (connecting || link.state != BSP_EXTRA_WIFI_LINK_IDLE) {
+        if (connecting || link.state != BOARD_WIFI_LINK_IDLE) {
             connected_text = settings_ui::add_section(list1, "Connected WLAN", style_list_text);
             conn_btn = addListRow(link_ssid);
-            if (connecting || link.state == BSP_EXTRA_WIFI_LINK_CONNECTING) {
+            if (connecting || link.state == BOARD_WIFI_LINK_CONNECTING) {
                 lv_obj_remove_flag(conn_btn, LV_OBJ_FLAG_CLICKABLE);
                 addRowProgress(conn_btn, "Connecting...");
             } else {
                 lv_obj_add_event_cb(conn_btn, conn_btn_event_cb, LV_EVENT_CLICKED, this);
-                if (link.state == BSP_EXTRA_WIFI_LINK_GOT_IP) {
+                if (link.state == BOARD_WIFI_LINK_GOT_IP) {
                     lv_obj_t *state_icon = lv_label_create(conn_btn);
                     lv_label_set_text(state_icon, LV_SYMBOL_OK);
                     lv_obj_set_style_text_font(state_icon, &lv_font_montserrat_26, LV_PART_MAIN);
@@ -609,9 +609,9 @@ namespace esp_brookesia::apps
 
     void WlanPage::showForgetConfirm()
     {
-        bsp_extra_wifi_link_t link = {};
-        bsp_extra_wifi_service_get_link(&link);
-        if (link.state != BSP_EXTRA_WIFI_LINK_ASSOCIATED && link.state != BSP_EXTRA_WIFI_LINK_GOT_IP) {
+        board_wifi_link_t link = {};
+        board_wifi_service_get_link(&link);
+        if (link.state != BOARD_WIFI_LINK_ASSOCIATED && link.state != BOARD_WIFI_LINK_GOT_IP) {
             return;
         }
 
@@ -634,7 +634,7 @@ namespace esp_brookesia::apps
         }
         scan_deferred = false;
 
-        esp_wifi_service_scan_handle_t scan_handle = bsp_extra_wifi_service_get_scan_handle();
+        esp_wifi_service_scan_handle_t scan_handle = board_wifi_service_get_scan_handle();
         esp_err_t ret = ESP_ERR_INVALID_STATE;
         if (scan_handle != nullptr) {
             ret = esp_wifi_service_scan_request(scan_handle, nullptr, wifi_scan_done_cb, this);
@@ -649,7 +649,7 @@ namespace esp_brookesia::apps
 
     void WlanPage::startConnect(const ApInfo &ap, const char *password)
     {
-        esp_wifi_service_profile_mgr_t profile_mgr = bsp_extra_wifi_service_get_profile_manager();
+        esp_wifi_service_profile_mgr_t profile_mgr = board_wifi_service_get_profile_manager();
         if (profile_mgr == nullptr) {
             showMessage("Wi-Fi unavailable", "The Wi-Fi service is not running.");
             setUiState(UiState::Idle);
@@ -663,11 +663,11 @@ namespace esp_brookesia::apps
         restore_profile_on_fail =
             esp_wifi_service_profile_mgr_get(profile_mgr, connecting_ssid, &previous_profile) == ESP_OK;
         {
-            bsp_extra_wifi_link_t link = {};
-            bsp_extra_wifi_service_get_link(&link);
+            board_wifi_link_t link = {};
+            board_wifi_service_get_link(&link);
             // Reconnecting to the current SSID first disconnects from it; that event is not a failure.
-            ignore_next_disconnect = (link.state == BSP_EXTRA_WIFI_LINK_ASSOCIATED ||
-                                      link.state == BSP_EXTRA_WIFI_LINK_GOT_IP) &&
+            ignore_next_disconnect = (link.state == BOARD_WIFI_LINK_ASSOCIATED ||
+                                      link.state == BOARD_WIFI_LINK_GOT_IP) &&
                                      strcmp(link.ssid, connecting_ssid) == 0;
         }
         pending_events.fetch_and(~(PENDING_CONNECTED | PENDING_DISCONNECTED | PENDING_GOT_IP | PENDING_CONNECT_FAILED));
@@ -676,7 +676,7 @@ namespace esp_brookesia::apps
         setUiState(UiState::Connecting);
         connect_start_tick = lv_tick_get();
 
-        esp_err_t ret = bsp_extra_wifi_service_request_connect(connecting_ssid, wifi_pwd, CONNECT_PRIORITY, 0);
+        esp_err_t ret = board_wifi_service_request_connect(connecting_ssid, wifi_pwd, CONNECT_PRIORITY, 0);
         memset(wifi_pwd, 0, sizeof(wifi_pwd));
         if (ret != ESP_OK) {
             ESP_UTILS_LOGW("Request Wi-Fi connect failed: %s", esp_err_to_name(ret));
@@ -691,7 +691,7 @@ namespace esp_brookesia::apps
         } else {
             ESP_UTILS_LOGW("Connect to SSID %s failed", connecting_ssid);
 
-            esp_wifi_service_profile_mgr_t profile_mgr = bsp_extra_wifi_service_get_profile_manager();
+            esp_wifi_service_profile_mgr_t profile_mgr = board_wifi_service_get_profile_manager();
             if (profile_mgr != nullptr) {
                 // Do not keep retrying credentials that never worked.
                 if (restore_profile_on_fail) {
@@ -705,7 +705,7 @@ namespace esp_brookesia::apps
                 (void)esp_wifi_disconnect();
             }
             // Let the selector fall back to other saved networks.
-            esp_err_t ret = bsp_extra_wifi_service_request_reeval();
+            esp_err_t ret = board_wifi_service_request_reeval();
             if (ret != ESP_OK && ret != ESP_ERR_NOT_FOUND) {
                 ESP_UTILS_LOGW("Request Wi-Fi re-evaluation failed: %s", esp_err_to_name(ret));
             }
@@ -724,14 +724,14 @@ namespace esp_brookesia::apps
 
     void WlanPage::forgetConnectedNetwork()
     {
-        bsp_extra_wifi_link_t link = {};
-        bsp_extra_wifi_service_get_link(&link);
-        if (link.state != BSP_EXTRA_WIFI_LINK_ASSOCIATED && link.state != BSP_EXTRA_WIFI_LINK_GOT_IP) {
+        board_wifi_link_t link = {};
+        board_wifi_service_get_link(&link);
+        if (link.state != BOARD_WIFI_LINK_ASSOCIATED && link.state != BOARD_WIFI_LINK_GOT_IP) {
             return;
         }
         const char *current_ssid = link.ssid;
 
-        esp_wifi_service_profile_mgr_t profile_mgr = bsp_extra_wifi_service_get_profile_manager();
+        esp_wifi_service_profile_mgr_t profile_mgr = board_wifi_service_get_profile_manager();
         if (profile_mgr != nullptr) {
             esp_err_t ret = esp_wifi_service_profile_mgr_delete(profile_mgr, current_ssid);
             if (ret != ESP_OK && ret != ESP_ERR_NOT_FOUND) {
@@ -807,9 +807,9 @@ namespace esp_brookesia::apps
         }
 
         if (ui_state == UiState::Connecting) {
-            bsp_extra_wifi_link_t link = {};
-            bsp_extra_wifi_service_get_link(&link);
-            const bool target_connected = link.state == BSP_EXTRA_WIFI_LINK_GOT_IP &&
+            board_wifi_link_t link = {};
+            board_wifi_service_get_link(&link);
+            const bool target_connected = link.state == BOARD_WIFI_LINK_GOT_IP &&
                                           strcmp(link.ssid, connecting_ssid) == 0;
             bool target_disconnected = false;
             {
@@ -836,8 +836,8 @@ namespace esp_brookesia::apps
         // Compare against the board link snapshot each tick; this also covers attempts the selector
         // starts on its own.
         if (ui_state == UiState::Idle || ui_state == UiState::Scanning) {
-            bsp_extra_wifi_link_t link = {};
-            bsp_extra_wifi_service_get_link(&link);
+            board_wifi_link_t link = {};
+            board_wifi_service_get_link(&link);
             if (link.state != rendered_link.state || strcmp(link.ssid, rendered_link.ssid) != 0) {
                 rebuildList();
             }
@@ -853,10 +853,10 @@ namespace esp_brookesia::apps
 
         uint32_t pending = 0;
         switch (event->event_id) {
-        case BSP_EXTRA_WIFI_EVENT_CONNECTED:
+        case BOARD_WIFI_EVENT_CONNECTED:
             pending = PENDING_CONNECTED;
             break;
-        case BSP_EXTRA_WIFI_EVENT_DISCONNECTED: {
+        case BOARD_WIFI_EVENT_DISCONNECTED: {
             std::lock_guard<std::mutex> lock(self->shared_mutex);
             self->disconnected_ssid[0] = '\0';
             if (event->payload != nullptr && event->payload_len >= sizeof(wifi_event_sta_disconnected_t)) {
@@ -866,13 +866,13 @@ namespace esp_brookesia::apps
             pending = PENDING_DISCONNECTED;
             break;
         }
-        case BSP_EXTRA_WIFI_EVENT_STA_GOT_IP:
+        case BOARD_WIFI_EVENT_STA_GOT_IP:
             pending = PENDING_GOT_IP;
             break;
-        case BSP_EXTRA_WIFI_EVENT_STA_LOST_IP:
+        case BOARD_WIFI_EVENT_STA_LOST_IP:
             pending = PENDING_LOST_IP;
             break;
-        case BSP_EXTRA_WIFI_EVENT_SELECTOR_SWITCH_FAILED:
+        case BOARD_WIFI_EVENT_SELECTOR_SWITCH_FAILED:
             pending = PENDING_CONNECT_FAILED;
             break;
         default:
@@ -918,7 +918,7 @@ namespace esp_brookesia::apps
         }
 
         const bool enable = lv_obj_has_state(sw, LV_STATE_CHECKED);
-        esp_err_t ret = bsp_extra_wifi_service_set_enabled(enable);
+        esp_err_t ret = board_wifi_service_set_enabled(enable);
         if (ret != ESP_OK) {
             ESP_UTILS_LOGW("Set Wi-Fi enabled=%d failed: %s", enable, esp_err_to_name(ret));
         }

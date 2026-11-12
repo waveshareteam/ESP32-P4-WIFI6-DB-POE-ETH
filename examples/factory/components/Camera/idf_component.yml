@@ -3,4 +3,3 @@ dependencies:
   espressif/esp_video:
     version: "^2.3.0"
     public: true
-  espressif/esp_ipa: "^2.4.0"

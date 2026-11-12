@@ -6,8 +6,7 @@
 #include "freertos/task.h"
 
 #include "lvgl.h"
-#include "esp_eth_driver.h"
-#include "esp_eth_netif_glue.h"
+#include "board_ethernet.h"
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "systems/phone/esp_brookesia_phone_app.hpp"
@@ -33,10 +32,7 @@ protected:
 private:
     static EthernetInfo *_instance;
 
-    esp_eth_handle_t *_eth_handles = nullptr;
-    uint8_t _eth_count = 0;
-    esp_netif_t *_eth_netif = nullptr;
-    esp_eth_netif_glue_handle_t _eth_glue = nullptr;
+    std::atomic_bool _eth_initialized = false;
     esp_event_handler_instance_t _eth_event_instance = nullptr;
     std::atomic_bool _link_up = false;
     std::atomic_bool _init_task_running = false;

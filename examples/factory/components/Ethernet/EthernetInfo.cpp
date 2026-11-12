@@ -10,9 +10,8 @@
 #include <string.h>
 
 #include "Ethernet.hpp"
-#include "ethernet_init.h"
 #include "esp_brookesia.hpp"
-#include "esp_eth_netif_glue.h"
+#include "esp_eth.h"
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "esp_netif_ip_addr.h"
@@ -97,7 +96,7 @@ EthernetInfo::~EthernetInfo()
 
 bool EthernetInfo::run()
 {
-    if (_eth_handles && _eth_count > 0) {
+    if (_eth_initialized) {
         _init_result = registerEthernetEvents();
     }
     createUi();
@@ -128,20 +127,14 @@ bool EthernetInfo::deinit()
     if (_init_task_running.load() && _init_done) {
         xSemaphoreTake(_init_done, portMAX_DELAY);
     }
-    if (_eth_handles) {
-        unregisterEthernetEvents();
-        esp_eth_stop(_eth_handles[0]);
-        if (_eth_glue) {
-            esp_eth_del_netif_glue(_eth_glue);
-            _eth_glue = nullptr;
+    unregisterEthernetEvents();
+    if (_eth_initialized) {
+        esp_err_t ret = board_ethernet_deinit();
+        if (ret != ESP_OK) {
+            ESP_UTILS_LOGE("Deinitialize Ethernet failed: %s", esp_err_to_name(ret));
+            return false;
         }
-        if (_eth_netif) {
-            esp_netif_destroy(_eth_netif);
-            _eth_netif = nullptr;
-        }
-        ethernet_deinit_all(_eth_handles);
-        _eth_handles = nullptr;
-        _eth_count = 0;
+        _eth_initialized = false;
     }
     return true;
 }
@@ -240,68 +233,14 @@ void EthernetInfo::destroyUi()
 
 esp_err_t EthernetInfo::initializeEthernet()
 {
-    if (_eth_handles && _eth_count > 0) {
-        return ESP_OK;
-    }
-
-    esp_err_t err = esp_event_loop_create_default();
-    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-        return err;
-    }
-    err = ethernet_init_all(&_eth_handles, &_eth_count);
-    if (err != ESP_OK) {
-        _eth_handles = nullptr;
-        _eth_count = 0;
-        return err;
-    }
-    if (_eth_count == 0 || !_eth_handles) {
-        if (_eth_handles) {
-            ethernet_deinit_all(_eth_handles);
-            _eth_handles = nullptr;
-        }
-        _eth_count = 0;
-        return ESP_ERR_NOT_FOUND;
-    }
-
-    esp_netif_config_t netif_config = ESP_NETIF_DEFAULT_ETH();
-    _eth_netif = esp_netif_new(&netif_config);
-    if (!_eth_netif) {
-        err = ESP_ERR_NO_MEM;
-        goto fail;
-    }
-    _eth_glue = esp_eth_new_netif_glue(_eth_handles[0]);
-    if (!_eth_glue) {
-        err = ESP_ERR_NO_MEM;
-        goto fail;
-    }
-    err = esp_netif_attach(_eth_netif, _eth_glue);
-    if (err != ESP_OK) {
-        goto fail;
-    }
-    err = esp_eth_start(_eth_handles[0]);
-    if (err != ESP_OK) {
-        goto fail;
-    }
-    return ESP_OK;
-
-fail:
-    if (_eth_glue) {
-        esp_eth_del_netif_glue(_eth_glue);
-        _eth_glue = nullptr;
-    }
-    if (_eth_netif) {
-        esp_netif_destroy(_eth_netif);
-        _eth_netif = nullptr;
-    }
-    ethernet_deinit_all(_eth_handles);
-    _eth_handles = nullptr;
-    _eth_count = 0;
-    return err;
+    esp_err_t ret = board_ethernet_init();
+    _eth_initialized = (ret == ESP_OK);
+    return ret;
 }
 
 bool EthernetInfo::startEthernetInitialization()
 {
-    if ((_eth_handles && _eth_count > 0) || _init_task_running.exchange(true)) {
+    if (_eth_initialized || _init_task_running.exchange(true)) {
         return true;
     }
     if (!_init_done) {
@@ -340,7 +279,8 @@ esp_err_t EthernetInfo::registerEthernetEvents()
     if (_eth_event_instance) {
         return ESP_OK;
     }
-    _link_up.store(_eth_netif && esp_netif_is_netif_up(_eth_netif));
+    board_ethernet_info_t info = {};
+    _link_up.store(board_ethernet_get_info(&info) == ESP_OK && info.link_up);
     return esp_event_handler_instance_register(
         ETH_EVENT,
         ESP_EVENT_ANY_ID,
@@ -383,19 +323,12 @@ void EthernetInfo::refresh()
         return;
     }
 
-    esp_netif_ip_info_t ip_info = {};
-    const bool ip_acquired = _eth_netif &&
-        esp_netif_get_ip_info(_eth_netif, &ip_info) == ESP_OK && ip_info.ip.addr != 0;
-    uint8_t mac[ETH_ADDR_LEN] = {};
-    eth_speed_t speed = ETH_SPEED_10M;
-    eth_duplex_t duplex = ETH_DUPLEX_HALF;
-    uint32_t phy_addr = 0;
-    if (_eth_handles && _eth_count > 0) {
-        esp_eth_ioctl(_eth_handles[0], ETH_CMD_G_MAC_ADDR, mac);
-        esp_eth_ioctl(_eth_handles[0], ETH_CMD_G_SPEED, &speed);
-        esp_eth_ioctl(_eth_handles[0], ETH_CMD_G_DUPLEX_MODE, &duplex);
-        esp_eth_ioctl(_eth_handles[0], ETH_CMD_G_PHY_ADDR, &phy_addr);
-    }
+    board_ethernet_info_t info = {};
+    const bool available = _eth_initialized && board_ethernet_get_info(&info) == ESP_OK;
+    const bool ip_acquired = available && info.ip.ip.addr != 0;
+    const esp_netif_ip_info_t &ip_info = info.ip;
+    const uint8_t *mac = info.mac;
+    const uint32_t phy_addr = info.phy_addr;
 
     const bool initializing = _init_task_running.load();
     const char *status = initializing ? "Initializing" : "Starting";
@@ -450,8 +383,8 @@ void EthernetInfo::refresh()
             buffer,
             sizeof(buffer),
             "%u Mbps / %s",
-            speed == ETH_SPEED_100M ? 100U : 10U,
-            duplex == ETH_DUPLEX_FULL ? "full duplex" : "half duplex"
+            info.speed_mbps,
+            info.full_duplex ? "full duplex" : "half duplex"
         );
         setLabelIfChanged(_value_labels[4], buffer);
     } else {
@@ -477,7 +410,7 @@ void EthernetInfo::refreshButtonCallback(lv_event_t *event)
 {
     auto *instance = static_cast<EthernetInfo *>(lv_event_get_user_data(event));
     if (instance) {
-        if (!instance->_eth_handles || instance->_eth_count == 0) {
+        if (!instance->_eth_initialized) {
             instance->startEthernetInitialization();
         } else {
             instance->_init_result = instance->registerEthernetEvents();

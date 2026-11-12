@@ -16,7 +16,7 @@
 
 #include "lv_demo_music.h"
 #include "esp_log.h"
-#include "bsp_board_extra.h"
+#include "board.h"
 #include "audio_player.h"
 
 /*********************
@@ -399,14 +399,14 @@ void lv_demo_music_resume(void)
     }
 
     esp_err_t ret;
-    if (!pause_exit && pause && bsp_extra_player_is_playing_by_index(file_iterator, track_id)) {
+    if (!pause_exit && pause && board_player_is_playing_by_index(file_iterator, track_id)) {
         LV_LOG_USER("Resume music");
         ret = audio_player_resume();
     }
     else {
         pause_exit = false;
         LV_LOG_USER("Music is not playing. Start playing.");
-        ret = bsp_extra_player_play_index(file_iterator, track_id);
+        ret = board_player_play_index(file_iterator, track_id);
     }
 
     if(ret != ESP_OK) {

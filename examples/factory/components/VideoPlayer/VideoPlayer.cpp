@@ -7,7 +7,6 @@
 #include "lvgl.h"
 #include "esp_brookesia.hpp"
 
-#include "bsp/touch.h"
 #include "esp_lib_utils.h"
 #include "esp_cache.h"
 #include "esp_check.h"
@@ -32,28 +31,9 @@
 
 LV_IMG_DECLARE(img_app_vedioplayer);
 
-#define DISPLAY_WIDTH  BSP_LCD_H_RES
-#define DISPLAY_HEIGHT BSP_LCD_V_RES
 #define ALIGN_UP(num, align) (((num) + ((align) - 1)) & ~((align) - 1))
-// Quarter turn (counter-clockwise) applied to video whose orientation differs from the
-// panel's. Switch to PPA_SRM_ROTATION_ANGLE_270 if rotated video comes out upside down.
-#define VIDEO_ROTATED_ANGLE PPA_SRM_ROTATION_ANGLE_90
 // The PPA SRM scale has a 4-bit fraction: it steps in 1/16.
 #define PPA_SCALE_STEPS 16
-
-#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB565
-#define VIDEO_JPEG_PIXEL_FORMAT JPEG_PIXEL_FORMAT_RGB565_LE
-#define VIDEO_HW_JPEG_OUTPUT_FORMAT JPEG_DECODE_OUT_FORMAT_RGB565
-#define VIDEO_PPA_COLOR_MODE    PPA_SRM_COLOR_MODE_RGB565
-#define VIDEO_BYTES_PER_PIXEL   2
-#elif CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-#define VIDEO_JPEG_PIXEL_FORMAT JPEG_PIXEL_FORMAT_RGB888
-#define VIDEO_HW_JPEG_OUTPUT_FORMAT JPEG_DECODE_OUT_FORMAT_RGB888
-#define VIDEO_PPA_COLOR_MODE    PPA_SRM_COLOR_MODE_RGB888
-#define VIDEO_BYTES_PER_PIXEL   3
-#else
-#error "Unsupported BSP LCD color format"
-#endif
 
 namespace esp_brookesia::apps
 {
@@ -105,7 +85,7 @@ namespace esp_brookesia::apps
     {
         s_stats = {};
         s_stats.window_start_us = esp_timer_get_time();
-        s_stats.underruns_at_start = bsp_extra_i2s_get_tx_underrun_count();
+        s_stats.underruns_at_start = board_i2s_get_tx_underrun_count();
     }
 
     void playback_stats_maybe_log()
@@ -127,7 +107,8 @@ namespace esp_brookesia::apps
         ESP_LOGI("VideoStats",
                  "fps=%lu.%lu dropped %lu | interval avg %lu max %lu ms | decode avg %lu max %lu | "
                  "ppa avg %lu max %lu | blit avg %lu max %lu | "
-                 "audio %lu chunks %lu B/s, write avg %lu max %lu ms | i2s underruns %lu",
+                 "audio %lu chunks %lu B/s, write avg %lu max %lu ms | i2s underruns %lu | "
+                 "dma free %lu largest %lu",
                  fps_x10 / 10, fps_x10 % 10, static_cast<unsigned long>(s_stats.dropped),
                  avg_ms(s_stats.frame_interval, n), max_ms(s_stats.frame_interval),
                  avg_ms(s_stats.decode, n), max_ms(s_stats.decode),
@@ -136,7 +117,9 @@ namespace esp_brookesia::apps
                  static_cast<unsigned long>(s_stats.audio_chunks),
                  static_cast<unsigned long>(s_stats.audio_bytes * 1000000ULL / elapsed),
                  avg_ms(s_stats.audio_write, s_stats.audio_chunks), max_ms(s_stats.audio_write),
-                 static_cast<unsigned long>(bsp_extra_i2s_get_tx_underrun_count() - s_stats.underruns_at_start));
+                 static_cast<unsigned long>(board_i2s_get_tx_underrun_count() - s_stats.underruns_at_start),
+                 static_cast<unsigned long>(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA)),
+                 static_cast<unsigned long>(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA)));
         const int64_t last_frame_us = s_stats.last_frame_us;
         playback_stats_reset();
         s_stats.last_frame_us = last_frame_us;
@@ -193,45 +176,45 @@ namespace esp_brookesia::apps
             return false;
         }
         if (!sd_mounted) {
-            esp_err_t mount_ret = bsp_sdcard_mount();
+            esp_err_t mount_ret = board_sdcard_mount();
             sd_mounted = mount_ret == ESP_OK || mount_ret == ESP_ERR_INVALID_STATE;
             if (!sd_mounted) {
                 ESP_LOGE(
                     ESP_UTILS_LOG_TAG,
                     "Mount %s failed: %s",
-                    BSP_SD_MOUNT_POINT,
+                    BOARD_SD_MOUNT_POINT,
                     esp_err_to_name(mount_ret)
                 );
             }
         }
-        bsp_extra_display_lock(-1);
+        board_display_lock(-1);
         lv_obj_set_style_bg_color(lv_scr_act(), lv_color_black(), LV_PART_MAIN);
         lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, LV_PART_MAIN);
         status_label = lv_label_create(lv_scr_act());
         lv_label_set_text(status_label, sd_mounted ? "loading files..." : "sd error");
         lv_obj_set_style_text_align(status_label, LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_width(status_label, DISPLAY_WIDTH);
+        lv_obj_set_width(status_label, lv_pct(100));
         lv_obj_align(status_label, LV_ALIGN_CENTER, 0, 0);
         lv_obj_set_style_text_font(status_label, &lv_font_montserrat_20, 0);
-        bsp_extra_display_unlock();
+        board_display_unlock();
 
         if (!sd_mounted)
         {
             return true;
         }
 
-        if (getAviFileList(BSP_SD_MOUNT_POINT "/avi") != ESP_OK || avi_file_count == 0)
+        if (getAviFileList(BOARD_SD_MOUNT_POINT "/avi") != ESP_OK || avi_file_count == 0)
         {
-            bsp_extra_display_lock(-1);
+            board_display_lock(-1);
             lv_label_set_text(status_label, "avi error");
-            bsp_extra_display_unlock();
+            board_display_unlock();
             return true;
         }
 
-        bsp_extra_display_lock(-1);
+        board_display_lock(-1);
         lv_obj_del(status_label);
         status_label = nullptr;
-        bsp_extra_display_unlock();
+        board_display_unlock();
 
         return startPlaybackTask();
     }
@@ -255,13 +238,13 @@ namespace esp_brookesia::apps
         destroyCloseRequestTimer();
         releasePlaybackResources();
 
-        bsp_extra_display_lock(-1);
+        board_display_lock(-1);
         if (status_label)
         {
             lv_obj_del(status_label);
             status_label = nullptr;
         }
-        bsp_extra_display_unlock();
+        board_display_unlock();
 
         if (avi_file_list)
         {
@@ -327,15 +310,16 @@ namespace esp_brookesia::apps
         is_paused.store(false);
         playback_exited.store(false);
 
-        // AVI parsing, JPEG decoding, PPA blitting, and PCM output share this task.
-        BaseType_t ret = xTaskCreatePinnedToCore(
+        // Keep the playback control stack out of the internal DMA heap used by SDIO.
+        BaseType_t ret = xTaskCreatePinnedToCoreWithCaps(
             playTask,
             "avi_play_task",
             32768,
             this,
             7,
             &play_task_handle,
-            0
+            0,
+            MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
         );
         if (ret != pdPASS) {
             loop_playback.store(false);
@@ -395,7 +379,7 @@ namespace esp_brookesia::apps
         deinitJpegDecoder();
         releaseJpegOutputBuffer();
         deinitDisplayBypass();
-        (void)bsp_extra_codec_output_stop();
+        (void)board_codec_output_stop();
         audio_ready.store(false);
     }
 
@@ -499,28 +483,35 @@ namespace esp_brookesia::apps
         display = lv_display_get_default();
         ESP_RETURN_ON_FALSE(display != nullptr, ESP_ERR_INVALID_STATE, ESP_UTILS_LOG_TAG, "LVGL display is not ready");
 
-        display_panel = bsp_display_get_panel_handle();
+        display_panel = board_display_get_panel_handle();
         ESP_RETURN_ON_FALSE(display_panel != nullptr, ESP_ERR_INVALID_STATE, ESP_UTILS_LOG_TAG, "LCD panel is not ready");
 
-        esp_err_t ret = ESP_OK;
-#if CONFIG_BSP_LCD_DPI_BUFFER_NUMS >= 3
-        ret = esp_lcd_dpi_panel_get_frame_buffer(
-                  display_panel,
-                  CONFIG_BSP_LCD_DPI_BUFFER_NUMS,
-                  &lcd_buffers[0],
-                  &lcd_buffers[1],
-                  &lcd_buffers[2]
-              );
-#elif CONFIG_BSP_LCD_DPI_BUFFER_NUMS == 2
-        ret = esp_lcd_dpi_panel_get_frame_buffer(
-                  display_panel,
-                  CONFIG_BSP_LCD_DPI_BUFFER_NUMS,
-                  &lcd_buffers[0],
-                  &lcd_buffers[1]
-              );
-#else
-#error "VideoPlayer needs at least two LCD frame buffers"
-#endif
+        ESP_RETURN_ON_ERROR(board_display_get_info(&display_info), ESP_UTILS_LOG_TAG, "Get display info failed");
+        // Decode straight into the panel's pixel format so the PPA only crops and scales.
+        switch (display_info.bits_per_pixel) {
+        case 16:
+            bytes_per_pixel = 2;
+            ppa_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+            jpeg_sw_format = JPEG_PIXEL_FORMAT_RGB565_LE;
+            jpeg_hw_format = JPEG_DECODE_OUT_FORMAT_RGB565;
+            break;
+        case 24:
+            bytes_per_pixel = 3;
+            ppa_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+            jpeg_sw_format = JPEG_PIXEL_FORMAT_RGB888;
+            jpeg_hw_format = JPEG_DECODE_OUT_FORMAT_RGB888;
+            break;
+        default:
+            ESP_LOGE(ESP_UTILS_LOG_TAG, "Unsupported LCD color depth: %u bpp", display_info.bits_per_pixel);
+            return ESP_ERR_NOT_SUPPORTED;
+        }
+
+        // Playback flips between DPI frame buffers, so it needs at least two of them.
+        ESP_RETURN_ON_FALSE(display_info.frame_buffer_num >= 2, ESP_ERR_NOT_SUPPORTED, ESP_UTILS_LOG_TAG,
+                            "VideoPlayer needs at least two LCD frame buffers, got %u", display_info.frame_buffer_num);
+        // Only the first frame_buffer_num pointers are written.
+        esp_err_t ret = esp_lcd_dpi_panel_get_frame_buffer(display_panel, display_info.frame_buffer_num,
+                                                           &lcd_buffers[0], &lcd_buffers[1], &lcd_buffers[2]);
         ESP_RETURN_ON_ERROR(ret, ESP_UTILS_LOG_TAG, "Get LCD frame buffers failed");
         current_buf_idx = 0;
 
@@ -549,18 +540,20 @@ namespace esp_brookesia::apps
         }
         lvgl_paused = true;
 
-        ret = bsp_touch_get_shared(&touch_handle);
-        if (ret != ESP_OK) {
+        // LVGL is paused, so the swipe is read from the touch driver it would otherwise poll.
+        touch_handle = board_display_get_touch_handle();
+        if (touch_handle == nullptr) {
+            ESP_LOGE(ESP_UTILS_LOG_TAG, "No touch input, swipe-to-exit is unavailable");
             deinitDisplayBypass();
-            return ret;
+            return ESP_ERR_NOT_FOUND;
         }
 
         ESP_LOGI(
             ESP_UTILS_LOG_TAG,
-            "Video display bypass: %dx%d, %d frame buffers",
-            DISPLAY_WIDTH,
-            DISPLAY_HEIGHT,
-            CONFIG_BSP_LCD_DPI_BUFFER_NUMS
+            "Video display bypass: %lux%lu, %u frame buffers",
+            static_cast<unsigned long>(display_info.width),
+            static_cast<unsigned long>(display_info.height),
+            display_info.frame_buffer_num
         );
         return ESP_OK;
     }
@@ -568,7 +561,7 @@ namespace esp_brookesia::apps
     void VideoPlayer::deinitDisplayBypass()
     {
         // Stop direct reads before the LVGL adapter resumes using the same
-        // BSP-owned GT911 handle.
+        // board-owned GT911 handle.
         touch_handle = nullptr;
         touch_active = false;
 
@@ -609,7 +602,7 @@ namespace esp_brookesia::apps
             return ESP_OK;
 
         jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
-        config.output_type = VIDEO_JPEG_PIXEL_FORMAT;
+        config.output_type = jpeg_sw_format;
 
         jpeg_error_t err = jpeg_dec_open(&config, &jpeg_handle);
         return (err == JPEG_ERR_OK) ? ESP_OK : ESP_FAIL;
@@ -685,7 +678,7 @@ namespace esp_brookesia::apps
         }
         const uint32_t pic_w = ALIGN_UP(info.width, mcu_w);
         const uint32_t pic_h = ALIGN_UP(info.height, mcu_h);
-        const size_t needed = static_cast<size_t>(pic_w) * pic_h * VIDEO_BYTES_PER_PIXEL;
+        const size_t needed = static_cast<size_t>(pic_w) * pic_h * bytes_per_pixel;
 
         if (!jpeg_hw_output_buffer || jpeg_hw_output_buffer_size < needed) {
             if (jpeg_hw_output_buffer) {
@@ -704,7 +697,7 @@ namespace esp_brookesia::apps
         }
 
         jpeg_decode_cfg_t decode_config = {};
-        decode_config.output_format = VIDEO_HW_JPEG_OUTPUT_FORMAT;
+        decode_config.output_format = jpeg_hw_format;
         // BGR element order is the little-endian layout the panel and PPA expect.
         decode_config.rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
         decode_config.conv_std = JPEG_YUV_RGB_CONV_STD_BT601;
@@ -890,7 +883,9 @@ namespace esp_brookesia::apps
             s_stats.frame_interval.add(frame_start_us - s_stats.last_frame_us);
         }
         s_stats.last_frame_us = frame_start_us;
-        const int next_buf_idx = (current_buf_idx + 1) % CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+        const uint32_t display_w = display_info.width;
+        const uint32_t display_h = display_info.height;
+        const int next_buf_idx = (current_buf_idx + 1) % display_info.frame_buffer_num;
 
         if (initJpegDecoder() != ESP_OK || !lcd_buffers[next_buf_idx] || !dummy_enabled || !ppa_srm_handle) {
             return;
@@ -914,13 +909,14 @@ namespace esp_brookesia::apps
         const int64_t decode_end_us = esp_timer_get_time();
         s_stats.decode.add(decode_end_us - frame_start_us);
 
-        // Follow the video's orientation: a frame whose orientation differs from the
-        // panel's is rotated a quarter turn, so landscape video fills a portrait panel
-        // sideways. PPA scales before rotating, so the crop and scale work in the
-        // frame's own orientation, against the panel size with its sides swapped.
-        const bool rotate = (frame.width > frame.height) != (DISPLAY_WIDTH > DISPLAY_HEIGHT);
-        const uint32_t target_w = rotate ? DISPLAY_HEIGHT : DISPLAY_WIDTH;
-        const uint32_t target_h = rotate ? DISPLAY_WIDTH : DISPLAY_HEIGHT;
+        // Video plays upright in the LVGL orientation: the cover crop is planned on the rotated
+        // view, then the PPA turns it onto the native panel (PPA angles are counter-clockwise,
+        // the LVGL rotation clockwise). The crop keeps the centre of the frame that fills the view.
+        const uint16_t ui_rotation = board_display_get_rotation();
+        const bool quarter_turn = (ui_rotation == 90) || (ui_rotation == 270);
+        const auto panel_rotation = static_cast<ppa_srm_rotation_angle_t>((4 - ui_rotation / 90) % 4);
+        const uint32_t target_w = quarter_turn ? display_h : display_w;
+        const uint32_t target_h = quarter_turn ? display_w : display_h;
 
         // PPA truncates the scale to 1/PPA_SCALE_STEPS, so an exact target / crop ratio
         // leaves the output short of the panel and the uncovered strip shows whatever
@@ -937,27 +933,25 @@ namespace esp_brookesia::apps
         const uint32_t crop_y = (frame.height - crop_h) / 2;
 
         // What is left uncovered is at most a pixel or two; center the picture in it.
-        uint32_t out_w = crop_w * scale_steps / PPA_SCALE_STEPS;
-        uint32_t out_h = crop_h * scale_steps / PPA_SCALE_STEPS;
-        if (rotate) {
-            std::swap(out_w, out_h);
-        }
+        const uint32_t out_w = crop_w * scale_steps / PPA_SCALE_STEPS;
+        const uint32_t out_h = crop_h * scale_steps / PPA_SCALE_STEPS;
+        const uint32_t panel_out_w = quarter_turn ? out_h : out_w;
+        const uint32_t panel_out_h = quarter_turn ? out_w : out_h;
 
         if (last_video_width != frame.width || last_video_height != frame.height) {
             // The PPA never writes the margins, so blank them once in every frame buffer.
-            const size_t lcd_buffer_size = DISPLAY_WIDTH * DISPLAY_HEIGHT * VIDEO_BYTES_PER_PIXEL;
-            for (int i = 0; i < CONFIG_BSP_LCD_DPI_BUFFER_NUMS; i++) {
+            const size_t lcd_buffer_size = static_cast<size_t>(display_w) * display_h * bytes_per_pixel;
+            for (int i = 0; i < display_info.frame_buffer_num; i++) {
                 memset(lcd_buffers[i], 0, lcd_buffer_size);
                 esp_cache_msync(lcd_buffers[i], lcd_buffer_size,
                                 ESP_CACHE_MSYNC_FLAG_DIR_C2M | ESP_CACHE_MSYNC_FLAG_UNALIGNED);
             }
 
-            ESP_LOGI(ESP_UTILS_LOG_TAG, "Cover video frame: %lux%lu (decoded %lux%lu), crop %lu,%lu %lux%lu%s",
+            ESP_LOGI(ESP_UTILS_LOG_TAG, "Cover video frame: %lux%lu (decoded %lux%lu), crop %lu,%lu %lux%lu",
                      static_cast<unsigned long>(frame.width), static_cast<unsigned long>(frame.height),
                      static_cast<unsigned long>(frame.pic_w), static_cast<unsigned long>(frame.pic_h),
                      static_cast<unsigned long>(crop_x), static_cast<unsigned long>(crop_y),
-                     static_cast<unsigned long>(crop_w), static_cast<unsigned long>(crop_h),
-                     rotate ? ", rotated" : "");
+                     static_cast<unsigned long>(crop_w), static_cast<unsigned long>(crop_h));
             last_video_width = frame.width;
             last_video_height = frame.height;
         }
@@ -972,21 +966,22 @@ namespace esp_brookesia::apps
         srm_config.in.block_h = crop_h;
         srm_config.in.block_offset_x = crop_x;
         srm_config.in.block_offset_y = crop_y;
-        srm_config.in.srm_cm = VIDEO_PPA_COLOR_MODE;
+        srm_config.in.srm_cm = ppa_color_mode;
 
         srm_config.out.buffer = lcd_buffer;
-        srm_config.out.buffer_size = ALIGN_UP(DISPLAY_WIDTH * DISPLAY_HEIGHT * VIDEO_BYTES_PER_PIXEL, data_cache_line_size);
-        srm_config.out.pic_w = DISPLAY_WIDTH;
-        srm_config.out.pic_h = DISPLAY_HEIGHT;
-        srm_config.out.block_offset_x = (DISPLAY_WIDTH - out_w) / 2;
-        srm_config.out.block_offset_y = (DISPLAY_HEIGHT - out_h) / 2;
-        srm_config.out.srm_cm = VIDEO_PPA_COLOR_MODE;
+        srm_config.out.buffer_size = ALIGN_UP(display_w * display_h * bytes_per_pixel, data_cache_line_size);
+        srm_config.out.pic_w = display_w;
+        srm_config.out.pic_h = display_h;
+        srm_config.out.block_offset_x = (display_w - panel_out_w) / 2;
+        srm_config.out.block_offset_y = (display_h - panel_out_h) / 2;
+        srm_config.out.srm_cm = ppa_color_mode;
 
-        srm_config.rotation_angle = rotate ? VIDEO_ROTATED_ANGLE : PPA_SRM_ROTATION_ANGLE_0;
+        srm_config.rotation_angle = panel_rotation;
         srm_config.scale_x = scale;
         srm_config.scale_y = scale;
-        srm_config.mirror_x = 1;
-        srm_config.mirror_y = 1;
+        // No flip either: mirroring both axes would turn the picture upside down.
+        srm_config.mirror_x = 0;
+        srm_config.mirror_y = 0;
         srm_config.rgb_swap = 0;
         srm_config.byte_swap = 0;
         srm_config.mode = PPA_TRANS_MODE_BLOCKING;
@@ -999,7 +994,7 @@ namespace esp_brookesia::apps
         const int64_t ppa_end_us = esp_timer_get_time();
         s_stats.ppa.add(ppa_end_us - decode_end_us);
 
-        ret = esp_lv_adapter_dummy_draw_blit(display, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, lcd_buffer, false);
+        ret = esp_lv_adapter_dummy_draw_blit(display, 0, 0, display_w, display_h, lcd_buffer, false);
         if (ret != ESP_OK) {
             ESP_LOGE(ESP_UTILS_LOG_TAG, "Dummy draw blit failed: %s", esp_err_to_name(ret));
             return;
@@ -1035,7 +1030,7 @@ namespace esp_brookesia::apps
 
             size_t written = 0;
             const int64_t write_start_us = esp_timer_get_time();
-            esp_err_t ret = bsp_extra_i2s_write(frame.frame_buffer, frame.frame_size, &written, 1000);
+            esp_err_t ret = board_i2s_write(frame.frame_buffer, frame.frame_size, &written, 1000);
             const int64_t write_end_us = esp_timer_get_time();
             s_stats.audio_write.add(write_end_us - write_start_us);
             s_stats.audio_chunks++;
@@ -1162,8 +1157,11 @@ namespace esp_brookesia::apps
                 ESP_LOGE(ESP_UTILS_LOG_TAG, "Open %s failed", path);
                 break;
             }
-            // A larger, DMA-capable stdio buffer makes SD card reads much faster.
-            src.io_buffer = heap_caps_malloc(FILE_IO_BUFFER_SIZE, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
+            // A larger, DMA-capable stdio buffer makes SD card reads much faster. SDMMC on the P4
+            // can DMA into cache-line aligned PSRAM, so keep this buffer out of internal DMA RAM:
+            // esp_hosted asserts when it cannot get internal DMA memory for Wi-Fi RX packets.
+            src.io_buffer = heap_caps_malloc(FILE_IO_BUFFER_SIZE,
+                                             MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA | MALLOC_CAP_CACHE_ALIGNED);
             if (src.io_buffer) {
                 setvbuf(src.file, static_cast<char *>(src.io_buffer), _IOFBF, FILE_IO_BUFFER_SIZE);
             }
@@ -1224,12 +1222,12 @@ namespace esp_brookesia::apps
                 if (a.format == ESP_EXTRACTOR_AUDIO_FORMAT_PCM && a.sample_rate > 0 && a.bits_per_sample > 0 &&
                         a.channel > 0) {
                     const i2s_slot_mode_t mode = (a.channel <= 1) ? I2S_SLOT_MODE_MONO : I2S_SLOT_MODE_STEREO;
-                    esp_err_t codec_ret = bsp_extra_codec_set_fs(a.sample_rate, a.bits_per_sample, mode);
+                    esp_err_t codec_ret = board_codec_set_fs(a.sample_rate, a.bits_per_sample, mode);
                     if (codec_ret == ESP_OK) {
                         pb.has_audio = true;
                         pb.audio_bytes_per_sec = a.sample_rate * a.channel * (a.bits_per_sample / 8);
-                        pb.audio_dma_ms = static_cast<int64_t>(BSP_EXTRA_I2S_DMA_DESC_NUM) *
-                                          BSP_EXTRA_I2S_DMA_FRAME_NUM * 1000 / a.sample_rate;
+                        pb.audio_dma_ms = static_cast<int64_t>(BOARD_I2S_DMA_DESC_NUM) *
+                                          BOARD_I2S_DMA_FRAME_NUM * 1000 / a.sample_rate;
                     } else {
                         ESP_LOGW(ESP_UTILS_LOG_TAG, "Audio clock setup failed: %s", esp_err_to_name(codec_ret));
                     }
@@ -1393,10 +1391,10 @@ namespace esp_brookesia::apps
         bool request_close = false;
         static bool extractors_registered = false;
 
-        self->audio_ready.store(bsp_extra_codec_init() == ESP_OK);
+        self->audio_ready.store(board_codec_init() == ESP_OK);
         if (self->audio_ready.load()) {
             // Re-apply the user's current volume after (re)initializing the codec.
-            esp_err_t volume_ret = bsp_extra_codec_volume_set(bsp_extra_codec_volume_get(), nullptr);
+            esp_err_t volume_ret = board_codec_volume_set(board_codec_volume_get(), nullptr);
             if (volume_ret != ESP_OK) {
                 ESP_LOGW(ESP_UTILS_LOG_TAG, "Set video volume failed: %s", esp_err_to_name(volume_ret));
             }
@@ -1451,7 +1449,7 @@ namespace esp_brookesia::apps
         self->loop_playback.store(false);
         self->playback_exited.store(true);
 
-        vTaskDelete(NULL);
+        vTaskDeleteWithCaps(NULL);
     }
 
     void VideoPlayer::closeRequestTimerCallback(lv_timer_t *timer)

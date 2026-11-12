@@ -14,7 +14,7 @@ idf_component_register(
     REQUIRES
         brookesia_core
         esp_extractor
-        bsp_extra
+        board
         driver
         esp_driver_jpeg
         esp_driver_ppa

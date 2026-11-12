@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <sys/cdefs.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "esp_codec_dev.h"
@@ -15,63 +14,51 @@
 #include "driver/i2s_std.h"
 #include "audio_player.h"
 #include "file_iterator.h"
-#include "bsp_board_wifi.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define CODEC_DEFAULT_SAMPLE_RATE           (16000)
-/* ES8311 runs from MCLK = 256 * fs: 8 to 48 kHz with 16- or 32-bit samples. */
-#define CODEC_VOICE_SAMPLE_RATE             (48000)
-#define CODEC_MCLK_MULTIPLE                 (I2S_MCLK_MULTIPLE_256)
+#define CODEC_VOICE_SAMPLE_RATE             (24000)
 #define CODEC_DEFAULT_BIT_WIDTH             (16)
+/* ES8311 microphone input gain in dB. */
 #define CODEC_DEFAULT_ADC_VOLUME            (24.0)
 #define CODEC_DEFAULT_CHANNEL               (2)
 #define CODEC_VOICE_INPUT_CHANNELS          (1)
 #define CODEC_DEFAULT_VOLUME                (80)
-/* I2S DMA ring: BSP_EXTRA_I2S_DMA_DESC_NUM buffers of BSP_EXTRA_I2S_DMA_FRAME_NUM frames each.
- * Players can use the total depth to estimate how much written audio is still queued. */
-#define BSP_EXTRA_I2S_DMA_DESC_NUM          (8)
-#define BSP_EXTRA_I2S_DMA_FRAME_NUM         (480)
 
-/*
- * The ES8311 ADC records the board's single analog microphone. Capture is
- * opened mono, so every frame holds one MIC1 sample. There is no hardware
- * echo-reference channel.
+#define BOARD_MIC1_CHANNEL_INDEX                   (0)
+
+/** Maximum number of microphone labels in the board configuration. */
+#define BOARD_MIC_MAX_NUM                          (4)
+
+/** Microphone layout for the board's single ES8311 input. */
+typedef struct {
+    uint8_t  mic_num;                               /*!< Number of microphones, 0 to BOARD_MIC_MAX_NUM */
+    uint8_t  mic_channel_index[BOARD_MIC_MAX_NUM];  /*!< Frame sample index of each microphone, MIC1 first */
+    char     mic_label[BOARD_MIC_MAX_NUM][3];       /*!< Label of each microphone, such as "FL" */
+    uint16_t mic_mask;                              /*!< Codec input mask of the microphones */
+    int8_t   echo_ref_channel_index;                /*!< Frame sample index of the AEC reference, -1 if none */
+    uint16_t echo_ref_mask;                         /*!< Codec input mask of the AEC reference */
+} board_mic_layout_t;
+
+/**
+ * @brief Get the microphone wiring described by the board configuration.
+ *
+ * Works before board_codec_init().
+ *
+ * @param[out] layout Microphone layout
+ * @return
+ *    - ESP_OK: Success
+ *    - ESP_ERR_INVALID_ARG: layout is NULL
  */
-#define BSP_EXTRA_MIC1_CHANNEL_INDEX        (0)
-
-#define BSP_LCD_BACKLIGHT_BRIGHTNESS_MAX    (95)
-#define BSP_LCD_BACKLIGHT_BRIGHTNESS_MIN    (0)
-#define LCD_LEDC_CH                         (CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH)
+esp_err_t board_audio_get_mic_layout(board_mic_layout_t *layout);
 
 /**************************************************************************************************
- * BSP Extra interface
- * Mainly provided display-lock and I2S Codec interfaces.
+ * Board audio interface
+ * ES8311 playback and capture and the audio file player.
  **************************************************************************************************/
-/**
- * @brief Lock LVGL through esp_lv_adapter.
- *
- * The local BSP returns esp_err_t directly from a bool function, which
- * inverts successful ESP_OK results. Use this compatibility wrapper instead.
- *
- * @param timeout_ms Maximum wait in milliseconds; negative waits forever.
- * @return true when the lock was acquired.
- */
-bool bsp_extra_display_lock(int32_t timeout_ms);
-
-/** @brief Release the LVGL lock acquired by bsp_extra_display_lock(). */
-void bsp_extra_display_unlock(void);
-
-/**
- * @brief Get display brightness.
- *
- * @return
- *   - brightness in percent
- */
-int bsp_display_brightness_get(void);
-
 /**
  * @brief Player set mute.
  *
@@ -81,7 +68,7 @@ int bsp_display_brightness_get(void);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_mute_set(bool enable);
+esp_err_t board_codec_mute_set(bool enable);
 
 /**
  * @brief Player set volume.
@@ -93,7 +80,7 @@ esp_err_t bsp_extra_codec_mute_set(bool enable);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_volume_set(int volume, int *volume_set);
+esp_err_t board_codec_volume_set(int volume, int *volume_set);
 
 /**
  * @brief Player get volume.
@@ -101,7 +88,7 @@ esp_err_t bsp_extra_codec_volume_set(int volume, int *volume_set);
  * @return
  *   - volume: volume get
  */
-int bsp_extra_codec_volume_get(void);
+int board_codec_volume_get(void);
 
 /**
  * @brief Stop I2S function.
@@ -110,15 +97,15 @@ int bsp_extra_codec_volume_get(void);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_dev_stop(void);
+esp_err_t board_codec_dev_stop(void);
 
 /**
  * @brief Stop only the playback codec session.
  *
- * The ES8311 stays powered and the capture session is left open, so a voice
- * consumer can keep running while a media app releases its output session.
+ * The ES8311 capture session is left untouched so a voice consumer can keep
+ * running while a media app releases its ES8311 output session.
  */
-esp_err_t bsp_extra_codec_output_stop(void);
+esp_err_t board_codec_output_stop(void);
 
 /**
  * @brief Resume I2S function.
@@ -127,15 +114,13 @@ esp_err_t bsp_extra_codec_output_stop(void);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_dev_resume(void);
+esp_err_t board_codec_dev_resume(void);
 
 /**
  * @brief Configure and open the output codec only.
  *
- * Any active input and output codec sessions are closed first. This function is
- * used by ordinary audio players and does not start the microphone input.
- * Input and output share one ES8311 and one I2S clock, so an open capture
- * session follows the new sample rate.
+ * The capture session remains open. A format change that conflicts with an
+ * active capture session is rejected because the codec shares its clock.
  *
  * @param rate Sample rate
  * @param bits_cfg Bits per sample
@@ -145,13 +130,13 @@ esp_err_t bsp_extra_codec_dev_resume(void);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch);
+esp_err_t board_codec_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch);
 
 /**
- * @brief Configure full-duplex voice audio on the ES8311.
+ * @brief Configure full-duplex voice audio with STD output and TDM input.
  *
- * Output is stereo. Input is mono (CODEC_VOICE_INPUT_CHANNELS = 1): the
- * single analog microphone on the left I2S slot.
+ * Output is stereo and input is the ES8311 single microphone. The board has
+ * no hardware echo-reference channel.
  *
  * @param rate Shared physical sample rate
  * @param bits_cfg Bits per sample
@@ -160,7 +145,7 @@ esp_err_t bsp_extra_codec_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_codec_set_voice_fs(uint32_t rate, uint32_t bits_cfg);
+esp_err_t board_codec_set_voice_fs(uint32_t rate, uint32_t bits_cfg);
 
 /**
  * @brief Read data from recoder.
@@ -174,7 +159,7 @@ esp_err_t bsp_extra_codec_set_voice_fs(uint32_t rate, uint32_t bits_cfg);
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms);
+esp_err_t board_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms);
 
 /**
  * @brief Write data to player.
@@ -188,24 +173,38 @@ esp_err_t bsp_extra_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read,
  *    - ESP_OK: Success
  *    - Others: Fail
  */
-esp_err_t bsp_extra_i2s_write(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
+esp_err_t board_i2s_write(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
 
 /**
- * @brief TEMPORARY diagnostics: number of TX DMA underruns since boot.
+ * @brief Get the number of I2S TX underruns since the audio bus was initialized
  *
- * Counts each time the TX DMA had no new audio queued and played silence.
+ * An underrun is counted each time the TX DMA runs out of new data (send queue overflow). The I2S
+ * channel comes from esp_board_manager with the driver's default DMA layout (6 x 240 frames).
+ *
+ * @return Underrun count; wraps around on overflow
  */
-uint32_t bsp_extra_i2s_get_tx_underrun_count(void);
+uint32_t board_i2s_get_tx_underrun_count(void);
 
+/**
+ * @brief I2S DMA buffer layout of the audio bus
+ *
+ * esp_board_manager creates the channel with I2S_CHANNEL_DEFAULT_CONFIG(), so these mirror the
+ * driver defaults. Buffered playback latency is BOARD_I2S_DMA_DESC_NUM * BOARD_I2S_DMA_FRAME_NUM frames.
+ */
+#define BOARD_I2S_DMA_DESC_NUM      (6)
+#define BOARD_I2S_DMA_FRAME_NUM     (240)
 
 /**
  * @brief Initialize codec play and record handle.
+ *
+ * Brings up the esp_board_manager audio_dac and audio_adc (ES8311) devices, which own the
+ * shared I2S bus, the I2C control bus and the PA GPIO, then opens playback at the default format.
  *
  * @return
  *      - ESP_OK: Success
  *      - Others: Fail
  */
-esp_err_t bsp_extra_codec_init(void);
+esp_err_t board_codec_init(void);
 
 /**
  * @brief Initialize audio player task.
@@ -216,7 +215,7 @@ esp_err_t bsp_extra_codec_init(void);
  *      - ESP_OK: Success
  *      - Others: Fail
  */
-esp_err_t bsp_extra_player_init(void);
+esp_err_t board_player_init(void);
 
 /**
  * @brief Delete audio player task.
@@ -225,7 +224,7 @@ esp_err_t bsp_extra_player_init(void);
  *      - ESP_OK: Success
  *      - Others: Fail
  */
-esp_err_t bsp_extra_player_del(void);
+esp_err_t board_player_del(void);
 
 /**
  * @brief Initialize a file iterator instance
@@ -236,7 +235,7 @@ esp_err_t bsp_extra_player_del(void);
  *     - ESP_OK: Successfully initialized the file iterator instance.
  *     - ESP_FAIL: Failed to initialize the file iterator instance due to invalid parameters or memory allocation failure.
  */
-esp_err_t bsp_extra_file_instance_init(const char *path, file_iterator_instance_t **ret_instance);
+esp_err_t board_file_instance_init(const char *path, file_iterator_instance_t **ret_instance);
 
 /**
  * @brief Play the audio file at the specified index in the file iterator
@@ -247,7 +246,7 @@ esp_err_t bsp_extra_file_instance_init(const char *path, file_iterator_instance_
  *     - ESP_OK: Successfully started playing the audio file.
  *     - ESP_FAIL: Failed to play the audio file due to invalid parameters or file access issues.
  */
-esp_err_t bsp_extra_player_play_index(file_iterator_instance_t *instance, int index);
+esp_err_t board_player_play_index(file_iterator_instance_t *instance, int index);
 
 /**
  * @brief Play the audio file specified by the file path
@@ -257,7 +256,7 @@ esp_err_t bsp_extra_player_play_index(file_iterator_instance_t *instance, int in
  *     - ESP_OK: Successfully started playing the audio file.
  *     - ESP_FAIL: Failed to play the audio file due to file access issues.
  */
-esp_err_t bsp_extra_player_play_file(const char *file_path);
+esp_err_t board_player_play_file(const char *file_path);
 
 /**
  * @brief Register a callback function for the audio player
@@ -265,7 +264,7 @@ esp_err_t bsp_extra_player_play_file(const char *file_path);
  * @param cb The callback function to be registered.
  * @param user_data User data to be passed to the callback function.
  */
-void bsp_extra_player_register_callback(audio_player_cb_t cb, void *user_data);
+void board_player_register_callback(audio_player_cb_t cb, void *user_data);
 
 /**
  * @brief Check if the specified audio file is currently playing
@@ -275,7 +274,7 @@ void bsp_extra_player_register_callback(audio_player_cb_t cb, void *user_data);
  *     - true: The specified audio file is currently playing.
  *     - false: The specified audio file is not currently playing.
  */
-bool bsp_extra_player_is_playing_by_path(const char *file_path);
+bool board_player_is_playing_by_path(const char *file_path);
 
 /**
  * @brief Check if the audio file at the specified index is currently playing
@@ -286,7 +285,7 @@ bool bsp_extra_player_is_playing_by_path(const char *file_path);
  *     - true: The audio file at the specified index is currently playing.
  *     - false: The audio file at the specified index is not currently playing.
  */
-bool bsp_extra_player_is_playing_by_index(file_iterator_instance_t *instance, int index);
+bool board_player_is_playing_by_index(file_iterator_instance_t *instance, int index);
 
 #ifdef __cplusplus
 }

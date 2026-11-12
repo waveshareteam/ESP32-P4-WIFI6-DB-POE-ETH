@@ -63,7 +63,7 @@ namespace esp_brookesia::apps
         lv_obj_set_style_text_color(title, lv_color_hex(settings_ui::COLOR_PRIMARY_TEXT), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
 
-        uint32_t value = bsp_extra_codec_volume_get();
+        uint32_t value = board_codec_volume_get();
         if (value > static_cast<uint32_t>(settings_storage::VOLUME_MAX)) {
             value = static_cast<uint32_t>(settings_storage::VOLUME_MAX);
         }
@@ -108,7 +108,7 @@ namespace esp_brookesia::apps
         if (instance->label != nullptr) {
             lv_label_set_text_fmt(instance->label, "%lu%%", static_cast<unsigned long>(value));
         }
-        bsp_extra_codec_volume_set(value, nullptr);
+        board_codec_volume_set(value, nullptr);
     }
 
     bool SoundPage::back()
