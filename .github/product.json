@@ -21,7 +21,7 @@
           "patterns": [
             "examples/components/**",
             "examples/factory/components/Camera/config/**",
-            "examples/hardware_test_cli/components/**"
+            "examples/esp-idf/hw_console/components/**"
           ]
         }
       ]

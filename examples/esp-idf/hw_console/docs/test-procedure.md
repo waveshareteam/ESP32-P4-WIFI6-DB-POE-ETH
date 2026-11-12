@@ -2,7 +2,7 @@
 
 [English](test-procedure.md) | [简体中文](test-procedure_ZH.md)
 
-Applies to the firmware in [`examples/hardware_test_cli`](../). Use a 115200 8N1
+Applies to the firmware in [`examples/esp-idf/hw_console`](../). Use a 115200 8N1
 serial terminal; the prompt is `waveshare>`. Enter `help` at any time to list
 the available commands.
 
@@ -19,7 +19,7 @@ Conventions:
 
 | Item | Requirement |
 | --- | --- |
-| Board under test | `hardware_test_cli` flashed; Wi-Fi testing also needs the ESP32-C5 flashed with `examples/esp-idf/15_wifi_iperf/cp` |
+| Board under test | `hw_console` flashed; Wi-Fi testing also needs the ESP32-C5 flashed with `examples/esp-idf/15_wifi_iperf/cp` |
 | microSD card | FAT32 and High Speed capable; test data may be erased |
 | USB flash drive | FAT32, any capacity, working current at or below 500 mA |
 | Ethernet cable and switch/router | DHCP service; the PC is on the same network |

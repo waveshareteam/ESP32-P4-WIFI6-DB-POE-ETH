@@ -6,12 +6,12 @@ on:
   push:
     branches: [main]
     paths:
-      - examples/hardware_test_cli/**
+      - examples/esp-idf/hw_console/**
       - .github/product.json
       - .github/workflows/hardware-test.yml
   pull_request:
     paths:
-      - examples/hardware_test_cli/**
+      - examples/esp-idf/hw_console/**
       - .github/product.json
       - .github/workflows/hardware-test.yml
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
       matrix:
         idf: ${{ fromJSON(needs.versions.outputs.idf) }}
     env:
-      PROJECT: examples/hardware_test_cli
+      PROJECT: examples/esp-idf/hw_console
       BOARD: esp32_p4_wifi6_db_poe_eth
       TARGET: ${{ needs.versions.outputs.target }}
     steps:
@@ -49,6 +49,6 @@ jobs:
           . "$IDF_PATH/export.sh"
           python -m pip install --upgrade esp-bmgr-assist
           # set-target resolves the dependencies, which downloads the board definition bmgr needs.
-          idf.py -C "$PROJECT" -B build/hardware_test_cli set-target "$TARGET"
-          idf.py -C "$PROJECT" -B build/hardware_test_cli bmgr -b "$BOARD"
-          idf.py -C "$PROJECT" -B build/hardware_test_cli reconfigure build
+          idf.py -C "$PROJECT" -B build/hw_console set-target "$TARGET"
+          idf.py -C "$PROJECT" -B build/hw_console bmgr -b "$BOARD"
+          idf.py -C "$PROJECT" -B build/hw_console reconfigure build

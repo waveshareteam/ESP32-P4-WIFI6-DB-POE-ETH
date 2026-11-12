@@ -79,7 +79,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 
 ### 硬件测试
 
-[hardware_test_cli](examples/hardware_test_cli/README_ZH.md) 是交互式硬件验证控制台，需要先运行 `idf.py bmgr`。
+[hw_console](examples/esp-idf/hw_console/README_ZH.md) 是交互式硬件验证控制台，需要先运行 `idf.py bmgr`。
 
 ### Arduino
 
