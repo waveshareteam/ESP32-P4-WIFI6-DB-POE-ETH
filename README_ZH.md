@@ -8,11 +8,11 @@
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH"></a>
   </p>
   <p>
-    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 产品</a> ·
+    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🛒 产品</a> ·
     <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest">📦 固件</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF</a> ·
     <a href="examples/arduino/examples/">🔧 Arduino</a> ·
-    <a href="hardware/">📚 文档</a>
+    <a href="https://docs.waveshare.net/ESP32-P4-WIFI6-DB-POE-ETH/">📖 文档</a>
   </p>
   <p><img src="docs/images/esp32-p4-wifi6-db-poe-eth.jpg" alt="ESP32-P4-WIFI6-DB-POE-ETH 开发板" width="500"></p>
 </div>
@@ -21,25 +21,23 @@
 
 ## ✨ 概述
 
-ESP32-P4-WIFI6-DB-POE-ETH 以 ESP32-P4 为主控，通过 ESP32-C5 提供 Wi-Fi 6 和 Bluetooth LE。开发板提供 PoE 以太网、MIPI-DSI、MIPI-CSI、音频、microSD、USB Host 和 GPIO 扩展接口。
+**ESP32-P4-WIFI6-DB-POE-ETH** 是一款基于 ESP32-P4NRW32X 处理器与 ESP32-C5 Wi-Fi 6 / BLE 无线协处理器的开发板，集成支持 IEEE 802.3af PoE 模块的 RMII 以太网、双 lane MIPI-DSI 显示与 GT911 触摸、双 lane MIPI-CSI 摄像头、ES8311 音频编解码、microSD 卡槽、USB 2.0 Host 及 40 针 GPIO 排针。
+
+本仓库提供配套的 ESP-IDF 示例、包含本地板卡定义的 Arduino 示例、ESP-Brookesia 出厂固件源码以及 ESP32-C5 协处理器固件。建议先运行 [00_board_check](examples/esp-idf/00_board_check/) 示例，确认编译、烧录与串口监视流程正常。
 
 | 功能 | 器件或接口 |
 | --- | --- |
-| 主控 | ESP32-P4NRW32X |
-| 存储器 | 32 MB Flash、32 MB PSRAM |
-| 无线 | ESP32-C5，通过 SDIO 连接 |
-| 以太网 | RMII，集成 PoE 模块 |
-| 显示 / 摄像头 | MIPI-DSI / MIPI-CSI |
-| 音频 | ES8311 编解码器 |
-| 板级支持 | 本地 BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/)，Board Manager 板卡定义 `waveshare/waveshare_boards` |
-
-## 📡 ESP32-P4NRW32X 与 ESP32-C5 无线通信
-
-ESP32-P4NRW32X 本身不集成 Wi-Fi 或蓝牙功能。板载 ESP32-C5 通过 4-bit SDIO 与主控连接，提供
-Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器固件配合运行；烧录 P4
-应用不会更新 C5 固件。使用时请确认两侧的 ESP-Hosted 配置相互兼容。示例见
-[03_wifi_sta](examples/esp-idf/03_wifi_sta/) 和
-[15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/)；运行前需要烧录兼容的 C5 协处理器固件。
+| MCU | ESP32-P4NRW32X（双核高性能 RISC-V + 低功耗核） |
+| 无线连接 | ESP32-C5 无线协处理器（支持 Wi-Fi 6 & BLE，4-bit SDIO） |
+| 存储器 | 板载 32 MB Flash 与 32 MB PSRAM |
+| 以太网 | 10/100M RMII 接口（IP101 PHY），集成 IEEE 802.3af PoE 模块 |
+| 显示接口 | 双 lane MIPI-DSI 接口，I2C 背光控制（支持 [5-DSI-TOUCH-A](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7-DSI-TOUCH-A](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8-DSI-TOUCH-A](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1-DSI-TOUCH-A](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm)） |
+| 触摸 | GT911 电容触摸（I2C 接口） |
+| 摄像头 | 板载双 lane MIPI-CSI 接口，支持 OV5647（[RPi Camera (B)](https://www.waveshare.net/shop/RPi-Camera-B.htm)）摄像头模组 |
+| 音频 | ES8311 音频编解码芯片（I2C + I2S），支持扬声器功放与模拟麦克风输入 |
+| 扩展存储 | 板载 microSD 卡槽，通过 4-bit SDMMC 接口高速读写 |
+| USB | USB 2.0 Host（内置 USB PHY，带过流保护） |
+| 扩展接口 | 40 针 GPIO 排针（引出 28 个 GPIO）、UART0 调试接口 |
 
 ## 📦 快速开始
 
@@ -51,7 +49,7 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 4. Windows 运行 `flash_combined.bat COMx`，Linux 运行 `./flash_combined.sh /dev/ttyACM0`。
 5. 如果开发板未自动重启，请手动复位。
 
-出厂固件（恢复开箱演示）：在 [`firmware`](firmware/) 目录下载文件名带 `FactoryOnly` 的文件。
+出厂与协处理器固件：ESP-Brookesia 出厂固件源码见 [`examples/factory`](examples/factory/)；不同屏幕尺寸对应的 `FactoryOnly` 出厂固件与 ESP32-C5 协处理器固件二进制及烧录说明见 [`firmware`](firmware/) 目录（运行 Wi-Fi / 蓝牙等无线示例前需先烧录 C5 固件）。
 
 ## 🧪 示例
 
@@ -72,12 +70,12 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | 通过 `esp_video` 和 PPA 将 MIPI-CSI 摄像头画面显示到 LCD |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB 扩展屏示例 |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL 网格界面，实时显示/切换扩展排针 GPIO 电平 |
-| [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
-| [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | 通过 ESP-Hosted HCI 使用 ESP32-C5 BLE 控制器的 NimBLE 外设，提供自定义读写及通知 GATT 服务 |
+| [13_ethernet_iperf](examples/esp-idf/13_ethernet_iperf/) | 使用 PC 端 iPerf 2.x 测量以太网 TCP/UDP 吞吐 |
+| [14_bleprph_gatt](examples/esp-idf/14_bleprph_gatt/) | 通过 ESP-Hosted HCI 使用 ESP32-C5 BLE 控制器的 NimBLE 外设，提供自定义读写及通知 GATT 服务 |
 
 ### 硬件控制台
 
-[16_hw_console](examples/esp-idf/16_hw_console/README_ZH.md) 是通过串口命令操作开发板外设的交互式控制台，编译前需要先运行 `idf.py bmgr`。
+[15_hw_console](examples/esp-idf/15_hw_console/README_ZH.md) 是通过串口命令操作开发板外设的交互式控制台，编译前需要先运行 `idf.py bmgr`。
 
 ### Arduino
 
@@ -105,11 +103,12 @@ Wi-Fi 6 和 Bluetooth LE。无线功能需要 P4 Host 应用与 C5 协处理器�
 - [原理图](hardware/schematic/)
 - [硬件参考指南](docs/hw-reference/user-guide_ZH.md)
 - [产品页面](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
+- [Wiki](https://docs.waveshare.net/ESP32-P4-WIFI6-DB-POE-ETH/)
 
 ## 🤝 支持
 
 - [反馈示例或仓库问题](https://gitee.com/waveshare/ESP32-P4-WIFI6-DB-POE-ETH/issues)
-- [微雪技术支持](https://docs.waveshare.net/support)
+- [微雪技术支持](https://docs.waveshare.net/ESP32-P4-WIFI6-DB-POE-ETH/Technical-Support/)
 
 ## 📄 许可证
 

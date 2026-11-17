@@ -8,11 +8,11 @@
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH"></a>
   </p>
   <p>
-    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🌐 Product</a> ·
+    <a href="https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm">🛒 Product</a> ·
     <a href="https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/releases/latest">📦 Firmware</a> ·
     <a href="examples/esp-idf/">🧩 ESP-IDF</a> ·
     <a href="examples/arduino/examples/">🔧 Arduino</a> ·
-    <a href="hardware/">📚 Documentation</a>
+    <a href="https://docs.waveshare.com/ESP32-P4-WIFI6-DB-POE-ETH/">📖 Documentation</a>
   </p>
   <p><img src="docs/images/esp32-p4-wifi6-db-poe-eth.jpg" alt="ESP32-P4-WIFI6-DB-POE-ETH development board" width="500"></p>
 </div>
@@ -21,28 +21,23 @@
 
 ## ✨ Overview
 
-The ESP32-P4-WIFI6-DB-POE-ETH combines an ESP32-P4 application processor with an ESP32-C5 Wi-Fi 6 and Bluetooth LE coprocessor. It provides PoE Ethernet, MIPI-DSI and MIPI-CSI interfaces, audio, microSD, USB Host and GPIO expansion.
+**ESP32-P4-WIFI6-DB-POE-ETH** is a development board built around the ESP32-P4NRW32X processor and an ESP32-C5 Wi-Fi 6 / Bluetooth LE wireless coprocessor over SDIO. It integrates RMII Ethernet with an IEEE 802.3af PoE module, 2-lane MIPI-DSI display and GT911 touch, 2-lane MIPI-CSI camera, ES8311 audio, microSD, USB 2.0 Host, and a 40-pin GPIO header.
+
+This repository provides ESP-IDF examples, Arduino examples with a local board definition, the ESP-Brookesia factory firmware source, and ESP32-C5 coprocessor firmware. Run [00_board_check](examples/esp-idf/00_board_check/) first to verify building, flashing, and serial monitoring.
 
 | Feature | Device / interface |
 | --- | --- |
-| MCU | ESP32-P4NRW32X |
-| Memory | 32 MB Flash, 32 MB PSRAM |
-| Wireless | ESP32-C5 over SDIO |
-| Ethernet | RMII with integrated PoE module |
-| Display / camera | MIPI-DSI / MIPI-CSI |
-| Audio | ES8311 codec |
-| Board support | Local BSP [`esp32_p4_wifi6_db_poe_eth`](examples/components/esp32_p4_wifi6_db_poe_eth/), Board Manager definition `waveshare/waveshare_boards` |
-
-## 📡 ESP32-P4 and ESP32-C5 Wireless
-
-The ESP32-P4 does not have built-in Wi-Fi or Bluetooth. The on-board ESP32-C5
-connects to it over 4-bit SDIO and provides Wi-Fi 6 and Bluetooth LE. Wireless
-operation requires a P4 host application and compatible firmware on the C5
-coprocessor; flashing the P4 application does not update the C5 firmware. Keep the
-ESP-Hosted configurations on both sides compatible. See
-[03_wifi_sta](examples/esp-idf/03_wifi_sta/) and
-[15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/). Flash compatible C5
-coprocessor firmware before running either host example.
+| MCU | ESP32-P4NRW32X (dual-core RISC-V HP + LP core) |
+| Wireless | ESP32-C5 wireless coprocessor (Wi-Fi 6 & BLE, 4-bit SDIO) |
+| Memory | On-board 32 MB Flash and 32 MB PSRAM |
+| Ethernet | 10/100M RMII interface (IP101 PHY) with integrated IEEE 802.3af PoE module |
+| Display | 2-lane MIPI-DSI interface with I2C backlight control (supports [5-DSI-TOUCH-A](https://www.waveshare.com/5-DSI-TOUCH-A.htm), [7-DSI-TOUCH-A](https://www.waveshare.com/7-DSI-TOUCH-A.htm), [8-DSI-TOUCH-A](https://www.waveshare.com/8-DSI-TOUCH-A.htm), [10.1-DSI-TOUCH-A](https://www.waveshare.com/10.1-DSI-TOUCH-A.htm)) |
+| Touch | GT911 capacitive touch (I2C interface) |
+| Camera | On-board 2-lane MIPI-CSI interface supporting OV5647 ([RPi Camera (B)](https://www.waveshare.com/rpi-camera-b.htm)) camera module |
+| Audio | ES8311 audio codec (I2C + I2S) with speaker amplifier and analog microphone input |
+| Storage | On-board microSD slot over 4-bit SDMMC |
+| USB | USB 2.0 Host (internal USB PHY, over-current protection) |
+| Expansion | 40-pin GPIO header (28 GPIOs), UART0 debug interface |
 
 ## 📦 Quick Start
 
@@ -54,7 +49,7 @@ The fastest way to try an example is to flash a packaged firmware from the [late
 4. Run `flash_combined.bat COMx` on Windows or `./flash_combined.sh /dev/ttyACM0` on Linux.
 5. Reset the board if it does not restart automatically.
 
-Factory firmware (restores the out-of-box demo): download the file whose name contains `FactoryOnly` from the [`firmware`](firmware/) folder.
+Factory & coprocessor firmware: download the `FactoryOnly` image for your display size or the ESP32-C5 coprocessor firmware (required before running Wi-Fi or Bluetooth examples) from [`firmware`](firmware/); ESP-Brookesia factory source is in [`examples/factory`](examples/factory/).
 
 ## 🧪 Examples
 
@@ -75,12 +70,12 @@ Factory firmware (restores the out-of-box demo): download the file whose name co
 | [10_mipi_csi](examples/esp-idf/10_mipi_csi/) | Displays the MIPI-CSI camera feed on the LCD via `esp_video` and PPA |
 | [11_usb_extend_screen](examples/esp-idf/11_usb_extend_screen/) | USB extended-display example |
 | [12_generic_gpio](examples/esp-idf/12_generic_gpio/) | LVGL grid for viewing and toggling expansion-header GPIO levels |
-| [14_ethernet_iperf](examples/esp-idf/14_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
-| [15_bleprph_gatt](examples/esp-idf/15_bleprph_gatt/) | NimBLE peripheral with a custom read/write and notification GATT service through the ESP32-C5 BLE controller over ESP-Hosted HCI |
+| [13_ethernet_iperf](examples/esp-idf/13_ethernet_iperf/) | Ethernet TCP/UDP throughput test with an iPerf 2.x PC peer |
+| [14_bleprph_gatt](examples/esp-idf/14_bleprph_gatt/) | NimBLE peripheral with a custom read/write and notification GATT service through the ESP32-C5 BLE controller over ESP-Hosted HCI |
 
 ### Hardware Console
 
-[16_hw_console](examples/esp-idf/16_hw_console/README.md) is an interactive serial console for operating the board's peripherals. Run `idf.py bmgr` before building it.
+[15_hw_console](examples/esp-idf/15_hw_console/README.md) is an interactive serial console for operating the board's peripherals. Run `idf.py bmgr` before building it.
 
 ### Arduino
 
@@ -108,11 +103,12 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 - [Schematic](hardware/schematic/)
 - [Hardware guide](docs/hw-reference/user-guide.md)
 - [Product page](https://www.waveshare.net/shop/ESP32-P4-WIFI6-DB-POE-ETH.htm)
+- [Wiki](https://docs.waveshare.com/ESP32-P4-WIFI6-DB-POE-ETH/)
 
 ## 🤝 Support
 
-- [Report an example or repository issue](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/issues)
-- [Waveshare support](https://docs.waveshare.com/support)
+- Example or repository problem: [open an issue](https://github.com/waveshareteam/ESP32-P4-WIFI6-DB-POE-ETH/issues/new/choose).
+- Product usage, hardware or order questions: [Waveshare support](https://service.waveshare.com/).
 
 ## 📄 License
 

@@ -22,9 +22,8 @@
         {
           "category": "first_party_customer",
           "patterns": [
-            "examples/components/**",
             "examples/factory/components/Camera/config/**",
-            "examples/esp-idf/16_hw_console/components/**"
+            "examples/esp-idf/15_hw_console/components/**"
           ]
         }
       ]

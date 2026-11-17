@@ -67,7 +67,7 @@ The table below lists the key components of the board.
 
 ## 1.4. Factory Firmware
 
-The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../../examples/factory/README.md). The [hardware console README](../../examples/esp-idf/16_hw_console/README.md) describes the serial command interface for operating board peripherals.
+The board's ESP-Brookesia based application firmware features display, touch, audio, camera, video, Wi-Fi, Ethernet and XiaoZhi. For the feature overview, usage and build instructions, see the [Brookesia firmware README](../../examples/factory/README.md). The [hardware console README](../../examples/esp-idf/15_hw_console/README.md) describes the serial command interface for operating board peripherals.
 
 # 2. Start Application Development
 
@@ -274,7 +274,20 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 - With R30 removed, the card can no longer be power-cycled by software.
 - The BSP still drives GPIO45 when it mounts and unmounts the card (it power-cycles the card on mount and drives GPIO45 high on unmount). If GPIO45 is used for another function, reconfigure it after mounting the card, or adapt the BSP.
 
-## 3.5. Usage Notes
+## 3.5. PoE Power Supply
+
+The onboard PoE module uses an **SD4950TR** IEEE 802.3af PD interface and isolated primary-side-regulated (PSR) flyback DC/DC controller (`U21`) with a 10/100M PoE RJ45 jack (`RJ1`, `HBJ-6117ANL`).
+
+| Parameter | Specification |
+| --- | --- |
+| Standard | IEEE 802.3af (Type 1, up to 12.95 W PD) |
+| Input voltage | 37 V – 57 V DC (48 V nominal) |
+| Power pairs | Dual bridge rectifiers (`BD1`, `BD2`) supporting both Mode A (1/2, 3/6) and Mode B (4/5, 7/8) with automatic polarity |
+| Topology & isolation | Isolated flyback (`T1`, EP13 160 µH) with `2.2 nF / 1000 V` safety capacitor (`C138`) |
+| Output | Isolated `5 V` (`VCC_5V`) |
+| Protection | `SMAJ58A` 58 V input TVS (`ZD1`), 180 mA inrush limit, 960 mA operating current limit |
+
+## 3.6. Usage Notes
 
 - The GPIO7/8 I2C bus already carries ES8311 (0x18), GT911 (0x5D/0x14), the LCD backlight controller (0x45) and camera SCCB; avoid address conflicts when adding external I2C devices.
 - GPIO6, GPIO45, GPIO53 and GPIO54 carry control signals for onboard peripherals (ESP32-C5 wake-up, microSD power, speaker amplifier, ESP32-C5 reset); do not drive them independently while those peripherals are in use.
@@ -288,13 +301,12 @@ GPIO45 is shared between header pin P6-40 and the microSD power switch. It drive
 
 ## 4.1. Datasheets and Schematic
 
-- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf) (PDF)
+- [ESP32-P4-WIFI6-DB-POE-ETH Schematic](../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH-Schematic-V1.0.pdf) (PDF)
 
 - [ESP32-P4 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf) (PDF)
 - [ESP32-C5 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_en.pdf) (PDF)
 
 ## 4.2. Software Resources
 
-- [BSP README](../../examples/components/esp32_p4_wifi6_db_poe_eth/README.md) and [API reference](../../examples/components/esp32_p4_wifi6_db_poe_eth/API.md)
 - [Brookesia firmware](../../examples/factory/README.md)
-- [Hardware console](../../examples/esp-idf/16_hw_console/README.md)
+- [Hardware console](../../examples/esp-idf/15_hw_console/README.md)

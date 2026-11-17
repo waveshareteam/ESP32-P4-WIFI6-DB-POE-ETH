@@ -67,7 +67,7 @@ ESP32-P4NRW32X 主处理器负责显示、摄像头、音频、存储、以太�
 
 ## 1.4. 出厂固件
 
-开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../../examples/factory/README_ZH.md)。串口命令控制台的功能和用法见[硬件控制台说明](../../examples/esp-idf/16_hw_console/README_ZH.md)。
+开发板的应用固件基于 ESP-Brookesia，包含显示、触摸、音频、摄像头、视频、Wi-Fi、以太网和小智等功能。功能介绍、使用方法和编译说明见 [Brookesia 固件 README](../../examples/factory/README_ZH.md)。串口命令控制台的功能和用法见[硬件控制台说明](../../examples/esp-idf/15_hw_console/README_ZH.md)。
 
 # 2. 开始开发应用
 
@@ -274,7 +274,20 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 - 去掉 R30 后，软件无法再对 SD 卡断电重启。
 - BSP 在挂载和卸载 SD 卡时仍会驱动 GPIO45（挂载时对卡断电重启，卸载时把 GPIO45 拉高）。如 GPIO45 另作他用，请在挂载 SD 卡后再重新配置它，或修改 BSP。
 
-## 3.5. 使用注意事项
+## 3.5. PoE 供电电路
+
+板载 PoE 模块基于 **SD4950TR**（`U21`，集成 IEEE 802.3af PD 握手与原边反馈 PSR 反激控制器），搭配百兆带 PoE 抽头 RJ45 接口（`RJ1`，`HBJ-6117ANL`）。
+
+| 参数 | 规格 |
+| --- | --- |
+| PoE 标准 | IEEE 802.3af（Type 1，PD 端上限 12.95 W） |
+| 输入电压范围 | 37 V – 57 V DC（标称 48 V） |
+| 供电线对 | 双整流桥（`BD1`、`BD2`），同时兼容 Mode A（1/2、3/6）与 Mode B（4/5、7/8），支持极性自适应 |
+| 电源拓扑与隔离 | 隔离反激（`T1`，EP13 160 µH），初次级跨接 `2.2 nF / 1000 V` 安规电容（`C138`） |
+| 输出电压 | 隔离 `5 V`（`VCC_5V`） |
+| 保护机制 | 输入端 `SMAJ58A` 58 V TVS（`ZD1`）、180 mA 浪涌限流、960 mA 工作限流 |
+
+## 3.6. 使用注意事项
 
 - GPIO7/8 I2C 总线上已有 ES8311（0x18）、GT911（0x5D/0x14）、LCD 背光控制器（0x45）和摄像头 SCCB，外接 I2C 设备时请避免地址冲突。
 - GPIO6、GPIO45、GPIO53、GPIO54 是板载外设的控制信号（ESP32-C5 唤醒、microSD 电源、扬声器功放、ESP32-C5 复位），对应外设工作期间请勿单独驱动。
@@ -288,13 +301,12 @@ GPIO45 由排针 P6-40 和 microSD 电源开关共用。它经 R30（0 Ω）驱�
 
 ## 4.1. 数据手册与原理图
 
-- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH.pdf)（PDF）
+- [ESP32-P4-WIFI6-DB-POE-ETH 原理图](../../hardware/schematic/ESP32-P4-WIFI6-DB-POE-ETH-Schematic-V1.0.pdf)（PDF）
 
 - [ESP32-P4 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_cn.pdf)（PDF）
 - [ESP32-C5 技术规格书](https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_cn.pdf)（PDF）
 
 ## 4.2. 软件资源
 
-- [BSP README](../../examples/components/esp32_p4_wifi6_db_poe_eth/README_ZH.md) 和 [API 参考](../../examples/components/esp32_p4_wifi6_db_poe_eth/API_ZH.md)
 - [Brookesia 固件](../../examples/factory/README_ZH.md)
-- [硬件控制台](../../examples/esp-idf/16_hw_console/README_ZH.md)
+- [硬件控制台](../../examples/esp-idf/15_hw_console/README_ZH.md)
