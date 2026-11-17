@@ -1,5 +1,2 @@
 dependencies:
-  espressif/esp_board_manager:
-    version: "^0.7.5"
-    public: true
-  waveshare/waveshare_boards: ">=0.2.0,<1"
+  waveshare/waveshare_boards: ">=0.2.0"

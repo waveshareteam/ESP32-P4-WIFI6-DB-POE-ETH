@@ -1,6 +1,0 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
-#pragma once
-#include "bsp/esp32_p4_wifi6_db_poe_eth.h"

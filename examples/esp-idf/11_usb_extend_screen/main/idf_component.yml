@@ -5,11 +5,8 @@ targets:
   - esp32s31
 dependencies:
   idf: ">=5.4.4,!=5.5.0,!=5.5.1,!=5.5.2"
-  espressif/esp_board_manager:
-    version: "^0.7.5"
-    public: true
   waveshare/waveshare_boards:
-    version: ">=0.2.0,<1"
+    version: ">=0.2.0"
     public: true
   espressif/tinyusb: "*"
   espressif/usb_device_uac:

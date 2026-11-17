@@ -1,8 +1,5 @@
 dependencies:
-  espressif/esp_board_manager:
-    version: "^0.7.5"
-    public: true
-  waveshare/waveshare_boards: ">=0.2.0,<1"
+  waveshare/waveshare_boards: ">=0.2.0"
   espressif/esp_lvgl_adapter: ">=0.6.2,<0.8"
   lvgl/lvgl: ">=9,<10"
   espressif/esp_lcd_touch: ^1.1.2
