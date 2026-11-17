@@ -34,8 +34,10 @@ idf_component_register(
         cjson
         efuse
         esp_app_format
+        esp_driver_gpio
         esp_http_client
         esp_hw_support
+        esp_new_jpeg
         esp_partition
         esp_timer
         esp_websocket_client

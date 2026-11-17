@@ -38,6 +38,8 @@ public:
     void clearChatMessages();
     void setEmotion(const char *emotion);
     void setActivation(const char *code, const char *message, bool visible);
+    void setCapturedPhoto(const lv_image_dsc_t *dsc);
+    void clearCapturedPhoto();
 
     lv_obj_t *root() const
     {
@@ -60,6 +62,8 @@ private:
     lv_obj_t *_status_label = nullptr;
     lv_obj_t *_emoji_box = nullptr;
     lv_obj_t *_emoji_label = nullptr;
+    lv_obj_t *_photo_box = nullptr;
+    lv_obj_t *_photo_image = nullptr;
     lv_obj_t *_activation_box = nullptr;
     lv_obj_t *_activation_code_label = nullptr;
     lv_obj_t *_activation_message_label = nullptr;
@@ -75,6 +79,7 @@ private:
     bool _network_ready = false;
     bool _activation_state_valid = false;
     bool _activation_visible = false;
+    bool _photo_visible = false;
     char _emotion_name[32] = {};
 };
 

@@ -19,9 +19,11 @@
 #include <vector>
 
 #include "board.h"
+#include "driver/gpio.h"
 #include "decoder/impl/esp_opus_dec.h"
 #include "encoder/impl/esp_opus_enc.h"
 #include "esp_heap_caps.h"
+#include "esp_jpeg_dec.h"
 #include "esp_netif.h"
 #include "esp_netif_ip_addr.h"
 #include "esp_timer.h"
@@ -45,6 +47,9 @@ constexpr uint32_t RETRY_INTERVAL_MS = 5000;
 constexpr uint32_t TRANSPORT_RECONNECT_FALLBACK_MS = 10000;
 constexpr uint32_t ACTIVATION_RETRY_INTERVAL_MS = 3000;
 constexpr uint32_t ACTIVATION_RETRY_MAX_MS = 10000;
+constexpr int64_t PHOTO_DISPLAY_DURATION_US = 5 * 1000 * 1000;
+constexpr gpio_num_t BOOT_BUTTON_GPIO = GPIO_NUM_35;
+constexpr uint32_t BOOT_BUTTON_DEBOUNCE_MS = 250;
 constexpr uint32_t CHAT_SAMPLE_RATE = 16000;
 constexpr uint32_t DEVICE_AUDIO_SAMPLE_RATE = CODEC_VOICE_SAMPLE_RATE;
 constexpr uint32_t CHAT_FRAME_DURATION_MS = 60;
@@ -577,6 +582,7 @@ bool XiaozhiApp::deinit()
     vTaskDelay(1);
 
     destroyUi();
+    deinitBootButton();
     delete _ui;
     _ui = nullptr;
     delete _activation_prompt;
@@ -619,6 +625,18 @@ bool XiaozhiApp::deinit()
         _audio_tx_mutex = nullptr;
     }
     if (_state_mutex) {
+        if (xSemaphoreTake(_state_mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+            if (_photo_pending_buf) {
+                heap_caps_free(_photo_pending_buf);
+                _photo_pending_buf = nullptr;
+            }
+            _photo_pending_len = 0;
+            _photo_pending_w = 0;
+            _photo_pending_h = 0;
+            _photo_pending_expire_us = 0;
+            _photo_pending_update = false;
+            xSemaphoreGive(_state_mutex);
+        }
         vSemaphoreDelete(_state_mutex);
         _state_mutex = nullptr;
     }
@@ -700,6 +718,12 @@ void XiaozhiApp::destroyUi()
     if (_ui) {
         _ui->destroy();
     }
+    if (_photo_active_buf) {
+        heap_caps_free(_photo_active_buf);
+        _photo_active_buf = nullptr;
+        _photo_dsc = {};
+        _photo_expire_us = 0;
+    }
     if (_page_root) {
         lv_obj_delete(_page_root);
         _page_root = nullptr;
@@ -716,6 +740,12 @@ void XiaozhiApp::refreshUi()
     char role[sizeof(_chat_role)] = {};
     char text[sizeof(_chat_text)] = {};
     char emotion[sizeof(_emotion)] = {};
+    bool has_pending_photo = false;
+    uint8_t *pending_photo_buf = nullptr;
+    size_t pending_photo_len = 0;
+    uint16_t pending_photo_w = 0;
+    uint16_t pending_photo_h = 0;
+    int64_t pending_photo_expire_us = 0;
     if (!_state_mutex ||
             xSemaphoreTake(_state_mutex, pdMS_TO_TICKS(20)) != pdTRUE) {
         return;
@@ -725,6 +755,20 @@ void XiaozhiApp::refreshUi()
     memcpy(role, _chat_role, sizeof(role));
     memcpy(text, _chat_text, sizeof(text));
     memcpy(emotion, _emotion, sizeof(emotion));
+    if (_photo_pending_update) {
+        has_pending_photo = true;
+        pending_photo_buf = _photo_pending_buf;
+        pending_photo_len = _photo_pending_len;
+        pending_photo_w = _photo_pending_w;
+        pending_photo_h = _photo_pending_h;
+        pending_photo_expire_us = _photo_pending_expire_us;
+        _photo_pending_buf = nullptr;
+        _photo_pending_len = 0;
+        _photo_pending_w = 0;
+        _photo_pending_h = 0;
+        _photo_pending_expire_us = 0;
+        _photo_pending_update = false;
+    }
     xSemaphoreGive(_state_mutex);
 
     State state = _state.load();
@@ -739,6 +783,98 @@ void XiaozhiApp::refreshUi()
         ),
         state == State::ActivationRequired
     );
+
+    if (has_pending_photo && pending_photo_buf) {
+        if (state == State::ActivationRequired) {
+            heap_caps_free(pending_photo_buf);
+        } else {
+            _ui->clearCapturedPhoto();
+            if (_photo_active_buf) {
+                heap_caps_free(_photo_active_buf);
+            }
+            _photo_active_buf = pending_photo_buf;
+            _photo_expire_us = pending_photo_expire_us;
+            _photo_dsc = {};
+            _photo_dsc.header.magic = LV_IMAGE_HEADER_MAGIC;
+            _photo_dsc.header.cf = LV_COLOR_FORMAT_RGB565;
+            _photo_dsc.header.w = pending_photo_w;
+            _photo_dsc.header.h = pending_photo_h;
+            _photo_dsc.header.stride = pending_photo_w * 2;
+            _photo_dsc.data_size = pending_photo_len;
+            _photo_dsc.data = _photo_active_buf;
+            _ui->setCapturedPhoto(&_photo_dsc);
+        }
+    } else if (_photo_active_buf &&
+               (state == State::ActivationRequired ||
+                esp_timer_get_time() >= _photo_expire_us)) {
+        _ui->clearCapturedPhoto();
+        heap_caps_free(_photo_active_buf);
+        _photo_active_buf = nullptr;
+        _photo_dsc = {};
+        _photo_expire_us = 0;
+    }
+}
+
+void XiaozhiApp::showCapturedPhoto(const uint8_t *jpeg, size_t jpeg_len)
+{
+    if (!jpeg || jpeg_len == 0 || !_state_mutex) {
+        return;
+    }
+
+    jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
+    config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;
+    jpeg_dec_handle_t jpeg_handle = nullptr;
+    if (jpeg_dec_open(&config, &jpeg_handle) != JPEG_ERR_OK) {
+        ESP_UTILS_LOGW("Open JPEG decoder for captured photo failed");
+        return;
+    }
+
+    jpeg_dec_io_t io = {};
+    io.inbuf = const_cast<uint8_t *>(jpeg);
+    io.inbuf_len = static_cast<int>(jpeg_len);
+    jpeg_dec_header_info_t info = {};
+    int out_len = 0;
+    uint8_t *rgb = nullptr;
+    bool ok = (jpeg_dec_parse_header(jpeg_handle, &io, &info) == JPEG_ERR_OK &&
+               info.width > 0 && info.height > 0 &&
+               jpeg_dec_get_outbuf_len(jpeg_handle, &out_len) == JPEG_ERR_OK &&
+               out_len > 0);
+    if (ok) {
+        rgb = static_cast<uint8_t *>(
+            heap_caps_aligned_alloc(16, out_len, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
+        );
+        if (rgb) {
+            io.outbuf = rgb;
+            ok = (jpeg_dec_process(jpeg_handle, &io) == JPEG_ERR_OK);
+            if (!ok) {
+                heap_caps_free(rgb);
+                rgb = nullptr;
+            }
+        } else {
+            ok = false;
+        }
+    }
+    jpeg_dec_close(jpeg_handle);
+
+    if (!ok || !rgb) {
+        ESP_UTILS_LOGW("Decode captured photo JPEG failed");
+        return;
+    }
+
+    if (xSemaphoreTake(_state_mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
+        heap_caps_free(rgb);
+        return;
+    }
+    if (_photo_pending_buf) {
+        heap_caps_free(_photo_pending_buf);
+    }
+    _photo_pending_buf = rgb;
+    _photo_pending_len = static_cast<size_t>(info.width) * info.height * 2;
+    _photo_pending_w = static_cast<uint16_t>(info.width);
+    _photo_pending_h = static_cast<uint16_t>(info.height);
+    _photo_pending_expire_us = esp_timer_get_time() + PHOTO_DISPLAY_DURATION_US;
+    _photo_pending_update = true;
+    xSemaphoreGive(_state_mutex);
 }
 
 void XiaozhiApp::setState(State state)
@@ -1320,6 +1456,7 @@ void XiaozhiApp::handleControlEvent(const ControlEvent &event)
 void XiaozhiApp::handleAppVisible()
 {
     _visible.store(true);
+    initBootButton();
     if (!_network_ready.load() || !isNetworkReady()) {
         setState(State::NetworkRequired);
     } else if (_activation_phase == ActivationPhase::WaitingForBinding ||
@@ -1352,6 +1489,7 @@ void XiaozhiApp::handleAppVisible()
 void XiaozhiApp::handleAppHidden(bool release_audio)
 {
     _visible.store(false);
+    deinitBootButton();
     stopActivationPrompt();
     setAudioModes(false, false);
     if (release_audio) {
@@ -3324,6 +3462,84 @@ void XiaozhiApp::uiActionCallback(void *context)
     ControlEvent event = {};
     event.type = ControlEventType::ActionPressed;
     instance->postControlEvent(event);
+}
+
+void XiaozhiApp::initBootButton()
+{
+    if (_boot_button_configured) {
+        return;
+    }
+
+    _boot_action_event = {};
+    _boot_action_event.type = ControlEventType::ActionPressed;
+    _last_boot_press_tick = 0;
+
+    gpio_config_t io_conf = {};
+    io_conf.pin_bit_mask = 1ULL << BOOT_BUTTON_GPIO;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    esp_err_t ret = gpio_config(&io_conf);
+    if (ret != ESP_OK) {
+        ESP_UTILS_LOGW("Configure BOOT button GPIO%d failed: %s",
+                       static_cast<int>(BOOT_BUTTON_GPIO), esp_err_to_name(ret));
+        return;
+    }
+
+    ret = gpio_install_isr_service(0);
+    if (ret != ESP_OK && ret != ESP_ERR_INVALID_STATE) {
+        ESP_UTILS_LOGW("Install GPIO ISR service failed: %s", esp_err_to_name(ret));
+        gpio_intr_disable(BOOT_BUTTON_GPIO);
+        return;
+    }
+
+    ret = gpio_isr_handler_add(BOOT_BUTTON_GPIO, bootButtonIsrHandler, this);
+    if (ret != ESP_OK) {
+        ESP_UTILS_LOGW("Add BOOT button ISR failed: %s", esp_err_to_name(ret));
+        gpio_intr_disable(BOOT_BUTTON_GPIO);
+        return;
+    }
+
+    _boot_button_configured = true;
+}
+
+void XiaozhiApp::deinitBootButton()
+{
+    if (!_boot_button_configured) {
+        return;
+    }
+    gpio_intr_disable(BOOT_BUTTON_GPIO);
+    gpio_isr_handler_remove(BOOT_BUTTON_GPIO);
+    _boot_button_configured = false;
+}
+
+void IRAM_ATTR XiaozhiApp::bootButtonIsrHandler(void *arg)
+{
+    auto *instance = static_cast<XiaozhiApp *>(arg);
+    if (!instance || !instance->_visible.load() ||
+            !instance->_control_running.load() ||
+            instance->_destroying.load() ||
+            instance->_deinit_in_progress.load() ||
+            !instance->_control_queue) {
+        return;
+    }
+
+    const TickType_t now = xTaskGetTickCountFromISR();
+    if (now - instance->_last_boot_press_tick < pdMS_TO_TICKS(BOOT_BUTTON_DEBOUNCE_MS)) {
+        return;
+    }
+    instance->_last_boot_press_tick = now;
+
+    BaseType_t higher_priority_task_woken = pdFALSE;
+    xQueueSendFromISR(
+        instance->_control_queue,
+        &instance->_boot_action_event,
+        &higher_priority_task_woken
+    );
+    if (higher_priority_task_woken == pdTRUE) {
+        portYIELD_FROM_ISR();
+    }
 }
 
 // The app is a singleton owned by itself; the registry must not delete it.

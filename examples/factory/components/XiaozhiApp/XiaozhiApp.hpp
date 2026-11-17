@@ -32,6 +32,8 @@ public:
     static XiaozhiApp *requestInstance(bool use_status_bar = false, bool use_navigation_bar = false);
     ~XiaozhiApp();
 
+    void showCapturedPhoto(const uint8_t *jpeg, size_t jpeg_len);
+
 protected:
     XiaozhiApp(bool use_status_bar, bool use_navigation_bar);
 
@@ -229,6 +231,21 @@ private:
     char _chat_text[512] = {};
     char _emotion[32] = {"neutral"};
 
+    uint8_t *_photo_pending_buf = nullptr;
+    size_t _photo_pending_len = 0;
+    uint16_t _photo_pending_w = 0;
+    uint16_t _photo_pending_h = 0;
+    int64_t _photo_pending_expire_us = 0;
+    bool _photo_pending_update = false;
+
+    uint8_t *_photo_active_buf = nullptr;
+    lv_image_dsc_t _photo_dsc = {};
+    int64_t _photo_expire_us = 0;
+
+    bool _boot_button_configured = false;
+    TickType_t _last_boot_press_tick = 0;
+    ControlEvent _boot_action_event = {};
+
     void createUi();
     void destroyUi();
     void refreshUi();
@@ -281,6 +298,8 @@ private:
     void inputAudio();
     void encodeAudio();
     void playAudio();
+    void initBootButton();
+    void deinitBootButton();
 
     static const char *stateText(State state);
     static bool tickReached(TickType_t now, TickType_t target);
@@ -296,6 +315,7 @@ private:
     );
     static void uiTimerCallback(lv_timer_t *timer);
     static void uiActionCallback(void *context);
+    static void bootButtonIsrHandler(void *arg);
 };
 
 } // namespace esp_brookesia::apps

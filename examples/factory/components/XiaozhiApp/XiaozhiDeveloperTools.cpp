@@ -8,6 +8,7 @@
 
 #include "Camera.hpp"
 #include "SettingsStorage.hpp"
+#include "XiaozhiApp.hpp"
 #include "board.h"
 #include "cJSON.h"
 #include "esp_app_desc.h"
@@ -46,6 +47,7 @@ esp_mcp_value_t explainImage(const esp_mcp_property_list_t *properties)
     size_t jpeg_len = 0;
     ret = Camera::requestInstance()->captureJpeg(&jpeg, &jpeg_len);
     if (ret != ESP_OK) return esp_mcp_value_create_string("Camera capture failed or camera is busy");
+    XiaozhiApp::requestInstance()->showCapturedPhoto(jpeg, jpeg_len);
     esp_xiaozhi_camera_config_t config = {};
     config.explain_url = url;
     config.explain_token = token;

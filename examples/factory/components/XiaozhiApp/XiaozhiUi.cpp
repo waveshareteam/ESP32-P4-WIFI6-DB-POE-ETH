@@ -183,6 +183,23 @@ bool XiaozhiUi::create(
     lv_obj_set_style_text_color(_emoji_label, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_center(_emoji_label);
 
+    _photo_box = lv_obj_create(_root);
+    prepareTransparentObject(_photo_box);
+    lv_obj_set_size(_photo_box, lv_pct(78), lv_pct(40));
+    lv_obj_align(_photo_box, LV_ALIGN_TOP_MID, 0, TOP_BAR_HEIGHT + 12);
+    lv_obj_set_style_bg_color(_photo_box, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(_photo_box, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_radius(_photo_box, 16, LV_PART_MAIN);
+    lv_obj_set_style_clip_corner(_photo_box, true, LV_PART_MAIN);
+    lv_obj_set_style_border_width(_photo_box, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(_photo_box, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
+    lv_obj_add_flag(_photo_box, LV_OBJ_FLAG_HIDDEN);
+
+    _photo_image = lv_image_create(_photo_box);
+    lv_obj_set_size(_photo_image, lv_pct(100), lv_pct(100));
+    lv_obj_center(_photo_image);
+    lv_image_set_inner_align(_photo_image, LV_IMAGE_ALIGN_CONTAIN);
+
     _activation_box = lv_obj_create(_root);
     prepareTransparentObject(_activation_box);
     lv_obj_set_size(_activation_box, lv_pct(88), ACTIVATION_BOX_HEIGHT);
@@ -214,9 +231,9 @@ bool XiaozhiUi::create(
         LV_PART_MAIN
     );
 
-    // The emoji, or the activation code shown in its place, is the tap target.
+    // The emoji, photo preview, or activation code shown in its place is the tap target.
     if (_action_callback) {
-        lv_obj_t *tap_targets[] = {_emoji_box, _activation_box};
+        lv_obj_t *tap_targets[] = {_emoji_box, _photo_box, _activation_box};
         for (lv_obj_t *target : tap_targets) {
             lv_obj_add_flag(target, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_event_cb(target, tapCallback, LV_EVENT_CLICKED, this);
@@ -277,6 +294,8 @@ void XiaozhiUi::destroyView()
     _status_label = nullptr;
     _emoji_box = nullptr;
     _emoji_label = nullptr;
+    _photo_box = nullptr;
+    _photo_image = nullptr;
     _activation_box = nullptr;
     _activation_code_label = nullptr;
     _activation_message_label = nullptr;
@@ -286,6 +305,7 @@ void XiaozhiUi::destroyView()
     _network_ready = false;
     _activation_state_valid = false;
     _activation_visible = false;
+    _photo_visible = false;
     _emotion_name[0] = '\0';
 }
 
@@ -366,11 +386,38 @@ void XiaozhiUi::setActivation(const char *code, const char *message, bool visibl
     setLabelTextIfChanged(_activation_code_label, code);
     setLabelTextIfChanged(_activation_message_label, message);
     if (!_activation_state_valid || _activation_visible != visible) {
-        setHidden(_emoji_box, visible);
+        setHidden(_emoji_box, visible || _photo_visible);
         setHidden(_activation_box, !visible);
+        if (visible && _photo_box) {
+            setHidden(_photo_box, true);
+        } else if (!visible && _photo_box && _photo_visible) {
+            setHidden(_photo_box, false);
+        }
         _activation_visible = visible;
         _activation_state_valid = true;
     }
+}
+
+void XiaozhiUi::setCapturedPhoto(const lv_image_dsc_t *dsc)
+{
+    if (!_photo_box || !_photo_image || !dsc) {
+        return;
+    }
+    lv_image_set_src(_photo_image, dsc);
+    _photo_visible = true;
+    setHidden(_photo_box, _activation_visible);
+    setHidden(_emoji_box, true);
+}
+
+void XiaozhiUi::clearCapturedPhoto()
+{
+    if (!_photo_box || !_photo_image || !_photo_visible) {
+        return;
+    }
+    lv_image_set_src(_photo_image, nullptr);
+    _photo_visible = false;
+    setHidden(_photo_box, true);
+    setHidden(_emoji_box, _activation_visible);
 }
 
 bool XiaozhiUi::loadTextFont()
