@@ -1,53 +1,39 @@
-# Display Color Bar
+# MIPI-DSI Display
 
-[中文版本](./README_CN.md)
+[English](README.md) | [简体中文](README_ZH.md)
 
-Display color bars on a supported LCD panel. This is the simplest ESP-IDF
-display bring-up example in the repository.
+## What It Does
 
-## Difficulty
-
-Intermediate.
+Shows a hardware color-bar pattern on the panel.
 
 ## Hardware Required
 
-- ESP32-P4-WIFI6-DB board.
-- One BSP-supported MIPI-DSI panel connected to the display interface. Select
-  the matching 5, 7, 8, or 10.1-inch panel in `menuconfig`.
+- ESP32-P4-WIFI6-DB-POE-ETH development board
+- MIPI-DSI panel matching the Board Manager board definition
 
-This example uses the local `esp32_p4_wifi6_db_poe_eth` BSP component. It is a good
-first display test for this board because the application does
-not create an LVGL UI; it only initializes the panel and asks the DPI panel
-driver to generate a hardware vertical color-bar pattern.
+## How to Run
 
-## Build and Flash
+The panel settings come from the Board Manager board definition. Generate the board code before building.
 
-```powershell
-cd examples\esp_idf\06_mipi_dsi_test
+For a different panel, replace the `idf.py bmgr` command below with the matching display amendment, for example:
+
+```bash
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
+```
+
+Available amendments are `5_dsi_touch_a`, `7_dsi_touch_c`, `8_dsi_touch_a`, `10_1_dsi_touch_a`.
+
+```bash
 idf.py set-target esp32p4
+idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
 idf.py menuconfig
-idf.py build
-idf.py -p PORT flash monitor
+idf.py build flash monitor
 ```
 
-## Expected Behavior
+## Expected Result
 
-The serial log should show:
-
-```text
-Initialize LCD device
-Show color bar pattern drawn by hardware
-```
-
-The LCD should turn on its backlight and show vertical color bars.
+The backlight turns on and vertical color bars appear; the log prints `Show color bar pattern drawn by hardware`.
 
 ## Troubleshooting
 
-- Confirm the display panel model and interface.
-- Confirm PSRAM is enabled when the panel path needs it.
-- Check the shared I2C bus on GPIO7/GPIO8 and I2C device `0x45`, register
-  `0x96`, if logs look correct but the backlight stays dark.
-- This board has no LCD reset GPIO; verify DSI power, lane configuration, FPC
-  orientation, and panel initialization instead.
-- Run this example before [10_mipi_csi](../10_mipi_csi/) so panel
-  bring-up is tested separately from camera processing.
+If the log looks right but the screen stays dark, check the FPC orientation and the board display configuration. This board has no LCD reset GPIO.

@@ -1,0 +1,11 @@
+dependencies:
+  espressif/esp_lcd_touch: ^1.1.2
+  espressif/esp_video: ^2.1.0
+  espressif/esp_image_effects: "*"
+  espressif/iperf-cmd: "~1.0.2"
+  esp-qa/ping-cmd: "~1.0.0"
+  espressif/esp_hosted: ^3.1.0
+  espressif/esp_wifi_remote: ^1.6.5
+  usb_host_msc: ^1.1.4
+  espressif/esp_audio_codec: "^2.4.0"
+  waveshare/waveshare_boards: ">=0.2.0"

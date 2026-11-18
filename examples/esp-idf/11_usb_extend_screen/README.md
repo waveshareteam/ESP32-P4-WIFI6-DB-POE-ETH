@@ -1,34 +1,24 @@
 ## USB Extended Display Example
 
+[简体中文](README_ZH.md)
+
 Use [LaunchPad](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://dl.espressif.com/AE/esp-iot-solution/config.toml) to flash this example.
 
-The USB extended display example allows the [ESP32_S3_LCD_EV_BOARD](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-lcd-ev-board/index.html), [ESP32_P4_FUNCTION_EV_BOARD](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32p4/esp32-p4-function-ev-board/index.html), or [ESP32-S31-Korvo](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/index.html) development boards to function as a secondary display for Windows. It supports the following features:
+The USB extended display example turns the ESP32-P4-WIFI6-DB-POE-ETH into a secondary display for Windows. Board peripherals are described and initialized by [ESP Board Manager](https://github.com/espressif/esp-board-manager).
 
-* **P4**: Supports a screen refresh rate of **1024×576@60FPS**.
-* **S3**: Supports a screen refresh rate of **800×480@13FPS**.
-* **S31**: Supports a screen refresh rate of **800×480@60FPS**.
+The example accesses the board peripherals by their Board Manager device names. It requires a landscape `display_lcd` device with an RGB565 or RGB888 framebuffer. Touch uses `lcd_touch`; USB audio uses `audio_dac` and `audio_adc`. The default Waveshare board definition configures an 800×1280 portrait panel, which this example does not support. Select a supported landscape display amendment with `-a` before building. Backlight control is available for LEDC-backed `lcd_brightness` devices; custom brightness devices are not handled. The 10.1B display is not supported.
+
+The example supports the following features:
+
+* Supports landscape RGB565 or RGB888 panels configured by Board Manager.
 * Supports up to **five-point touch input**.
-* Supports **audio input and output**.
+* Supports audio input and output through the board's audio codec.
 
 ## Required Hardware
 
-### P4 Development Board
-
-1. [ESP32-P4-Function-EV-Board](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32p4/esp32-p4-function-ev-board/user_guide.html#getting-started) development board.
-2. A **1024×600** MIPI display from the development kit.
-3. A speaker.
-
-### S3 Development Board
-
-1. [ESP32-S3-LCD-EV-Board](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-lcd-ev-board/user_guide.html#getting-started) development board.
-2. A **800×480** or **480×480** RGB display from the development kit.
-3. A speaker.
-
-### S31 Development Board
-
-1. [ESP32-S31-Korvo](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s31/esp32-s31-korvo-1/user_guide.html#getting-started) development board.
-2. A **800×480** RGB display from the development kit.
-3. A speaker.
+1. ESP32-P4-WIFI6-DB-POE-ETH development board.
+2. A supported landscape MIPI-DSI display and matching Board Manager display amendment. The default 800×1280 portrait display configuration and 10.1B display are not supported by this example.
+3. A speaker, if USB audio is enabled.
 
 ## Hardware Connection
 
@@ -41,18 +31,40 @@ The USB extended display example allows the [ESP32_S3_LCD_EV_BOARD](https://docs
 Build the project, flash it to the board, and run the monitor tool to check the serial output:
 
 1. Run `. ./export.sh` to set up the IDF environment.
-2. Run `idf.py set-target <target>` to set the target chip. `<target>` can be `esp32p4`, `esp32s3`, or `esp32s31`.
-3. Run `idf.py -p PORT flash monitor` to build, flash, and monitor the project.
+2. Install the Board Manager action helper once in the active ESP-IDF Python environment:
+
+   ```bash
+   pip install esp-bmgr-assist
+   ```
+
+3. From the repository root, enter this example directory and generate the product board configuration:
+
+   ```bash
+   cd examples/esp-idf/11_usb_extend_screen
+   idf.py bmgr -b esp32_p4_wifi6_db_poe_eth
+   ```
+
+   `bmgr` selects the target automatically and generates `components/gen_bmgr_codes`. Do not run `idf.py set-target` separately.
+
+4. Select a supported landscape display configuration with its Board Manager amendment:
+
+   ```bash
+   idf.py bmgr -b esp32_p4_wifi6_db_poe_eth -a ../esp32_p4_dsi_overlay/7_dsi_touch_c
+   ```
+
+   This applies the 7-DSI-TOUCH-C 1024×600 landscape display amendment. The 10.1B display is not supported.
+
+5. Run `idf.py -p PORT flash monitor` to build, flash, and monitor the project.
 
 (To exit the serial monitor, press `Ctrl-]`.)
 
 Refer to the **Getting Started Guide** for full instructions on configuring and using ESP-IDF to build projects.
 
->> **Note:** This example fetches AVI files online. Ensure you have an internet connection during the first compilation.
+> **Note:** The first configuration/build downloads managed components. Ensure an internet connection is available.
 
 ### PC Side
 
-For preparation, refer to [windows_driver](./windows_driver/README_cn.md).
+For preparation, refer to [windows_driver](./windows_driver/README.md).
 
 ![Demo](https://dl.espressif.com/AE/esp-iot-solution/p4_usb_extern_screen.gif)
 
@@ -70,9 +82,16 @@ For preparation, refer to [windows_driver](./windows_driver/README_cn.md).
 
 ### Changing the Secondary Screen Resolution
 
-* Modify `CONFIG_USB_EXTEND_SCREEN_HEIGHT` and `CONFIG_USB_EXTEND_SCREEN_WIDTH`.
+* The resolution and RGB565/RGB888 framebuffer format come from the selected board's `display_lcd` configuration; they are also used to build the USB vendor string, HID coordinate range, frame validation, and JPEG output buffers.
+* To use another panel, select a supported landscape panel amendment and regenerate the Board Manager configuration. The 10.1B display is not supported.
 
 **Note:** The driver currently does not support portrait-oriented screens. Please use a screen designed for landscape mode.
+
+### ESP32-P4 Chip Revisions and JPEG Alignment
+
+* ESP-IDF firmware built for ESP32-P4 revisions `<3.0` and `>=3.0` is mutually incompatible. Board Manager selects the board and target, but it does not select the silicon revision. For a `<3.0` chip, enable `CONFIG_ESP32P4_SELECTS_REV_LESS_V3` with `idf.py menuconfig` and perform a clean rebuild; do not put this setting in generic board defaults.
+* Hardware JPEG output is rounded to the input JPEG's MCU size: 8×8 for YUV444, 16×8 for YUV422, and 16×16 for YUV420. The example parses each JPEG header, reserves worst-case 16×16-aligned storage, and removes row padding before drawing. A visible resolution such as 1024×600 therefore does not need to be changed to 1024×608.
+* Revisions `<3.0` also restrict some YUV-to-YUV conversions. This example decodes directly to the display's RGB565 or RGB888 framebuffer format and does not use those restricted combinations.
 
 ### Adjusting Image Output Frame Rate
 
@@ -85,17 +104,11 @@ For preparation, refer to [windows_driver](./windows_driver/README_cn.md).
 ### Disabling Touchscreen Functionality
 
 * Set `CONFIG_HID_TOUCH_ENABLE` to `n`.
+* This option is only available when the selected board provides `lcd_touch`.
 
 ### Disabling Audio Functionality
 
 * Set `CONFIG_UAC_AUDIO_ENABLE` to `n`.
+* This option is only available when the selected board provides Board Manager audio codec devices.
 
 **Note:** If only the secondary screen function is enabled, change the PID to `0x2987`.
-
-## ESP32-P4 screen dimensions
-
-USB dimensions follow the BSP panel selected in menuconfig and cannot be edited separately on P4.
-The existing USB orientation swaps width and height: 5/7-inch panels use WIDTH=1280, HEIGHT=720;
-8/10.1-inch panels use WIDTH=1280, HEIGHT=800. Reconfigure and rebuild after changing panels.
-Reconnect the USB display so the PC reads the updated dimensions. A compile-time check rejects
-USB/LCD dimension mismatches.

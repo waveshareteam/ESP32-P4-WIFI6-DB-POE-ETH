@@ -1,0 +1,37 @@
+dependencies:
+  idf:
+    version: '>=5.5'
+
+  chmorgan/esp-audio-player:
+    version: 1.1.0
+    public: true
+
+  chmorgan/esp-file-iterator:
+    version: 1.0.0
+    public: true
+
+  waveshare/waveshare_boards: ">=0.2.0"
+
+  espressif/esp_lcd_touch_gt911: '*'
+
+  espressif/esp_lvgl_adapter:
+    version: ^0.7.3~1
+    public: true
+
+  espressif/esp_wifi_service:
+    version: ^0.5.3
+    public: true
+
+  # Co-processor firmware version query; main/idf_component.yml pins the exact release.
+  espressif/esp_wifi_remote:
+    version: "1.6.5"
+    public: true
+
+  espressif/esp_hosted:
+    version: "3.1.0"
+    public: true
+
+description: Board support layer for ESP32-P4-WIFI6-DB-POE-ETH
+targets:
+- esp32p4
+version: 0.0.2

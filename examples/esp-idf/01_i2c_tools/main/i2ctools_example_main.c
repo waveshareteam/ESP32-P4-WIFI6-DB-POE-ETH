@@ -35,7 +35,7 @@ void app_main(void)
     printf(" |             Steps to Use i2c-tools                         |\n");
     printf(" |                                                            |\n");
     printf(" |  1. Try 'help', check all supported commands               |\n");
-    printf(" |  2. Try 'i2cconfig' to configure your I2C bus              |\n");
+    printf(" |  2. I2C is ready on SDA=7, SCL=8 (100 kHz)                |\n");
     printf(" |  3. Try 'i2cdetect' to scan devices on the bus             |\n");
     printf(" |  4. Try 'i2cget' to get the content of specific register   |\n");
     printf(" |  5. Try 'i2cset' to set the value of specific register     |\n");

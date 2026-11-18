@@ -8,15 +8,19 @@
 #include "argtable3/argtable3.h"
 #include "driver/i2c_master.h"
 #include "esp_console.h"
+#include "esp_board_periph.h"
 #include "esp_log.h"
 
 static const char *TAG = "i2ctools";
 
 #define I2C_TOOL_TIMEOUT_VALUE_MS   50
-#define I2C_DEFAULT_FREQUENCY       (100 * 1000) // use this safe value if the "--freq" is skipped in `i2cconfig` command
+#define I2C_DEFAULT_SDA_GPIO        7
+#define I2C_DEFAULT_SCL_GPIO        8
+#define I2C_DEFAULT_FREQUENCY       (100 * 1000)
 
 static int s_i2c_bus_frequency;
 static i2c_master_bus_handle_t s_i2c_bus;
+static bool s_board_i2c_bus;
 
 static struct {
     struct arg_int *scl;
@@ -40,19 +44,26 @@ static int do_i2cconfig_cmd(int argc, char **argv)
     } else {
         s_i2c_bus_frequency = I2C_DEFAULT_FREQUENCY;
     }
-    /* Check "--sda" option */
-    int i2c_gpio_sda = i2cconfig_args.sda->ival[0];
-    /* Check "--scl" option */
-    int i2c_gpio_scl = i2cconfig_args.scl->ival[0];
+    int i2c_gpio_sda = i2cconfig_args.sda->count ? i2cconfig_args.sda->ival[0] : I2C_DEFAULT_SDA_GPIO;
+    int i2c_gpio_scl = i2cconfig_args.scl->count ? i2cconfig_args.scl->ival[0] : I2C_DEFAULT_SCL_GPIO;
 
     // if the I2C bus is already initialized, delete it first
     if (s_i2c_bus) {
-        err = i2c_del_master_bus(s_i2c_bus);
+        err = s_board_i2c_bus ? esp_board_periph_unref_handle("i2c_master") : i2c_del_master_bus(s_i2c_bus);
         if (err != ESP_OK) {
             // propagate the error
             return err;
         }
         s_i2c_bus = NULL;
+        s_board_i2c_bus = false;
+    }
+
+    if (!i2cconfig_args.sda->count && !i2cconfig_args.scl->count) {
+        err = esp_board_periph_ref_handle("i2c_master", (void **)&s_i2c_bus);
+        if (err == ESP_OK) {
+            s_board_i2c_bus = true;
+        }
+        return err;
     }
 
     i2c_master_bus_config_t i2c_bus_config = {
@@ -77,8 +88,8 @@ static int do_i2cconfig_cmd(int argc, char **argv)
 
 static void register_i2cconfig(void)
 {
-    i2cconfig_args.sda = arg_int1(NULL, "sda", "<gpio>", "Set the gpio for I2C SDA"); // mandatory
-    i2cconfig_args.scl = arg_int1(NULL, "scl", "<gpio>", "Set the gpio for I2C SCL"); // mandatory
+    i2cconfig_args.sda = arg_int0(NULL, "sda", "<gpio>", "Set the gpio for I2C SDA (default: 7)");
+    i2cconfig_args.scl = arg_int0(NULL, "scl", "<gpio>", "Set the gpio for I2C SCL (default: 8)");
     i2cconfig_args.freq = arg_int0(NULL, "freq", "<Hz>", "Set the frequency(Hz) of I2C bus"); // optional
     i2cconfig_args.end = arg_end(2);
     const esp_console_cmd_t i2cconfig_cmd = {
@@ -414,6 +425,8 @@ static void register_i2cdump(void)
 void register_i2ctools(void)
 {
     register_i2cconfig();
+    char *default_config[] = {"i2cconfig"};
+    ESP_ERROR_CHECK(do_i2cconfig_cmd(1, default_config));
     register_i2cdetect();
     register_i2cget();
     register_i2cset();

@@ -9,7 +9,6 @@
 #include "esp_err.h"
 #include "linux/videodev2.h"
 #include "esp_video_device.h"
-#include "bsp/esp-bsp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,11 +24,7 @@ typedef enum {
     APP_VIDEO_FMT_YUV420 = V4L2_PIX_FMT_YUV420,
 } video_fmt_t;
 
-#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB565
-#define APP_VIDEO_FMT              (APP_VIDEO_FMT_RGB565)
-#elif CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-#define APP_VIDEO_FMT              (APP_VIDEO_FMT_RGB888)
-#endif
+#define APP_VIDEO_FMT (APP_VIDEO_FMT_RGB565)
 
 typedef void (*app_video_frame_operation_cb_t)(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes, uint32_t camera_buf_ves, size_t camera_buf_len, void *user_data);
 

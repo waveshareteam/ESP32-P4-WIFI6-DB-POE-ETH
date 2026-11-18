@@ -15,99 +15,25 @@
 #include "esp_log.h"
 #include "esp_check.h"
 #include "sdkconfig.h"
+#include "esp_board_device.h"
+#include "dev_ethernet.h"
 
 static const char *TAG = "eth_basic_example";
 
-/**
- * @brief Initialize Ethernet driver with generic PHY (all IEEE 802.3 compliant PHYs)
- *
- *
- * @param[out] eth_handle_out initialized Ethernet driver handle
- * @return
- *          - ESP_OK on success
- *          - ESP_ERR_INVALID_ARG when passed invalid pointer
- *          - ESP_FAIL on any other failure
- */
+/** Initialize the board-managed Ethernet device. */
 static esp_err_t eth_init(esp_eth_handle_t *eth_handle_out)
 {
     if (eth_handle_out == NULL) {
-        ESP_LOGE(TAG, "invalid argument: eth_handle_out cannot be NULL");
         return ESP_ERR_INVALID_ARG;
     }
-
-    // Init common MAC and PHY configs to default
-    eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG();
-    eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
-
-    // Update PHY config based on board specific configuration
-    phy_config.phy_addr = CONFIG_EXAMPLE_ETH_PHY_ADDR;
-    phy_config.reset_gpio_num = CONFIG_EXAMPLE_ETH_PHY_RST_GPIO;
-#if CONFIG_EXAMPLE_ETH_PHY_RST_TIMING_EN
-    phy_config.hw_reset_assert_time_us = CONFIG_EXAMPLE_ETH_PHY_RST_ASSERT_TIME_US;
-    phy_config.post_hw_reset_delay_ms = CONFIG_EXAMPLE_ETH_PHY_RST_DELAY_MS;
-#endif // CONFIG_EXAMPLE_ETH_PHY_RST_TIMING_EN
-
-    // Init vendor specific MAC config to default
-    eth_esp32_emac_config_t esp32_emac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
-    // Update vendor specific MAC config based on board configuration
-    esp32_emac_config.smi_gpio.mdc_num = CONFIG_EXAMPLE_ETH_MDC_GPIO;
-    esp32_emac_config.smi_gpio.mdio_num = CONFIG_EXAMPLE_ETH_MDIO_GPIO;
-
-#if CONFIG_EXAMPLE_ETH_PHY_INTERFACE_RMII
-    // Configure RMII based on Kconfig when non-default configuration selected
-    esp32_emac_config.interface = EMAC_DATA_INTERFACE_RMII;
-
-    // Configure RMII clock mode and GPIO
-#if CONFIG_EXAMPLE_ETH_RMII_CLK_INPUT
-    esp32_emac_config.clock_config.rmii.clock_mode = EMAC_CLK_EXT_IN;
-#else // CONFIG_EXAMPLE_ETH_RMII_CLK_OUTPUT
-    esp32_emac_config.clock_config.rmii.clock_mode = EMAC_CLK_OUT;
-#endif
-    esp32_emac_config.clock_config.rmii.clock_gpio = CONFIG_EXAMPLE_ETH_RMII_CLK_GPIO;
-
-#if CONFIG_EXAMPLE_ETH_RMII_CLK_EXT_LOOPBACK_EN
-    esp32_emac_config.clock_config_out_in.rmii.clock_gpio = CONFIG_EXAMPLE_ETH_RMII_CLK_EXT_LOOPBACK_IN_GPIO;
-    esp32_emac_config.clock_config_out_in.rmii.clock_mode = EMAC_CLK_EXT_IN;
-#endif
-
-#if SOC_EMAC_USE_MULTI_IO_MUX
-    // Configure RMII datapane GPIOs
-    esp32_emac_config.emac_dataif_gpio.rmii.tx_en_num = CONFIG_EXAMPLE_ETH_RMII_TX_EN_GPIO;
-    esp32_emac_config.emac_dataif_gpio.rmii.txd0_num = CONFIG_EXAMPLE_ETH_RMII_TXD0_GPIO;
-    esp32_emac_config.emac_dataif_gpio.rmii.txd1_num = CONFIG_EXAMPLE_ETH_RMII_TXD1_GPIO;
-    esp32_emac_config.emac_dataif_gpio.rmii.crs_dv_num = CONFIG_EXAMPLE_ETH_RMII_CRS_DV_GPIO;
-    esp32_emac_config.emac_dataif_gpio.rmii.rxd0_num = CONFIG_EXAMPLE_ETH_RMII_RXD0_GPIO;
-    esp32_emac_config.emac_dataif_gpio.rmii.rxd1_num = CONFIG_EXAMPLE_ETH_RMII_RXD1_GPIO;
-#endif // SOC_EMAC_USE_MULTI_IO_MUX
-#endif // CONFIG_EXAMPLE_ETH_PHY_INTERFACE_RMII
-
-    // Create new ESP32 Ethernet MAC instance
-    esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&esp32_emac_config, &mac_config);
-    if (mac == NULL) {
-        ESP_LOGE(TAG, "create MAC instance failed");
-        return ESP_FAIL;
+    ESP_RETURN_ON_ERROR(esp_board_device_init("ethernet"), TAG, "Initialize Ethernet device");
+    dev_ethernet_handles_t *handles = NULL;
+    esp_err_t ret = esp_board_device_get_handle("ethernet", (void **)&handles);
+    if (ret != ESP_OK || handles == NULL) {
+        esp_board_device_deinit("ethernet");
+        return ret != ESP_OK ? ret : ESP_ERR_INVALID_STATE;
     }
-
-    // Create new generic PHY instance
-    esp_eth_phy_t *phy = esp_eth_phy_new_generic(&phy_config);
-    if (phy == NULL) {
-        ESP_LOGE(TAG, "create PHY instance failed");
-        mac->del(mac);
-        return ESP_FAIL;
-    }
-
-    // Init Ethernet driver to default and install it
-    esp_eth_handle_t eth_handle = NULL;
-    esp_eth_config_t config = ETH_DEFAULT_CONFIG(mac, phy);
-    if (esp_eth_driver_install(&config, &eth_handle) != ESP_OK) {
-        ESP_LOGE(TAG, "Ethernet driver install failed");
-        mac->del(mac);
-        phy->del(phy);
-        return ESP_FAIL;
-    }
-
-    *eth_handle_out = eth_handle;
-
+    *eth_handle_out = handles->eth_handle;
     return ESP_OK;
 }
 
@@ -124,21 +50,7 @@ static esp_err_t eth_init(esp_eth_handle_t *eth_handle_out)
 static esp_err_t eth_deinit(esp_eth_handle_t eth_handle)
 {
     ESP_RETURN_ON_FALSE(eth_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Ethernet handle cannot be NULL");
-
-    esp_eth_mac_t *mac = NULL;
-    esp_eth_phy_t *phy = NULL;
-    esp_eth_get_mac_instance(eth_handle, &mac);
-    esp_eth_get_phy_instance(eth_handle, &phy);
-    ESP_RETURN_ON_ERROR(esp_eth_driver_uninstall(eth_handle), TAG, "Ethernet %p uninstall failed", eth_handle);
-
-    if (mac != NULL) {
-        mac->del(mac);
-    }
-    if (phy != NULL) {
-        phy->del(phy);
-    }
-
-    return ESP_OK;
+    return esp_board_device_deinit("ethernet");
 }
 #endif // CONFIG_EXAMPLE_ETH_DEINIT_AFTER_S >= 0
 

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 #include <string.h>
+#include <stdlib.h>
 
 #include "esp_err.h"
 #include "esp_log.h"
@@ -15,8 +16,12 @@
 #include "driver/ppa.h"
 #include "app_video.h"
 
-#include "bsp/display.h"
-#include "bsp/esp-bsp.h"
+#include "esp_board_device.h"
+#include "dev_display_lcd.h"
+#include "dev_lcd_touch.h"
+#include "dev_camera.h"
+#include "lcd_brightness.h"
+#include "esp_lv_adapter.h"
 
 #define ALIGN_UP(num, align) (((num) + ((align) - 1)) & ~((align) - 1))
 
@@ -33,6 +38,9 @@ static const char *TAG = "app_main";
 static ppa_client_handle_t ppa_srm_handle = NULL;
 static size_t data_cache_line_size = 0;
 
+static lv_display_t *s_display;
+static uint16_t s_display_width;
+static uint16_t s_display_height;
 static bool dummy_draw_enabled = true;
 static bool dummy_mode_delay_flag = false;
 
@@ -53,16 +61,119 @@ static void calc_ppa_input_offset(uint32_t src_w, uint32_t src_h,
     }
 }
 
+static esp_err_t display_start(void)
+{
+    dev_display_lcd_config_t *display_config = NULL;
+    dev_display_lcd_handles_t *display_handles = NULL;
+    dev_lcd_touch_handles_t *touch_handles = NULL;
+    void *brightness = NULL;
+    lv_display_t *display = NULL;
+    lv_indev_t *touch = NULL;
+    bool adapter_initialized = false;
+    bool display_initialized = false;
+    bool touch_initialized = false;
+    bool brightness_initialized = false;
+
+    esp_err_t ret = esp_board_device_get_config("display_lcd", (void **)&display_config);
+    if (ret != ESP_OK || display_config == NULL || display_config->bits_per_pixel != 16) {
+        ret = ret != ESP_OK ? ret : ESP_ERR_NOT_SUPPORTED;
+        goto cleanup;
+    }
+    ret = esp_board_device_init("display_lcd");
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    display_initialized = true;
+    ret = esp_board_device_get_handle("display_lcd", (void **)&display_handles);
+    if (ret != ESP_OK || display_handles == NULL) {
+        goto cleanup;
+    }
+    ret = esp_board_device_init("lcd_touch");
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    touch_initialized = true;
+    ret = esp_board_device_get_handle("lcd_touch", (void **)&touch_handles);
+    if (ret != ESP_OK || touch_handles == NULL) {
+        goto cleanup;
+    }
+    ret = esp_board_device_init("lcd_brightness");
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    brightness_initialized = true;
+    ret = esp_board_device_get_handle("lcd_brightness", &brightness);
+    if (ret != ESP_OK || brightness == NULL) {
+        goto cleanup;
+    }
+    esp_lv_adapter_config_t adapter_config = ESP_LV_ADAPTER_DEFAULT_CONFIG();
+    ret = esp_lv_adapter_init(&adapter_config);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    adapter_initialized = true;
+    esp_lv_adapter_display_config_t adapter_display = ESP_LV_ADAPTER_DISPLAY_MIPI_DEFAULT_CONFIG(
+        display_handles->panel_handle, display_handles->io_handle, display_config->lcd_width,
+        display_config->lcd_height, ESP_LV_ADAPTER_ROTATE_0);
+    adapter_display.tear_avoid_mode = ESP_LV_ADAPTER_TEAR_AVOID_MODE_DEFAULT_MIPI_DSI;
+    display = esp_lv_adapter_register_display(&adapter_display);
+    if (display == NULL) {
+        ret = ESP_FAIL;
+        goto cleanup;
+    }
+    esp_lv_adapter_touch_config_t adapter_touch = ESP_LV_ADAPTER_TOUCH_DEFAULT_CONFIG(display, touch_handles->touch_handle);
+    touch = esp_lv_adapter_register_touch(&adapter_touch);
+    if (touch == NULL) {
+        ret = ESP_FAIL;
+        goto cleanup;
+    }
+    ret = esp_lv_adapter_start();
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    ret = esp_custom_lcd_brightness_set(brightness, 100);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    ret = esp_lv_adapter_set_dummy_draw(display, true);
+    if (ret != ESP_OK) {
+        goto cleanup;
+    }
+    s_display = display;
+    s_display_width = display_config->lcd_width;
+    s_display_height = display_config->lcd_height;
+    return ESP_OK;
+
+cleanup:
+    ESP_LOGE(TAG, "Failed to initialize display: %s", esp_err_to_name(ret != ESP_OK ? ret : ESP_FAIL));
+    if (touch != NULL) {
+        esp_lv_adapter_unregister_touch(touch);
+    }
+    if (display != NULL) {
+        esp_lv_adapter_unregister_display(display);
+    }
+    if (adapter_initialized) {
+        esp_lv_adapter_deinit();
+    }
+    if (brightness_initialized) {
+        esp_board_device_deinit("lcd_brightness");
+    }
+    if (touch_initialized) {
+        esp_board_device_deinit("lcd_touch");
+    }
+    if (display_initialized) {
+        esp_board_device_deinit("display_lcd");
+    }
+    return ret != ESP_OK ? ret : ESP_FAIL;
+}
+
 void app_main(void)
 {
-    if (bsp_display_start() == NULL)
-    {
-        ESP_LOGE(TAG, "BSP display start failed");
+    esp_err_t ret = display_start();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Display start failed: %s", esp_err_to_name(ret));
         return;
     }
-    bsp_display_backlight_on();
-
-    ESP_ERROR_CHECK(bsp_display_set_dummy_draw(dummy_draw_enabled));
 
     ppa_client_config_t ppa_srm_config = {
         .oper_type = PPA_OPERATION_SRM,
@@ -71,14 +182,19 @@ void app_main(void)
 
     ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM, &data_cache_line_size));
 
-    esp_err_t ret = bsp_camera_start(NULL);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG, "BSP camera start failed with err=0x%x", ret);
+    ret = esp_board_device_init("camera");
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Camera start failed: %s", esp_err_to_name(ret));
         return;
     }
-
-    int video_cam_fd0 = app_video_open(BSP_CAMERA_DEVICE, APP_VIDEO_FMT);
+    dev_camera_handle_t *camera_handle = NULL;
+    ret = esp_board_device_get_handle("camera", (void **)&camera_handle);
+    if (ret != ESP_OK || camera_handle == NULL || camera_handle->dev_path == NULL) {
+        ESP_LOGE(TAG, "Camera handle unavailable: %s", esp_err_to_name(ret));
+        esp_board_device_deinit("camera");
+        return;
+    }
+    int video_cam_fd0 = app_video_open((char *)camera_handle->dev_path, APP_VIDEO_FMT);
     if (video_cam_fd0 < 0)
     {
         ESP_LOGE(TAG, "video cam open failed");
@@ -94,6 +210,14 @@ void app_main(void)
             1,
             app_video_get_buf_size(),
             MALLOC_CAP_SPIRAM);
+        if (camera_buf[i] == NULL) {
+            ESP_LOGE(TAG, "Failed to allocate camera buffer");
+            for (int j = 0; j < i; j++) {
+                free(camera_buf[j]);
+            }
+            esp_board_device_deinit("camera");
+            return;
+        }
     }
     ESP_ERROR_CHECK(app_video_set_bufs(video_cam_fd0, 2, (void *)camera_buf));
 
@@ -120,8 +244,8 @@ static void camera_video_frame_operation(
     (void)camera_buf_len;
     (void)user_data;
 
-    const uint32_t display_width = BSP_LCD_H_RES;
-    const uint32_t display_height = BSP_LCD_V_RES;
+    const uint32_t display_width = s_display_width;
+    const uint32_t display_height = s_display_height;
 
     if (display_height == 0)
     {
@@ -143,7 +267,7 @@ static void camera_video_frame_operation(
     const size_t frame_buffer_size = ALIGN_UP(display_width * display_height * bytes_per_pixel,
                                               data_cache_line_size);
 
-    void *lcd_frame_buffer = bsp_display_get_free_frame_buffer();
+    void *lcd_frame_buffer = esp_lv_adapter_dummy_draw_get_free_buf(s_display);
     if (lcd_frame_buffer == NULL)
     {
         ESP_LOGE(TAG, "No free LCD frame buffer");
@@ -200,7 +324,7 @@ static void camera_video_frame_operation(
 
     if (dummy_draw_enabled && !dummy_mode_delay_flag)
     {
-        ret = bsp_display_flush_frame_buffer(lcd_frame_buffer);
+        ret = esp_lv_adapter_dummy_draw_flush_buf(s_display, lcd_frame_buffer);
 
         if (ret != ESP_OK)
         {
