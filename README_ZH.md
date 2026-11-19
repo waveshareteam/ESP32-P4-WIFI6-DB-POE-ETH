@@ -49,7 +49,7 @@
 4. Windows 运行 `flash_combined.bat COMx`，Linux 运行 `./flash_combined.sh /dev/ttyACM0`。
 5. 如果开发板未自动重启，请手动复位。
 
-出厂与协处理器固件：ESP-Brookesia 出厂固件源码见 [`examples/factory`](examples/factory/)；不同屏幕尺寸对应的 `FactoryOnly` 出厂固件与 ESP32-C5 协处理器固件二进制及烧录说明见 [`firmware`](firmware/) 目录（运行 Wi-Fi / 蓝牙等无线示例前需先烧录 C5 固件）。
+出厂与协处理器固件：ESP-Brookesia 出厂固件源码见 [`examples/factory`](examples/factory/)；不同屏幕型号对应的 `Factory` 出厂固件与 ESP32-C5 协处理器固件二进制及烧录说明见 [`firmware`](firmware/) 目录（运行 Wi-Fi / 蓝牙等无线示例前需先烧录 C5 固件）。
 
 ## 🧪 示例
 

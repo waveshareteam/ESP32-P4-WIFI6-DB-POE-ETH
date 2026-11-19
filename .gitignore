@@ -24,6 +24,7 @@ gen_bmgr_codes/
 # Runtime media and binary assets kept outside source control
 *.bin
 !firmware/*.bin
+!firmware/ESP32-C5/*.bin
 
 # Compiled C/C++ outputs
 *.d

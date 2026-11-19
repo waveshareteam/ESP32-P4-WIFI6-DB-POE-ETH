@@ -49,7 +49,7 @@ The fastest way to try an example is to flash a packaged firmware from the [late
 4. Run `flash_combined.bat COMx` on Windows or `./flash_combined.sh /dev/ttyACM0` on Linux.
 5. Reset the board if it does not restart automatically.
 
-Factory & coprocessor firmware: download the `FactoryOnly` image for your display size or the ESP32-C5 coprocessor firmware (required before running Wi-Fi or Bluetooth examples) from [`firmware`](firmware/); ESP-Brookesia factory source is in [`examples/factory`](examples/factory/).
+Factory & coprocessor firmware: download the `Factory` image for your display model or the ESP32-C5 coprocessor firmware (required before running Wi-Fi or Bluetooth examples) from [`firmware`](firmware/); ESP-Brookesia factory source is in [`examples/factory`](examples/factory/).
 
 ## 🧪 Examples
 
