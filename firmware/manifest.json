@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "products": [
+    {
+      "id": "esp32-p4-wifi6-db-poe-eth",
+      "model": "ESP32-P4-WIFI6-DB-POE-ETH",
+      "readme": {
+        "en": "firmware/README.md",
+        "zh": "firmware/README_ZH.md"
+      },
+      "files": [
+        "firmware/ESP32-P4-WIFI6-DB-POE-ETH-10.1-DSI-TOUCH-A_Factory_20261117.bin",
+        "firmware/ESP32-P4-WIFI6-DB-POE-ETH-5-DSI-TOUCH-A_Factory_20261117.bin",
+        "firmware/ESP32-P4-WIFI6-DB-POE-ETH-8-DSI-TOUCH-A_Factory_20261117.bin"
+      ]
+    }
+  ]
+}
