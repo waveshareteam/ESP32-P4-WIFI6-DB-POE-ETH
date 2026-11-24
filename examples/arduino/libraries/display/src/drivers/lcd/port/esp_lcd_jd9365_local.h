@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../../esp_panel_drivers_conf.h"
+#include "esp_panel_drivers_conf.h"
 #include "esp_lcd_panel_vendor.h"
 
 #ifdef __cplusplus

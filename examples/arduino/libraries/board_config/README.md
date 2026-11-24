@@ -37,10 +37,7 @@
 - ESP-Hosted SDIO：CLK/CMD/D0~D3/复位/唤醒=`GPIO18/19/14/15/16/17/54/6`。
 - RMII 以太网（PoE 供电）：MDC/MDIO/PHY reset=`GPIO31/52/51`，REF_CLK=`GPIO50`，
   TX_EN/TXD0/TXD1=`GPIO49/34/35`，CRS_DV/RXD0/RXD1=`GPIO28/29/30`，PHY 地址=`1`。
-  ESP-IDF BSP 使用 `esp_eth_phy_new_generic()`，未绑定具体 PHY 芯片型号，
-  `pins_arduino.h` 只提供了引脚宏，没有设置 `ETH.begin()` 需要的
-  `eth_phy_type_t`；实际使用前需确认板上 PHY 芯片型号，再从 Arduino-ESP32
-  的 `eth_phy_type_t` 中选择匹配项。
+  板载 IP101 PHY 使用外部 50 MHz REF_CLK 输入。选择本板后可用 `ETH.begin()` 加载板级默认配置。
 - MIPI-DSI LCD 没有 LCD 复位 GPIO；背光控制器位于共享 I2C 总线 `0x45` 的寄存器 `0x96`。
 - GT911 复位和中断脚均未连接，不能把 7C 的 GPIO23、GPIO30、GPIO31 映射带到本板。
 

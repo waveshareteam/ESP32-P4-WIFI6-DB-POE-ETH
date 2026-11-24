@@ -86,6 +86,7 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 | [board_check](examples/arduino/examples/board_check/) | Displays chip, flash, PSRAM, and memory information |
 | [gpio](examples/arduino/examples/gpio/) | Interactive GPIO test over serial |
 | [i2c](examples/arduino/examples/i2c/) | Scans the board's I2C1 bus |
+| [eth_ip101](examples/arduino/examples/eth_ip101/) | Shows Ethernet events and sends an HTTP request using the onboard IP101 PHY |
 | [i2s](examples/arduino/examples/i2s/) | ES8311 microphone-to-speaker audio loopback |
 | [sdmmc](examples/arduino/examples/sdmmc/) | microSD card read/write test |
 | [mipi_dsi](examples/arduino/examples/mipi_dsi/) | MIPI-DSI color-bar and backlight test |
@@ -96,7 +97,7 @@ Follow the [board definition installation guide](examples/arduino/libraries/boar
 | Framework | Version | Examples |
 | --- | --- | ---: |
 | ESP-IDF | `v5.5.6`, `v6.1` | 16 |
-| Arduino-ESP32 | `3.3.11` | 7 |
+| Arduino-ESP32 | `3.3.11` | 8 |
 
 ## 📚 Resources
 

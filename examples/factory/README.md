@@ -17,7 +17,7 @@ Wi-Fi and IP101 Ethernet.
 | --- | --- |
 | Host MCU | ESP32-P4NRW32X, 32 MB flash, 32 MB PSRAM |
 | Display / touch | Waveshare [5](https://www.waveshare.com/5-dsi-touch-a.htm), [7](https://www.waveshare.com/7-dsi-touch-a.htm), [8](https://www.waveshare.com/8-dsi-touch-a.htm) and [10.1](https://www.waveshare.com/10.1-dsi-touch-a.htm)-inch portrait panels, GT911 touch |
-| Framework | ESP-IDF v5.5.6 in the factory build configuration; `idf_component.yml` requires `>=5.5` |
+| Framework | Factory CI uses ESP-IDF v6.1; `idf_component.yml` requires `>=5.5.6` |
 | UI | LVGL 9.4.0 with the local ESP-Brookesia core 0.6.0-beta2 |
 | Board support | `waveshare/waveshare_boards` (`esp32_p4_wifi6_db_poe_eth`) via `esp_board_manager` |
 | LVGL adapter | `espressif/esp_lvgl_adapter` 0.6.3 |
@@ -68,7 +68,7 @@ for interfaces and pin assignments. The ESP32-P4/ESP32-C5 wireless host example 
 
 ### Requirements
 
-Use ESP-IDF v5.5.6 (or v5.5 or later) with the `esp32p4` toolchain. Network access
+Use ESP-IDF v6.1 to match factory CI, with the `esp32p4` toolchain. Network access
 to the ESP Component Registry is required. Use a data-capable USB cable for
 flashing.
 

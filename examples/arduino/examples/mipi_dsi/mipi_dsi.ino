@@ -1,26 +1,26 @@
 /**
  * MIPI-DSI LCD example for the Waveshare ESP32-P4-WIFI6-DB-POE-ETH.
  *
- * Select the project-local panel controller in esp_panel_drivers_conf.h.
+ * Select the panel controller in the display library configuration.
  */
 
 #include <Arduino.h>
 #include <driver/i2c.h>
 #include <freertos/FreeRTOS.h>
 
-#include "esp_panel_drivers_conf.h"
+#include <esp_panel_drivers_conf.h>
 #include <esp_display_panel.hpp>
 #include <esp_lcd_panel_ops.h>
 
 #if ESP_PANEL_DRIVERS_LCD_ENABLE_HX8394_LOCAL
-#include "src/drivers/lcd/esp_panel_lcd_hx8394.hpp"
+#include <drivers/lcd/esp_panel_lcd_hx8394.hpp>
 using selected_lcd_t = mipi_dsi::LCD_HX8394;
 #elif ESP_PANEL_DRIVERS_LCD_ENABLE_ILI9881C_LOCAL
-#include "src/drivers/lcd/esp_panel_lcd_ili9881c.hpp"
+#include <drivers/lcd/esp_panel_lcd_ili9881c.hpp>
 using selected_lcd_t = mipi_dsi::LCD_ILI9881C;
 #elif ESP_PANEL_DRIVERS_LCD_ENABLE_JD9365_LOCAL
-#include "src/drivers/lcd/port/esp_lcd_jd9365_local.h"
-#include "src/drivers/lcd/esp_panel_lcd_jd9365_local.hpp"
+#include <drivers/lcd/port/esp_lcd_jd9365_local.h>
+#include <drivers/lcd/esp_panel_lcd_jd9365_local.hpp>
 using selected_lcd_t = mipi_dsi::LCD_JD9365_LOCAL;
 #endif
 

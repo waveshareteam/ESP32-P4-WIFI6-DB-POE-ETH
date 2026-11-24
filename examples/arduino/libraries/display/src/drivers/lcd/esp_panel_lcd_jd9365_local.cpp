@@ -1,15 +1,13 @@
-#include "../../../esp_panel_drivers_conf.h"
+#include "esp_panel_drivers_conf.h"
 
-#if ESP_PANEL_DRIVERS_LCD_ENABLE_HX8394_LOCAL
+#if ESP_PANEL_DRIVERS_LCD_ENABLE_JD9365_LOCAL
 
-#include "esp_panel_lcd_hx8394.hpp"
+#include "esp_panel_lcd_jd9365_local.hpp"
 
 #include <drivers/lcd/port/esp_panel_lcd_vendor_types.h>
 
-#include "port/esp_lcd_hx8394.h"
+#include "port/esp_lcd_jd9365_local.h"
 
-#include <limits>
-#include <stdint.h>
 #include <variant>
 
 namespace mipi_dsi {
@@ -17,7 +15,7 @@ namespace mipi_dsi {
 using esp_panel::drivers::BusDSI;
 using esp_panel::drivers::LCD;
 
-const LCD::BasicBusSpecificationMap LCD_HX8394::_bus_specifications = {
+const LCD::BasicBusSpecificationMap LCD_JD9365_LOCAL::_bus_specifications = {
     {
         ESP_PANEL_BUS_TYPE_MIPI_DSI, LCD::BasicBusSpecification{
             .color_bits = (1U << LCD::BasicBusSpecification::COLOR_BITS_RGB565_16) |
@@ -29,12 +27,12 @@ const LCD::BasicBusSpecificationMap LCD_HX8394::_bus_specifications = {
     },
 };
 
-LCD_HX8394::~LCD_HX8394()
+LCD_JD9365_LOCAL::~LCD_JD9365_LOCAL()
 {
     del();
 }
 
-bool LCD_HX8394::init()
+bool LCD_JD9365_LOCAL::init()
 {
     if (isOverState(State::INIT)) {
         return false;
@@ -55,18 +53,15 @@ bool LCD_HX8394::init()
     if ((dpi_config == nullptr) || (device_config == nullptr) || (vendor_config == nullptr)) {
         return false;
     }
-    if (vendor_config->init_cmds_size > std::numeric_limits<uint16_t>::max()) {
-        return false;
-    }
 
-    esp_panel_lcd_vendor_config_t hx8394_config = *vendor_config;
-    hx8394_config.mipi_config.dsi_bus = dsi_bus->getHostHandle();
-    hx8394_config.mipi_config.dpi_config = dpi_config;
-    hx8394_config.mipi_config.lane_num = 2;
+    esp_panel_lcd_vendor_config_t jd9365_config = *vendor_config;
+    jd9365_config.mipi_config.dsi_bus = dsi_bus->getHostHandle();
+    jd9365_config.mipi_config.dpi_config = dpi_config;
+    jd9365_config.mipi_config.lane_num = 2;
 
     auto panel_config = *device_config;
-    panel_config.vendor_config = &hx8394_config;
-    if (esp_lcd_new_panel_hx8394(
+    panel_config.vendor_config = &jd9365_config;
+    if (esp_lcd_new_panel_jd9365_local(
             getBus()->getControlPanelHandle(), &panel_config, &refresh_panel
         ) != ESP_OK) {
         return false;
@@ -78,4 +73,4 @@ bool LCD_HX8394::init()
 
 }  // namespace mipi_dsi
 
-#endif // ESP_PANEL_DRIVERS_LCD_ENABLE_HX8394_LOCAL
+#endif // ESP_PANEL_DRIVERS_LCD_ENABLE_JD9365_LOCAL

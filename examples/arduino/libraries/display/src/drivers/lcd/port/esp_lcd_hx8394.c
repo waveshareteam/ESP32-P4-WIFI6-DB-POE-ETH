@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "../../../../esp_panel_drivers_conf.h"
+#include "esp_panel_drivers_conf.h"
 
 #if ESP_PANEL_DRIVERS_LCD_ENABLE_HX8394_LOCAL
 

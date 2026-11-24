@@ -17,7 +17,7 @@ Cycles color bars on the MIPI-DSI panel and tests the I2C backlight controller.
 2. Add the board by following the [board definition guide](../../libraries/board_config/README.md).
 3. Set the sketchbook location to `examples/arduino/`, or copy `examples/arduino/libraries/` to the `libraries` folder of your sketchbook.
 4. Select `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`.
-5. Install `ESP32_Display_Panel` 1.0.4, `ESP32_IO_Expander` 1.1.1 and `esp-lib-utils` 0.2.3, then enable one local LCD driver in `esp_panel_drivers_conf.h`; the default is the JD9365 10.1-inch panel.
+5. Install `ESP32_Display_Panel` 1.0.4, `ESP32_IO_Expander` 1.1.1 and `esp-lib-utils` 0.2.3. Select one LCD driver in the shared [display library configuration](../../libraries/display/src/esp_panel_drivers_conf.h). ILI9881C is enabled by default.
 6. Open `mipi_dsi.ino`, upload it and open the serial monitor at 115200 baud.
 
 ## Expected Result

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "../../../../esp_panel_drivers_conf.h"
+#include "esp_panel_drivers_conf.h"
 
 #if ESP_PANEL_DRIVERS_LCD_ENABLE_ILI9881C_LOCAL
 

@@ -16,7 +16,7 @@ ESP32-C5 Hosted Wi-Fi 和 IP101 以太网。
 | --- | --- |
 | 主控 | ESP32-P4NRW32X，32 MB Flash，32 MB PSRAM |
 | 显示 / 触摸 | 微雪 [5](https://www.waveshare.net/shop/5-DSI-TOUCH-A.htm)、[7](https://www.waveshare.net/shop/7-DSI-TOUCH-A.htm)、[8](https://www.waveshare.net/shop/8-DSI-TOUCH-A.htm)、[10.1](https://www.waveshare.net/shop/10.1-DSI-TOUCH-A.htm) 英寸竖屏，GT911 触摸 |
-| 框架 | 出厂构建配置使用 ESP-IDF v5.5.6；`idf_component.yml` 要求 `>=5.5` |
+| 框架 | 出厂 CI 使用 ESP-IDF v6.1；`idf_component.yml` 要求 `>=5.5.6` |
 | UI | LVGL 9.4.0，本地 ESP-Brookesia core 0.6.0-beta2 |
 | 板级支持 | 通过 `esp_board_manager` 使用 `waveshare/waveshare_boards`（`esp32_p4_wifi6_db_poe_eth`） |
 | LVGL 适配 | `espressif/esp_lvgl_adapter` 0.6.3 |
@@ -66,7 +66,7 @@ ESP32-P4 / ESP32-C5 无线 Host 示例见 [`03_wifi_sta`](../../examples/esp-idf
 
 ### 环境要求
 
-使用 ESP-IDF v5.5.6（或 v5.5 及以上）和 `esp32p4` 工具链，需要能访问 ESP 组件仓库。
+使用 ESP-IDF v6.1 和 `esp32p4` 工具链，以与出厂 CI 保持一致；需要能访问 ESP 组件仓库。
 烧录时请使用支持数据传输的 USB 线。
 
 以下命令都在本目录下运行。从仓库根目录开始：

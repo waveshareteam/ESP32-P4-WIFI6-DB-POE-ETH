@@ -194,7 +194,7 @@ The table lists every GPIO (0–54) and its board connection.
 
 ## 3.2. GPIO Header (P6)
 
-P6 is a 40-pin header that exposes 28 ESP32-P4 GPIOs plus 3.3 V, 5 V and ground. The 5 V pins are protected by the SMF5.0CA TVS diode D1. Pins marked \* are shared with onboard functions; see [Usage Notes](#35-usage-notes) before connecting external circuits to them.
+P6 is a 40-pin header that exposes 28 ESP32-P4 GPIOs plus 3.3 V, 5 V and ground. The 5 V pins are protected by the SMF5.0CA TVS diode D1. Pins marked \* are shared with onboard functions; see [Usage Notes](#36-usage-notes) before connecting external circuits to them.
 
 <details open>
 <summary><b>P6 Header (40 Pins)</b></summary>

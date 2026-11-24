@@ -86,6 +86,7 @@
 | [board_check](examples/arduino/examples/board_check/) | 查看芯片、Flash、PSRAM 和内存信息 |
 | [gpio](examples/arduino/examples/gpio/) | 通过串口交互测试 GPIO |
 | [i2c](examples/arduino/examples/i2c/) | 扫描开发板 I2C1 总线 |
+| [eth_ip101](examples/arduino/examples/eth_ip101/README_ZH.md) | 通过板载 IP101 PHY 演示以太网事件和 HTTP 请求 |
 | [i2s](examples/arduino/examples/i2s/) | ES8311 麦克风到扬声器的音频回环 |
 | [sdmmc](examples/arduino/examples/sdmmc/) | microSD 卡读写 |
 | [mipi_dsi](examples/arduino/examples/mipi_dsi/) | MIPI-DSI 屏幕色条和背光测试 |
@@ -96,7 +97,7 @@
 | 开发框架 | 版本 | 示例数 |
 | --- | --- | ---: |
 | ESP-IDF | `v5.5.6`、`v6.1` | 16 |
-| Arduino-ESP32 | `3.3.11` | 7 |
+| Arduino-ESP32 | `3.3.11` | 8 |
 
 ## 📚 资料
 

@@ -17,7 +17,7 @@
 2. 按[板卡定义安装说明](../../libraries/board_config/README.md)添加开发板。
 3. 把项目文件夹位置设为 `examples/arduino/`，或把 `examples/arduino/libraries/` 复制到项目文件夹下的 `libraries` 文件夹。
 4. 选择 `Waveshare ESP32-P4-WIFI6-DB-POE-ETH`。
-5. 安装 `ESP32_Display_Panel` 1.0.4、`ESP32_IO_Expander` 1.1.1 和 `esp-lib-utils` 0.2.3，然后在 `esp_panel_drivers_conf.h` 中启用一个本地 LCD 驱动，默认是 JD9365 10.1 英寸屏。
+5. 安装 `ESP32_Display_Panel` 1.0.4、`ESP32_IO_Expander` 1.1.1 和 `esp-lib-utils` 0.2.3。在[共享显示库配置](../../libraries/display/src/esp_panel_drivers_conf.h)中选择一个 LCD 驱动，默认启用 ILI9881C。
 6. 打开 `mipi_dsi.ino` 并上传，然后以 115200 波特率打开串口监视器。
 
 ## 预期现象

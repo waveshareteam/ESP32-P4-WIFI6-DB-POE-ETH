@@ -105,11 +105,7 @@ static const uint8_t T13 = 15;
 #define BOARD_SDIO_ESP_HOSTED_RESET 54
 #define BOARD_SDIO_ESP_HOSTED_WAKE 6
 
-// RMII Ethernet MAC/PHY, PoE-capable power input. The PHY is driven with
-// ESP-IDF's generic IEEE 802.3 PHY driver (esp_eth_phy_new_generic()); the
-// exact PHY chip is not confirmed, so ETH.begin()'s eth_phy_type_t is not
-// set here. Pick the matching type from Arduino-ESP32's eth_phy_type_t
-// once the PHY chip is confirmed.
+// IP101 RMII PHY with an external 50 MHz reference clock.
 #define BOARD_HAS_ETHERNET
 #define BOARD_ETH_PHY_ADDR 1
 #define BOARD_ETH_PHY_RST 51
@@ -123,7 +119,28 @@ static const uint8_t T13 = 15;
 #define BOARD_ETH_RMII_RXD0 29
 #define BOARD_ETH_RMII_RXD1 30
 
-// GPIO39-GPIO48 are powered by the ESP32-P4 on-chip LDO VO4.
+// Defaults used by Arduino-ESP32's ETH.begin().
+#ifndef ETH_PHY_TYPE
+#define ETH_PHY_TYPE ETH_PHY_IP101
+#endif
+#ifndef ETH_PHY_ADDR
+#define ETH_PHY_ADDR BOARD_ETH_PHY_ADDR
+#endif
+#ifndef ETH_PHY_MDC
+#define ETH_PHY_MDC BOARD_ETH_MDC
+#endif
+#ifndef ETH_PHY_MDIO
+#define ETH_PHY_MDIO BOARD_ETH_MDIO
+#endif
+#ifndef ETH_PHY_POWER
+#define ETH_PHY_POWER BOARD_ETH_PHY_RST
+#endif
+#ifndef ETH_CLK_MODE
+#define ETH_CLK_MODE EMAC_CLK_EXT_IN
+#endif
+
+// On-chip GP LDO: periman/hosted enable VO4 for GPIO 39-48 (VDD_IO_5), e.g. hosted D2/D3 = 48/47.
+// No on-board SDMMC slot on this board (no BOARD_HAS_SDMMC / BOARD_SDMMC_POWER_*).
 #define BOARD_PERIMAN_IO_LDO_AUTO 1
 #define BOARD_PERIMAN_IO_LDO0_CHANNEL 4
 #define BOARD_PERIMAN_IO_LDO0_GPIO_MIN 39
